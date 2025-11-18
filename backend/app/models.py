@@ -1,0 +1,200 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
+from datetime import datetime
+from enum import Enum
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    CLIENTE = "cliente"
+    MECANICO = "mecanico"
+
+class RepairStatus(str, Enum):
+    PENDING = "pending"
+    ASSIGNED = "assigned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class ServiceType(str, Enum):
+    MOBILE = "mobile"
+    WORKSHOP = "workshop"
+
+class User(BaseModel):
+    id: str
+    email: EmailStr
+    password_hash: str
+    name: str
+    role: UserRole
+    phone: str
+    created_at: datetime
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    role: UserRole
+    phone: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: EmailStr
+    name: str
+    role: UserRole
+    phone: str
+    created_at: datetime
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+    role: Optional[UserRole] = None
+
+class Client(BaseModel):
+    id: str
+    user_id: str
+    address: str
+    vehicle_info: str
+    created_at: datetime
+
+class ClientCreate(BaseModel):
+    user_id: str
+    address: str
+    vehicle_info: str
+
+class ClientResponse(BaseModel):
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    user_phone: str
+    address: str
+    vehicle_info: str
+    created_at: datetime
+
+class Mechanic(BaseModel):
+    id: str
+    user_id: str
+    specialties: List[str]
+    is_mobile: bool
+    rating: float
+    created_at: datetime
+
+class MechanicCreate(BaseModel):
+    user_id: str
+    specialties: List[str]
+    is_mobile: bool
+
+class MechanicResponse(BaseModel):
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    user_phone: str
+    specialties: List[str]
+    is_mobile: bool
+    rating: float
+    created_at: datetime
+
+class Workshop(BaseModel):
+    id: str
+    name: str
+    address: str
+    phone: str
+    services: List[str]
+    rating: float
+    created_at: datetime
+
+class WorkshopCreate(BaseModel):
+    name: str
+    address: str
+    phone: str
+    services: List[str]
+
+class WorkshopResponse(BaseModel):
+    id: str
+    name: str
+    address: str
+    phone: str
+    services: List[str]
+    rating: float
+    created_at: datetime
+
+class Repair(BaseModel):
+    id: str
+    client_id: str
+    mechanic_id: Optional[str] = None
+    workshop_id: Optional[str] = None
+    vehicle_info: str
+    issue_description: str
+    status: RepairStatus
+    service_type: ServiceType
+    location: str
+    scheduled_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    cost: Optional[float] = None
+    created_at: datetime
+
+class RepairCreate(BaseModel):
+    client_id: str
+    vehicle_info: str
+    issue_description: str
+    service_type: ServiceType
+    location: str
+    scheduled_date: Optional[datetime] = None
+
+class RepairUpdate(BaseModel):
+    mechanic_id: Optional[str] = None
+    workshop_id: Optional[str] = None
+    status: Optional[RepairStatus] = None
+    scheduled_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    cost: Optional[float] = None
+
+class RepairResponse(BaseModel):
+    id: str
+    client_id: str
+    client_name: str
+    mechanic_id: Optional[str] = None
+    mechanic_name: Optional[str] = None
+    workshop_id: Optional[str] = None
+    workshop_name: Optional[str] = None
+    vehicle_info: str
+    issue_description: str
+    status: RepairStatus
+    service_type: ServiceType
+    location: str
+    scheduled_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    cost: Optional[float] = None
+    created_at: datetime
+
+class AuthorizedPoint(BaseModel):
+    id: str
+    name: str
+    address: str
+    phone: str
+    services: List[str]
+    contact_person: str
+    created_at: datetime
+
+class AuthorizedPointCreate(BaseModel):
+    name: str
+    address: str
+    phone: str
+    services: List[str]
+    contact_person: str
+
+class AuthorizedPointResponse(BaseModel):
+    id: str
+    name: str
+    address: str
+    phone: str
+    services: List[str]
+    contact_person: str
+    created_at: datetime
