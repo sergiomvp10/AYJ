@@ -52,12 +52,14 @@ export interface Repair {
   workshop_name?: string;
   vehicle_info: string;
   issue_description: string;
-  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'assigned' | 'in_progress' | 'waiting_parts' | 'completed' | 'cancelled' | 'paid' | 'balance_pending';
   service_type: 'mobile' | 'workshop';
   location: string;
   scheduled_date?: string;
   completed_date?: string;
   cost?: number;
+  amount_charged?: number;
+  balance_pending?: number;
   created_at: string;
 }
 
@@ -68,6 +70,20 @@ export interface AuthorizedPoint {
   phone: string;
   services: string[];
   contact_person: string;
+  created_at: string;
+}
+
+export interface Part {
+  id: string;
+  repair_id: string;
+  name: string;
+  supplier_id?: string;
+  supplier_name?: string;
+  status: 'pending' | 'ordered' | 'received';
+  ordered_online: boolean;
+  estimated_arrival?: string;
+  cost?: number;
+  notes?: string;
   created_at: string;
 }
 
@@ -247,6 +263,8 @@ class ApiClient {
     scheduled_date?: string;
     completed_date?: string;
     cost?: number;
+    amount_charged?: number;
+    balance_pending?: number;
   }) {
     return this.request(`/api/repairs/${id}`, {
       method: 'PUT',
@@ -292,6 +310,46 @@ class ApiClient {
 
   async deleteAuthorizedPoint(id: string) {
     return this.request(`/api/authorized-points/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getPartsByRepair(repairId: string): Promise<Part[]> {
+    return this.request(`/api/repairs/${repairId}/parts`);
+  }
+
+  async createPart(data: {
+    repair_id: string;
+    name: string;
+    supplier_id?: string;
+    ordered_online: boolean;
+    estimated_arrival?: string;
+    cost?: number;
+    notes?: string;
+  }) {
+    return this.request('/api/parts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updatePart(id: string, data: {
+    name?: string;
+    supplier_id?: string;
+    status?: string;
+    ordered_online?: boolean;
+    estimated_arrival?: string;
+    cost?: number;
+    notes?: string;
+  }) {
+    return this.request(`/api/parts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePart(id: string) {
+    return this.request(`/api/parts/${id}`, {
       method: 'DELETE',
     });
   }

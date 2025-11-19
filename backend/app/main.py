@@ -12,6 +12,7 @@ from app.models import (
     WorkshopCreate, WorkshopResponse, Workshop,
     RepairCreate, RepairUpdate, RepairResponse, Repair, RepairStatus,
     AuthorizedPointCreate, AuthorizedPointResponse, AuthorizedPoint,
+    PartCreate, PartUpdate, PartResponse, Part, PartStatus,
     User, UserRole
 )
 from app.auth import (
@@ -682,3 +683,129 @@ async def delete_authorized_point(point_id: str, current_user: TokenData = Depen
     if not db.delete_authorized_point(point_id):
         raise HTTPException(status_code=404, detail="Authorized point not found")
     return {"message": "Authorized point deleted successfully"}
+
+@app.get("/api/repairs/{repair_id}/parts", response_model=List[PartResponse])
+async def list_parts_for_repair(repair_id: str, current_user: TokenData = Depends(get_current_user)):
+    repair = db.get_repair(repair_id)
+    if not repair:
+        raise HTTPException(status_code=404, detail="Repair not found")
+    
+    parts = db.get_parts_by_repair(repair_id)
+    result = []
+    for part in parts:
+        supplier_name = None
+        if part.supplier_id:
+            supplier = db.get_authorized_point(part.supplier_id)
+            supplier_name = supplier.name if supplier else None
+        
+        result.append(PartResponse(
+            id=part.id,
+            repair_id=part.repair_id,
+            name=part.name,
+            supplier_id=part.supplier_id,
+            supplier_name=supplier_name,
+            status=part.status,
+            ordered_online=part.ordered_online,
+            estimated_arrival=part.estimated_arrival,
+            cost=part.cost,
+            notes=part.notes,
+            created_at=part.created_at
+        ))
+    return result
+
+@app.post("/api/parts", response_model=PartResponse)
+async def create_part(part_data: PartCreate, current_user: TokenData = Depends(require_admin)):
+    repair = db.get_repair(part_data.repair_id)
+    if not repair:
+        raise HTTPException(status_code=404, detail="Repair not found")
+    
+    if part_data.supplier_id:
+        supplier = db.get_authorized_point(part_data.supplier_id)
+        if not supplier:
+            raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    part_id = str(uuid.uuid4())
+    part = Part(
+        id=part_id,
+        repair_id=part_data.repair_id,
+        name=part_data.name,
+        supplier_id=part_data.supplier_id,
+        status=PartStatus.PENDING,
+        ordered_online=part_data.ordered_online,
+        estimated_arrival=part_data.estimated_arrival,
+        cost=part_data.cost,
+        notes=part_data.notes,
+        created_at=datetime.utcnow()
+    )
+    
+    db.create_part(part)
+    
+    supplier_name = None
+    if part.supplier_id:
+        supplier = db.get_authorized_point(part.supplier_id)
+        supplier_name = supplier.name if supplier else None
+    
+    return PartResponse(
+        id=part.id,
+        repair_id=part.repair_id,
+        name=part.name,
+        supplier_id=part.supplier_id,
+        supplier_name=supplier_name,
+        status=part.status,
+        ordered_online=part.ordered_online,
+        estimated_arrival=part.estimated_arrival,
+        cost=part.cost,
+        notes=part.notes,
+        created_at=part.created_at
+    )
+
+@app.patch("/api/parts/{part_id}", response_model=PartResponse)
+async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenData = Depends(require_admin)):
+    existing_part = db.get_part(part_id)
+    if not existing_part:
+        raise HTTPException(status_code=404, detail="Part not found")
+    
+    if part_data.supplier_id:
+        supplier = db.get_authorized_point(part_data.supplier_id)
+        if not supplier:
+            raise HTTPException(status_code=404, detail="Supplier not found")
+    
+    updated_part = Part(
+        id=part_id,
+        repair_id=existing_part.repair_id,
+        name=part_data.name if part_data.name is not None else existing_part.name,
+        supplier_id=part_data.supplier_id if part_data.supplier_id is not None else existing_part.supplier_id,
+        status=part_data.status if part_data.status is not None else existing_part.status,
+        ordered_online=part_data.ordered_online if part_data.ordered_online is not None else existing_part.ordered_online,
+        estimated_arrival=part_data.estimated_arrival if part_data.estimated_arrival is not None else existing_part.estimated_arrival,
+        cost=part_data.cost if part_data.cost is not None else existing_part.cost,
+        notes=part_data.notes if part_data.notes is not None else existing_part.notes,
+        created_at=existing_part.created_at
+    )
+    
+    db.update_part(part_id, updated_part)
+    
+    supplier_name = None
+    if updated_part.supplier_id:
+        supplier = db.get_authorized_point(updated_part.supplier_id)
+        supplier_name = supplier.name if supplier else None
+    
+    return PartResponse(
+        id=updated_part.id,
+        repair_id=updated_part.repair_id,
+        name=updated_part.name,
+        supplier_id=updated_part.supplier_id,
+        supplier_name=supplier_name,
+        status=updated_part.status,
+        ordered_online=updated_part.ordered_online,
+        estimated_arrival=updated_part.estimated_arrival,
+        cost=updated_part.cost,
+        notes=updated_part.notes,
+        created_at=updated_part.created_at
+    )
+
+@app.delete("/api/parts/{part_id}")
+async def delete_part(part_id: str, current_user: TokenData = Depends(require_admin)):
+    if not db.delete_part(part_id):
+        raise HTTPException(status_code=404, detail="Part not found")
+    return {"message": "Part deleted successfully"}

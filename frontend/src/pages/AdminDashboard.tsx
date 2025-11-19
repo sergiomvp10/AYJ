@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, api } from '@/lib/api';
+import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminDashboardProps {
@@ -32,7 +32,18 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [visitDialog, setVisitDialog] = useState(false);
   const [repairDialog, setRepairDialog] = useState(false);
   const [authorizedPointDialog, setAuthorizedPointDialog] = useState(false);
+  const [partsDialog, setPartsDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedRepairForParts, setSelectedRepairForParts] = useState<Repair | null>(null);
+  const [parts, setParts] = useState<Part[]>([]);
+  const [partForm, setPartForm] = useState({
+    name: '',
+    supplier_id: '',
+    ordered_online: false,
+    estimated_arrival: '',
+    cost: '',
+    notes: '',
+  });
 
   const [clientForm, setClientForm] = useState({
     name: '',
@@ -81,7 +92,9 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     scheduled_time: '',
     mechanic_id: '',
     cost: '',
-    status: 'pending' as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'paid' | 'balance_pending',
+    amount_charged: '',
+    balance_pending: '',
+    status: 'pending' as 'pending' | 'assigned' | 'in_progress' | 'waiting_parts' | 'completed' | 'cancelled' | 'paid' | 'balance_pending',
   });
 
   const [authorizedPointForm, setAuthorizedPointForm] = useState({
@@ -421,6 +434,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         scheduled_time: '',
         mechanic_id: '',
         cost: '',
+        amount_charged: '',
+        balance_pending: '',
         status: 'pending',
       });
       loadData();
@@ -459,6 +474,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       pending: 'bg-yellow-100 text-yellow-800',
       assigned: 'bg-blue-100 text-blue-800',
       in_progress: 'bg-purple-100 text-purple-800',
+      waiting_parts: 'bg-amber-100 text-amber-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800',
       paid: 'bg-emerald-100 text-emerald-800',
@@ -468,12 +484,121 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       pending: 'Pendiente',
       assigned: 'Asignado',
       in_progress: 'En Progreso',
+      waiting_parts: 'Esperando Piezas',
       completed: 'Completado',
       cancelled: 'Cancelado',
       paid: 'Pagado',
       balance_pending: 'Balance Pendiente',
     };
     return <Badge className={variants[status] || ''}>{labels[status] || status}</Badge>;
+  };
+
+  const handleOpenPartsDialog = async (repair: Repair) => {
+    setSelectedRepairForParts(repair);
+    try {
+      const partsData = await api.getPartsByRepair(repair.id);
+      setParts(partsData);
+      setPartsDialog(true);
+    } catch (error) {
+      console.error('Error loading parts:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar las piezas',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCreatePart = async () => {
+    if (!selectedRepairForParts || !partForm.name) {
+      toast({
+        title: 'Error',
+        description: 'Por favor complete los campos requeridos',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await api.createPart({
+        repair_id: selectedRepairForParts.id,
+        name: partForm.name,
+        supplier_id: partForm.supplier_id || undefined,
+        ordered_online: partForm.ordered_online,
+        estimated_arrival: partForm.estimated_arrival || undefined,
+        cost: partForm.cost ? parseFloat(partForm.cost) : undefined,
+        notes: partForm.notes || undefined,
+      });
+
+      toast({
+        title: 'Éxito',
+        description: 'Pieza agregada correctamente',
+      });
+
+      const partsData = await api.getPartsByRepair(selectedRepairForParts.id);
+      setParts(partsData);
+      setPartForm({
+        name: '',
+        supplier_id: '',
+        ordered_online: false,
+        estimated_arrival: '',
+        cost: '',
+        notes: '',
+      });
+    } catch (error) {
+      console.error('Error creating part:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo agregar la pieza',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdatePartStatus = async (partId: string, newStatus: string) => {
+    try {
+      await api.updatePart(partId, { status: newStatus });
+      
+      toast({
+        title: 'Éxito',
+        description: 'Estado de pieza actualizado',
+      });
+
+      if (selectedRepairForParts) {
+        const partsData = await api.getPartsByRepair(selectedRepairForParts.id);
+        setParts(partsData);
+      }
+    } catch (error) {
+      console.error('Error updating part status:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el estado',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeletePart = async (partId: string) => {
+    try {
+      await api.deletePart(partId);
+      
+      toast({
+        title: 'Éxito',
+        description: 'Pieza eliminada correctamente',
+      });
+
+      if (selectedRepairForParts) {
+        const partsData = await api.getPartsByRepair(selectedRepairForParts.id);
+        setParts(partsData);
+      }
+    } catch (error) {
+      console.error('Error deleting part:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar la pieza',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -584,6 +709,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         <TableHead className="text-base font-semibold px-6 py-4">Tipo</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Estado</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Mecánico</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Piezas</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -597,6 +723,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="px-6 py-4">{getStatusBadge(repair.status)}</TableCell>
                           <TableCell className="text-base px-6 py-4">{repair.mechanic_name || 'Sin asignar'}</TableCell>
                           <TableCell className="px-6 py-4">
+                            <Button
+                              onClick={() => handleOpenPartsDialog(repair)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Package className="w-4 h-4 mr-2" />
+                              Gestionar
+                            </Button>
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <select
                               value={repair.status}
                               onChange={(e) => handleUpdateRepairStatus(repair.id, e.target.value)}
@@ -605,6 +741,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                               <option value="pending">Pendiente</option>
                               <option value="assigned">Asignado</option>
                               <option value="in_progress">En Progreso</option>
+                              <option value="waiting_parts">Esperando Piezas</option>
                               <option value="completed">Completado</option>
                               <option value="cancelled">Cancelado</option>
                               <option value="paid">Pagado</option>
@@ -1382,6 +1519,28 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 placeholder="0.00"
               />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-amount-charged">Monto Cobrado (opcional)</Label>
+              <Input
+                id="repair-amount-charged"
+                type="number"
+                step="0.01"
+                value={repairForm.amount_charged}
+                onChange={(e) => setRepairForm({ ...repairForm, amount_charged: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-balance-pending">Balance Pendiente (opcional)</Label>
+              <Input
+                id="repair-balance-pending"
+                type="number"
+                step="0.01"
+                value={repairForm.balance_pending}
+                onChange={(e) => setRepairForm({ ...repairForm, balance_pending: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRepairDialog(false)}>
@@ -1389,6 +1548,159 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Button>
             <Button onClick={handleCreateRepair}>
               Crear Reparación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={partsDialog} onOpenChange={setPartsDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gestionar Piezas</DialogTitle>
+            <DialogDescription>
+              {selectedRepairForParts && `Reparación: ${selectedRepairForParts.client_name} - ${selectedRepairForParts.vehicle_info}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <h3 className="font-semibold mb-4">Agregar Nueva Pieza</h3>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="part-name">Nombre de la Pieza *</Label>
+                  <Input
+                    id="part-name"
+                    value={partForm.name}
+                    onChange={(e) => setPartForm({ ...partForm, name: e.target.value })}
+                    placeholder="Ej: Filtro de aceite, Pastillas de freno"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="part-supplier">Proveedor (opcional)</Label>
+                  <select
+                    id="part-supplier"
+                    value={partForm.supplier_id}
+                    onChange={(e) => setPartForm({ ...partForm, supplier_id: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">Sin proveedor</option>
+                    {authorizedPoints.map((point) => (
+                      <option key={point.id} value={point.id}>
+                        {point.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="part-ordered-online"
+                    checked={partForm.ordered_online}
+                    onChange={(e) => setPartForm({ ...partForm, ordered_online: e.target.checked })}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="part-ordered-online">Ordenado en línea</Label>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="part-arrival">Fecha Estimada de Llegada (opcional)</Label>
+                  <Input
+                    id="part-arrival"
+                    type="date"
+                    value={partForm.estimated_arrival}
+                    onChange={(e) => setPartForm({ ...partForm, estimated_arrival: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="part-cost">Costo (opcional)</Label>
+                  <Input
+                    id="part-cost"
+                    type="number"
+                    step="0.01"
+                    value={partForm.cost}
+                    onChange={(e) => setPartForm({ ...partForm, cost: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="part-notes">Notas (opcional)</Label>
+                  <Textarea
+                    id="part-notes"
+                    value={partForm.notes}
+                    onChange={(e) => setPartForm({ ...partForm, notes: e.target.value })}
+                    placeholder="Notas adicionales sobre la pieza"
+                  />
+                </div>
+                <Button onClick={handleCreatePart}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar Pieza
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4">Piezas Registradas</h3>
+              {parts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No hay piezas registradas para esta reparación
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Pieza</TableHead>
+                      <TableHead>Proveedor</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Llegada Est.</TableHead>
+                      <TableHead>Costo</TableHead>
+                      <TableHead>Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parts.map((part) => (
+                      <TableRow key={part.id}>
+                        <TableCell className="font-medium">{part.name}</TableCell>
+                        <TableCell>{part.supplier_name || 'N/A'}</TableCell>
+                        <TableCell>
+                          <select
+                            value={part.status}
+                            onChange={(e) => handleUpdatePartStatus(part.id, e.target.value)}
+                            className="border rounded px-2 py-1 text-sm"
+                          >
+                            <option value="pending">Pendiente</option>
+                            <option value="ordered">Ordenado</option>
+                            <option value="received">Recibido</option>
+                          </select>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={part.ordered_online ? "default" : "secondary"}>
+                            {part.ordered_online ? 'En línea' : 'Presencial'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {part.estimated_arrival ? new Date(part.estimated_arrival).toLocaleDateString() : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          {part.cost ? `$${part.cost.toFixed(2)}` : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeletePart(part.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setPartsDialog(false)}>
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>

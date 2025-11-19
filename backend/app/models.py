@@ -12,6 +12,7 @@ class RepairStatus(str, Enum):
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
+    WAITING_PARTS = "waiting_parts"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
     PAID = "paid"
@@ -140,6 +141,8 @@ class Repair(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    amount_charged: Optional[float] = None
+    balance_pending: Optional[float] = None
     created_at: datetime
 
 class RepairCreate(BaseModel):
@@ -157,6 +160,8 @@ class RepairUpdate(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    amount_charged: Optional[float] = None
+    balance_pending: Optional[float] = None
 
 class RepairResponse(BaseModel):
     id: str
@@ -174,6 +179,8 @@ class RepairResponse(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    amount_charged: Optional[float] = None
+    balance_pending: Optional[float] = None
     created_at: datetime
 
 class AuthorizedPoint(BaseModel):
@@ -199,4 +206,52 @@ class AuthorizedPointResponse(BaseModel):
     phone: str
     services: List[str]
     contact_person: str
+    created_at: datetime
+
+class PartStatus(str, Enum):
+    PENDING = "pending"
+    ORDERED = "ordered"
+    RECEIVED = "received"
+
+class Part(BaseModel):
+    id: str
+    repair_id: str
+    name: str
+    supplier_id: Optional[str] = None  # ID of AuthorizedPoint
+    status: PartStatus
+    ordered_online: bool = False
+    estimated_arrival: Optional[datetime] = None
+    cost: Optional[float] = None
+    notes: Optional[str] = None
+    created_at: datetime
+
+class PartCreate(BaseModel):
+    repair_id: str
+    name: str
+    supplier_id: Optional[str] = None
+    ordered_online: bool = False
+    estimated_arrival: Optional[datetime] = None
+    cost: Optional[float] = None
+    notes: Optional[str] = None
+
+class PartUpdate(BaseModel):
+    name: Optional[str] = None
+    supplier_id: Optional[str] = None
+    status: Optional[PartStatus] = None
+    ordered_online: Optional[bool] = None
+    estimated_arrival: Optional[datetime] = None
+    cost: Optional[float] = None
+    notes: Optional[str] = None
+
+class PartResponse(BaseModel):
+    id: str
+    repair_id: str
+    name: str
+    supplier_id: Optional[str] = None
+    supplier_name: Optional[str] = None
+    status: PartStatus
+    ordered_online: bool
+    estimated_arrival: Optional[datetime] = None
+    cost: Optional[float] = None
+    notes: Optional[str] = None
     created_at: datetime

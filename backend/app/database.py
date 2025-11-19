@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional
-from app.models import User, Client, Mechanic, Workshop, Repair, AuthorizedPoint
+from app.models import User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part
 from app.auth import get_password_hash
 from datetime import datetime
 import uuid
@@ -12,6 +12,7 @@ class InMemoryDatabase:
         self.workshops: Dict[str, Workshop] = {}
         self.repairs: Dict[str, Repair] = {}
         self.authorized_points: Dict[str, AuthorizedPoint] = {}
+        self.parts: Dict[str, Part] = {}
         self._initialize_admin()
     
     def _initialize_admin(self):
@@ -156,6 +157,28 @@ class InMemoryDatabase:
     def delete_authorized_point(self, point_id: str) -> bool:
         if point_id in self.authorized_points:
             del self.authorized_points[point_id]
+            return True
+        return False
+    
+    def create_part(self, part: Part) -> Part:
+        self.parts[part.id] = part
+        return part
+    
+    def get_part(self, part_id: str) -> Optional[Part]:
+        return self.parts.get(part_id)
+    
+    def get_parts_by_repair(self, repair_id: str) -> List[Part]:
+        return [p for p in self.parts.values() if p.repair_id == repair_id]
+    
+    def update_part(self, part_id: str, part: Part) -> Optional[Part]:
+        if part_id in self.parts:
+            self.parts[part_id] = part
+            return part
+        return None
+    
+    def delete_part(self, part_id: str) -> bool:
+        if part_id in self.parts:
+            del self.parts[part_id]
             return True
         return False
 
