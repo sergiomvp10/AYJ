@@ -637,7 +637,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <img 
               src="/logo.png" 
               alt="AYJ Auto-Eléctrico Móvil" 
-              className="w-16 h-16 object-contain"
+              className="w-20 h-20 object-contain"
             />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
