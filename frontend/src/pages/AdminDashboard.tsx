@@ -30,6 +30,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [mechanicDialog, setMechanicDialog] = useState(false);
   const [workshopDialog, setWorkshopDialog] = useState(false);
   const [visitDialog, setVisitDialog] = useState(false);
+  const [repairDialog, setRepairDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [clientForm, setClientForm] = useState({
@@ -66,6 +67,20 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     address: '',
     phone: '',
     services: '',
+  });
+
+  const [repairForm, setRepairForm] = useState({
+    client_search: '',
+    client_id: '',
+    vehicle_info: '',
+    issue_description: '',
+    service_type: 'mobile' as 'mobile' | 'workshop',
+    location: '',
+    scheduled_date: '',
+    scheduled_time: '',
+    mechanic_id: '',
+    cost: '',
+    status: 'pending' as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'paid' | 'balance_pending',
   });
 
   useEffect(() => {
@@ -316,6 +331,92 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  const handleSelectClientForRepair = (client: Client) => {
+    setSelectedClient(client);
+    setRepairForm({
+      ...repairForm,
+      client_search: client.user_name,
+      client_id: client.id,
+      vehicle_info: client.vehicle_info,
+      location: client.address,
+    });
+  };
+
+  const handleCreateRepair = async () => {
+    if (!selectedClient) {
+      toast({
+        title: 'Error',
+        description: 'Debes seleccionar un cliente',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    try {
+      const scheduledDateTime = repairForm.scheduled_date && repairForm.scheduled_time
+        ? `${repairForm.scheduled_date}T${repairForm.scheduled_time}:00`
+        : undefined;
+      
+      await api.createRepair({
+        client_id: selectedClient.id,
+        vehicle_info: repairForm.vehicle_info,
+        issue_description: repairForm.issue_description,
+        service_type: repairForm.service_type,
+        location: repairForm.location,
+        scheduled_date: scheduledDateTime,
+      });
+
+      toast({
+        title: 'Éxito',
+        description: 'Reparación creada correctamente',
+      });
+      
+      setRepairDialog(false);
+      setSelectedClient(null);
+      setRepairForm({
+        client_search: '',
+        client_id: '',
+        vehicle_info: '',
+        issue_description: '',
+        service_type: 'mobile',
+        location: '',
+        scheduled_date: '',
+        scheduled_time: '',
+        mechanic_id: '',
+        cost: '',
+        status: 'pending',
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error creating repair:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo crear la reparación',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateRepairStatus = async (repairId: string, newStatus: string) => {
+    try {
+      await api.updateRepair(repairId, { status: newStatus });
+      
+      toast({
+        title: 'Éxito',
+        description: 'Estado actualizado correctamente',
+      });
+      
+      loadData();
+    } catch (error) {
+      console.error('Error updating repair status:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el estado',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -323,8 +424,19 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       in_progress: 'bg-purple-100 text-purple-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800',
+      paid: 'bg-emerald-100 text-emerald-800',
+      balance_pending: 'bg-orange-100 text-orange-800',
     };
-    return <Badge className={variants[status] || ''}>{status}</Badge>;
+    const labels: Record<string, string> = {
+      pending: 'Pendiente',
+      assigned: 'Asignado',
+      in_progress: 'En Progreso',
+      completed: 'Completado',
+      cancelled: 'Cancelado',
+      paid: 'Pagado',
+      balance_pending: 'Balance Pendiente',
+    };
+    return <Badge className={variants[status] || ''}>{labels[status] || status}</Badge>;
   };
 
   if (loading) {
@@ -410,35 +522,63 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
           <TabsContent value="repairs">
             <Card>
-              <CardHeader>
-                <CardTitle>Reparaciones</CardTitle>
-                <CardDescription>Lista de todas las reparaciones en el sistema</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Reparaciones</CardTitle>
+                  <CardDescription>Lista de todas las reparaciones en el sistema</CardDescription>
+                </div>
+                <Button onClick={() => setRepairDialog(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Reparación
+                </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Vehículo</TableHead>
-                      <TableHead>Descripción</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Mecánico</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {repairs.map((repair) => (
-                      <TableRow key={repair.id}>
-                        <TableCell className="font-medium">{repair.client_name}</TableCell>
-                        <TableCell>{repair.vehicle_info}</TableCell>
-                        <TableCell className="max-w-xs truncate">{repair.issue_description}</TableCell>
-                        <TableCell>{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</TableCell>
-                        <TableCell>{getStatusBadge(repair.status)}</TableCell>
-                        <TableCell>{repair.mechanic_name || 'Sin asignar'}</TableCell>
+                {repairs.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No hay reparaciones registradas
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Vehículo</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Mecánico</TableHead>
+                        <TableHead>Acciones</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {repairs.map((repair) => (
+                        <TableRow key={repair.id}>
+                          <TableCell className="font-medium">{repair.client_name}</TableCell>
+                          <TableCell>{repair.vehicle_info}</TableCell>
+                          <TableCell className="max-w-xs truncate">{repair.issue_description}</TableCell>
+                          <TableCell>{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</TableCell>
+                          <TableCell>{getStatusBadge(repair.status)}</TableCell>
+                          <TableCell>{repair.mechanic_name || 'Sin asignar'}</TableCell>
+                          <TableCell>
+                            <select
+                              value={repair.status}
+                              onChange={(e) => handleUpdateRepairStatus(repair.id, e.target.value)}
+                              className="text-sm border rounded px-2 py-1"
+                            >
+                              <option value="pending">Pendiente</option>
+                              <option value="assigned">Asignado</option>
+                              <option value="in_progress">En Progreso</option>
+                              <option value="completed">Completado</option>
+                              <option value="cancelled">Cancelado</option>
+                              <option value="paid">Pagado</option>
+                              <option value="balance_pending">Balance Pendiente</option>
+                            </select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -990,6 +1130,155 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Button>
             <Button onClick={handleCreateVisit}>
               Programar Visita
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Repair Creation Dialog */}
+      <Dialog open={repairDialog} onOpenChange={setRepairDialog}>
+        <DialogContent className="sm:max-w-md max-h-screen overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Crear Reparación</DialogTitle>
+            <DialogDescription>
+              Busca y selecciona un cliente para registrar una reparación
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="repair-client-search">Buscar Cliente</Label>
+              <Input
+                id="repair-client-search"
+                value={repairForm.client_search}
+                onChange={(e) => setRepairForm({ ...repairForm, client_search: e.target.value })}
+                placeholder="Buscar por nombre o email..."
+              />
+              {repairForm.client_search && filteredClients.length > 0 && !selectedClient && (
+                <div className="border rounded-md max-h-40 overflow-y-auto">
+                  {filteredClients.slice(0, 5).map((client) => (
+                    <div
+                      key={client.id}
+                      onClick={() => handleSelectClientForRepair(client)}
+                      className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                    >
+                      <div className="font-medium">{client.user_name}</div>
+                      <div className="text-sm text-gray-500">{client.user_email}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedClient && (
+                <div className="p-2 bg-blue-50 rounded-md border border-blue-200">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{selectedClient.user_name}</div>
+                      <div className="text-sm text-gray-500">{selectedClient.user_email}</div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedClient(null);
+                        setRepairForm({ ...repairForm, client_search: '', client_id: '', vehicle_info: '', location: '' });
+                      }}
+                    >
+                      Cambiar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-vehicle">Información del Vehículo</Label>
+              <Input
+                id="repair-vehicle"
+                value={repairForm.vehicle_info}
+                onChange={(e) => setRepairForm({ ...repairForm, vehicle_info: e.target.value })}
+                placeholder="Ej: Toyota Corolla 2020, Placa ABC123"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-issue">Descripción del Problema</Label>
+              <Textarea
+                id="repair-issue"
+                value={repairForm.issue_description}
+                onChange={(e) => setRepairForm({ ...repairForm, issue_description: e.target.value })}
+                placeholder="Describe el problema o servicio requerido"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-type">Tipo de Servicio</Label>
+              <select
+                id="repair-type"
+                value={repairForm.service_type}
+                onChange={(e) => setRepairForm({ ...repairForm, service_type: e.target.value as 'mobile' | 'workshop' })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="mobile">Mecánico Móvil (va a domicilio)</option>
+                <option value="workshop">Taller</option>
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-location">Ubicación</Label>
+              <Input
+                id="repair-location"
+                value={repairForm.location}
+                onChange={(e) => setRepairForm({ ...repairForm, location: e.target.value })}
+                placeholder="Dirección donde se realizará el servicio"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-date">Fecha Programada (opcional)</Label>
+              <Input
+                id="repair-date"
+                type="date"
+                value={repairForm.scheduled_date}
+                onChange={(e) => setRepairForm({ ...repairForm, scheduled_date: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-time">Hora Programada (opcional)</Label>
+              <Input
+                id="repair-time"
+                type="time"
+                value={repairForm.scheduled_time}
+                onChange={(e) => setRepairForm({ ...repairForm, scheduled_time: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-mechanic">Mecánico (opcional)</Label>
+              <select
+                id="repair-mechanic"
+                value={repairForm.mechanic_id}
+                onChange={(e) => setRepairForm({ ...repairForm, mechanic_id: e.target.value })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Sin asignar</option>
+                {mechanics.map((mechanic) => (
+                  <option key={mechanic.id} value={mechanic.id}>
+                    {mechanic.user_name} - {mechanic.is_mobile ? 'Móvil' : 'Taller'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="repair-cost">Costo (opcional)</Label>
+              <Input
+                id="repair-cost"
+                type="number"
+                step="0.01"
+                value={repairForm.cost}
+                onChange={(e) => setRepairForm({ ...repairForm, cost: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRepairDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateRepair}>
+              Crear Reparación
             </Button>
           </DialogFooter>
         </DialogContent>

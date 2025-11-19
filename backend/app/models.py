@@ -14,6 +14,8 @@ class RepairStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+    PAID = "paid"
+    BALANCE_PENDING = "balance_pending"
 
 class ServiceType(str, Enum):
     MOBILE = "mobile"
