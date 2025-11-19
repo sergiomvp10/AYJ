@@ -73,9 +73,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     name: '',
     email: '',
     phone: '',
-    password: '',
+    address: '',
     specialties: '',
     is_mobile: false,
+    speaks_english: false,
   });
 
   const [workshopForm, setWorkshopForm] = useState({

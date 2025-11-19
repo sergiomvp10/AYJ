@@ -86,15 +86,19 @@ class ClientResponse(BaseModel):
 class Mechanic(BaseModel):
     id: str
     user_id: str
+    address: str
     specialties: List[str]
     is_mobile: bool
+    speaks_english: bool
     rating: float
     created_at: datetime
 
 class MechanicCreate(BaseModel):
     user_id: str
+    address: str
     specialties: List[str]
     is_mobile: bool
+    speaks_english: bool
 
 class MechanicResponse(BaseModel):
     id: str
@@ -102,8 +106,10 @@ class MechanicResponse(BaseModel):
     user_name: str
     user_email: str
     user_phone: str
+    address: str
     specialties: List[str]
     is_mobile: bool
+    speaks_english: bool
     rating: float
     created_at: datetime
 

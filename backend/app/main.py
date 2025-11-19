@@ -230,8 +230,10 @@ async def list_mechanics(current_user: TokenData = Depends(require_admin)):
                 user_name=user.name,
                 user_email=user.email,
                 user_phone=user.phone,
+                address=mechanic.address,
                 specialties=mechanic.specialties,
                 is_mobile=mechanic.is_mobile,
+                speaks_english=mechanic.speaks_english,
                 rating=mechanic.rating,
                 created_at=mechanic.created_at
             ))
@@ -253,8 +255,10 @@ async def get_mechanic(mechanic_id: str, current_user: TokenData = Depends(requi
         user_name=user.name,
         user_email=user.email,
         user_phone=user.phone,
+        address=mechanic.address,
         specialties=mechanic.specialties,
         is_mobile=mechanic.is_mobile,
+        speaks_english=mechanic.speaks_english,
         rating=mechanic.rating,
         created_at=mechanic.created_at
     )
@@ -269,8 +273,10 @@ async def create_mechanic(mechanic_data: MechanicCreate, current_user: TokenData
     mechanic = Mechanic(
         id=mechanic_id,
         user_id=mechanic_data.user_id,
+        address=mechanic_data.address,
         specialties=mechanic_data.specialties,
         is_mobile=mechanic_data.is_mobile,
+        speaks_english=mechanic_data.speaks_english,
         rating=5.0,
         created_at=datetime.utcnow()
     )
@@ -283,8 +289,10 @@ async def create_mechanic(mechanic_data: MechanicCreate, current_user: TokenData
         user_name=user.name,
         user_email=user.email,
         user_phone=user.phone,
+        address=mechanic.address,
         specialties=mechanic.specialties,
         is_mobile=mechanic.is_mobile,
+        speaks_english=mechanic.speaks_english,
         rating=mechanic.rating,
         created_at=mechanic.created_at
     )
@@ -302,8 +310,10 @@ async def update_mechanic(mechanic_id: str, mechanic_data: MechanicCreate, curre
     updated_mechanic = Mechanic(
         id=mechanic_id,
         user_id=mechanic_data.user_id,
+        address=mechanic_data.address,
         specialties=mechanic_data.specialties,
         is_mobile=mechanic_data.is_mobile,
+        speaks_english=mechanic_data.speaks_english,
         rating=existing_mechanic.rating,
         created_at=existing_mechanic.created_at
     )
@@ -316,8 +326,10 @@ async def update_mechanic(mechanic_id: str, mechanic_data: MechanicCreate, curre
         user_name=user.name,
         user_email=user.email,
         user_phone=user.phone,
+        address=updated_mechanic.address,
         specialties=updated_mechanic.specialties,
         is_mobile=updated_mechanic.is_mobile,
+        speaks_english=updated_mechanic.speaks_english,
         rating=updated_mechanic.rating,
         created_at=updated_mechanic.created_at
     )
