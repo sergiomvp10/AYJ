@@ -417,14 +417,24 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         ? `${repairForm.scheduled_date}T${repairForm.scheduled_time}:00`
         : undefined;
       
-      await api.createRepair({
+      const repairData: any = {
         client_id: selectedClient.id,
         vehicle_info: repairForm.vehicle_info,
         issue_description: repairForm.issue_description,
         service_type: repairForm.service_type,
         location: repairForm.location,
         scheduled_date: scheduledDateTime,
-      });
+      };
+      
+      if (repairForm.mechanic_id) {
+        repairData.mechanic_id = repairForm.mechanic_id;
+      }
+      
+      const createdRepair = await api.createRepair(repairData);
+      
+      if (repairForm.mechanic_id) {
+        await api.updateRepair(createdRepair.id, { mechanic_id: repairForm.mechanic_id });
+      }
 
       toast({
         title: 'Éxito',
