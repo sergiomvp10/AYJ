@@ -51,7 +51,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     name: '',
     email: '',
     phone: '',
-    password: '',
+    city: '',
     address: '',
     vehicle_info: '',
   });
@@ -151,6 +151,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       
       await api.createClient({
         user_id: userData.id,
+        city: clientForm.city,
         address: clientForm.address,
         vehicle_info: clientForm.vehicle_info,
       });
@@ -161,7 +162,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       });
       
       setClientDialog(false);
-      setClientForm({ name: '', email: '', phone: '', password: '', address: '', vehicle_info: '' });
+      setClientForm({ name: '', email: '', phone: '', city: '', address: '', vehicle_info: '' });
       loadData();
     } catch (error) {
       console.error('Error creating client:', error);
@@ -795,12 +796,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-base font-semibold px-6 py-4">Nombre</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Email</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Teléfono</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Dirección</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Vehículo</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.name')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.email')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.phone')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.city')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.address')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.vehicle')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('clients:table.headers.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -809,6 +811,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="font-medium text-base px-6 py-4">{client.user_name}</TableCell>
                           <TableCell className="text-base px-6 py-4">{client.user_email}</TableCell>
                           <TableCell className="text-base px-6 py-4">{client.user_phone}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{client.city}</TableCell>
                           <TableCell className="text-base px-6 py-4">{client.address}</TableCell>
                           <TableCell className="text-base px-6 py-4">{client.vehicle_info}</TableCell>
                           <TableCell className="px-6 py-4">
@@ -1018,6 +1021,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 value={clientForm.phone}
                 onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
                 placeholder={t('clients:dialog.phone_placeholder')}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="client-city">{t('clients:dialog.city_label')}</Label>
+              <Input
+                id="client-city"
+                value={clientForm.city}
+                onChange={(e) => setClientForm({ ...clientForm, city: e.target.value })}
+                placeholder={t('clients:dialog.city_placeholder')}
               />
             </div>
             <div className="grid gap-2">

@@ -8,6 +8,7 @@
       "name": "Name",
       "email": "Email",
       "phone": "Phone",
+      "city": "City",
       "address": "Address",
       "vehicle": "Vehicle",
       "actions": "Actions"
@@ -24,8 +25,10 @@
     "phone_placeholder": "+1234567890",
     "password_label": "Password",
     "password_placeholder": "••••••••",
-    "address_label": "City",
-    "address_placeholder": "New York",
+    "city_label": "City",
+    "city_placeholder": "New York",
+    "address_label": "Address",
+    "address_placeholder": "123 Main Street",
     "vehicle_label": "Vehicle Information",
     "vehicle_placeholder": "Toyota Corolla 2020, Plate ABC123",
     "create_button": "Create Client"

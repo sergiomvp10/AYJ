@@ -61,12 +61,14 @@ class TokenData(BaseModel):
 class Client(BaseModel):
     id: str
     user_id: str
+    city: str
     address: str
     vehicle_info: str
     created_at: datetime
 
 class ClientCreate(BaseModel):
     user_id: str
+    city: str
     address: str
     vehicle_info: str
 
@@ -76,6 +78,7 @@ class ClientResponse(BaseModel):
     user_name: str
     user_email: str
     user_phone: str
+    city: str
     address: str
     vehicle_info: str
     created_at: datetime

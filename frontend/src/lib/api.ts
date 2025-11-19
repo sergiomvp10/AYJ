@@ -15,6 +15,7 @@ export interface Client {
   user_name: string;
   user_email: string;
   user_phone: string;
+  city: string;
   address: string;
   vehicle_info: string;
   created_at: string;
@@ -170,14 +171,14 @@ class ApiClient {
     return this.request('/api/clients');
   }
 
-  async createClient(data: { user_id: string; address: string; vehicle_info: string }) {
+  async createClient(data: { user_id: string; city: string; address: string; vehicle_info: string }) {
     return this.request('/api/clients', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateClient(id: string, data: { user_id: string; address: string; vehicle_info: string }) {
+  async updateClient(id: string, data: { user_id: string; city: string; address: string; vehicle_info: string }) {
     return this.request(`/api/clients/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
