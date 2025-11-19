@@ -1,0 +1,49 @@
+{
+  "client": {
+    "create_success": "Cliente Agregado con Éxito ✅",
+    "create_error": "Error al crear cliente",
+    "delete_success": "Cliente eliminado exitosamente",
+    "delete_error": "Error al eliminar cliente"
+  },
+  "mechanic": {
+    "create_success": "Mecánico creado exitosamente",
+    "create_error": "Error al crear mecánico",
+    "delete_success": "Mecánico eliminado exitosamente",
+    "delete_error": "Error al eliminar mecánico"
+  },
+  "workshop": {
+    "create_success": "Taller creado exitosamente",
+    "create_error": "Error al crear taller",
+    "delete_success": "Taller eliminado exitosamente",
+    "delete_error": "Error al eliminar taller"
+  },
+  "authorized_point": {
+    "create_success": "Punto autorizado registrado exitosamente",
+    "create_error": "Error al registrar punto autorizado",
+    "delete_success": "Punto autorizado eliminado exitosamente",
+    "delete_error": "Error al eliminar punto autorizado"
+  },
+  "repair": {
+    "create_success": "Reparación creada exitosamente",
+    "create_error": "Error al crear reparación",
+    "status_update_success": "Estado actualizado exitosamente",
+    "status_update_error": "Error al actualizar estado",
+    "delete_success": "Reparación eliminada exitosamente",
+    "delete_error": "Error al eliminar reparación"
+  },
+  "parts": {
+    "create_success": "Pieza agregada exitosamente",
+    "create_error": "Error al agregar pieza",
+    "update_success": "Pieza actualizada exitosamente",
+    "update_error": "Error al actualizar pieza",
+    "delete_success": "Pieza eliminada exitosamente",
+    "delete_error": "Error al eliminar pieza"
+  },
+  "vin": {
+    "decode_success": "VIN decodificado con éxito ✅",
+    "invalid_format": "Formato de VIN inválido. Debe tener 17 caracteres (sin I, O, o Q)",
+    "no_data": "No se encontraron datos para este VIN",
+    "service_unavailable": "Servicio de decodificación no disponible. Intenta más tarde",
+    "decode_error": "Error al decodificar VIN"
+  }
+}

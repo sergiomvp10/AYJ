@@ -1,0 +1,37 @@
+{
+  "title": "Mechanics",
+  "description": "List of all registered mechanics",
+  "add_button": "Add Mechanic",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "specialization": "Specialization",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "status": {
+    "available": "Available",
+    "busy": "Busy",
+    "offline": "Offline"
+  },
+  "dialog": {
+    "title": "Add Mechanic",
+    "description": "Complete the new mechanic details",
+    "name_label": "Name",
+    "name_placeholder": "Carlos Rodriguez",
+    "email_label": "Email",
+    "email_placeholder": "carlos@example.com",
+    "phone_label": "Phone",
+    "phone_placeholder": "+1234567890",
+    "address_label": "Address",
+    "address_placeholder": "123 Main Street, City",
+    "specialization_label": "Specialties (comma separated)",
+    "specialization_placeholder": "Brakes, Engine, Transmission",
+    "mobile_label": "Mobile mechanic (goes to customer location)",
+    "speaks_english_label": "Does speak English?",
+    "create_button": "Create Mechanic"
+  }
+}

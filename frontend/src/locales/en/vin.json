@@ -1,0 +1,23 @@
+{
+  "title": "VIN Decoder",
+  "input_label": "VIN (Vehicle Identification Number)",
+  "input_placeholder": "Enter 17 characters",
+  "decode_button": "Decode",
+  "decoding": "Decoding...",
+  "clear_button": "Clear",
+  "fields": {
+    "make": "Make",
+    "model": "Model",
+    "year": "Year",
+    "trim": "Trim",
+    "body_class": "Body Class",
+    "vehicle_type": "Vehicle Type",
+    "drive_type": "Drive Type",
+    "transmission": "Transmission",
+    "fuel_type": "Fuel Type",
+    "engine": "Engine",
+    "cylinders": "Cylinders",
+    "displacement": "Displacement",
+    "country": "Country of Manufacture"
+  }
+}

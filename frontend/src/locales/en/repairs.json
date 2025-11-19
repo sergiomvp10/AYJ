@@ -1,0 +1,55 @@
+{
+  "title": "Repairs",
+  "description": "List of all repairs in the system",
+  "create_button": "Create Repair",
+  "table": {
+    "headers": {
+      "client": "Client",
+      "vehicle": "Vehicle",
+      "description": "Description",
+      "type": "Type",
+      "status": "Status",
+      "mechanic": "Mechanic",
+      "parts": "Parts",
+      "actions": "Actions"
+    }
+  },
+  "status": {
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "in_progress": "In Progress",
+    "waiting_parts": "Waiting Parts",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "paid": "Paid",
+    "balance_pending": "Balance Pending"
+  },
+  "service_type": {
+    "mobile": "Mobile",
+    "workshop": "Workshop"
+  },
+  "dialog": {
+    "title": "Create Repair",
+    "description": "Search and select a client to register a repair",
+    "search_client": "Search Client",
+    "search_placeholder": "Search by name or email...",
+    "select_client": "Select Client",
+    "vehicle_label": "Vehicle Information",
+    "vehicle_placeholder": "Ex: Toyota Corolla 2020, Plate ABC123",
+    "issue_label": "Problem Description",
+    "issue_placeholder": "Describe the problem or required service",
+    "service_type_label": "Service Type",
+    "service_mobile": "Mobile Mechanic (goes to location)",
+    "service_workshop": "Workshop",
+    "location_label": "Location",
+    "location_placeholder": "Address where service will be performed",
+    "date_label": "Scheduled Date (optional)",
+    "time_label": "Scheduled Time (optional)",
+    "mechanic_label": "Mechanic (optional)",
+    "mechanic_placeholder": "Select a mechanic",
+    "cost_label": "Cost (optional)",
+    "amount_charged_label": "Amount Charged (optional)",
+    "balance_pending_label": "Balance Pending (optional)",
+    "create_button": "Create Repair"
+  }
+}

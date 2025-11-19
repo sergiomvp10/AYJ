@@ -1,0 +1,53 @@
+{
+  "title": "Clientes",
+  "description": "Lista de todos los clientes registrados",
+  "add_button": "Agregar Cliente",
+  "schedule_visit": "Programar Visita",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "city": "Ciudad",
+      "address": "Dirección",
+      "vehicle": "Vehículo",
+      "actions": "Acciones"
+    }
+  },
+  "dialog": {
+    "title": "Agregar Cliente",
+    "description": "Completa los datos del nuevo cliente",
+    "name_label": "Nombre",
+    "name_placeholder": "Juan Pérez",
+    "email_label": "Email",
+    "email_placeholder": "juan@ejemplo.com",
+    "phone_label": "Teléfono",
+    "phone_placeholder": "+1234567890",
+    "password_label": "Contraseña",
+    "password_placeholder": "••••••••",
+    "city_label": "Ciudad",
+    "city_placeholder": "Nueva York",
+    "address_label": "Dirección",
+    "address_placeholder": "Calle Principal 123",
+    "vehicle_label": "Información del Vehículo",
+    "vehicle_placeholder": "Toyota Corolla 2020, Placa ABC123",
+    "create_button": "Crear Cliente"
+  },
+  "visit_dialog": {
+    "title": "Programar Visita",
+    "description": "Programa una visita para el cliente seleccionado",
+    "search_label": "Buscar Cliente",
+    "search_placeholder": "Buscar por nombre o email...",
+    "select_client": "Seleccionar Cliente",
+    "client_label": "Cliente",
+    "date_label": "Fecha",
+    "time_label": "Hora",
+    "location_label": "Ubicación",
+    "location_placeholder": "Dirección de la visita",
+    "description_label": "Descripción del Problema",
+    "description_placeholder": "Describe el problema del vehículo...",
+    "mechanic_label": "Mecánico Asignado",
+    "mechanic_placeholder": "Selecciona un mecánico",
+    "schedule_button": "Programar Visita"
+  }
+}

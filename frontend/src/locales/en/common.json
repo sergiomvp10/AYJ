@@ -1,0 +1,17 @@
+{
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "close": "Close",
+    "change": "Change",
+    "search": "Search"
+  },
+  "none": "Unassigned",
+  "n_a": "N/A",
+  "loading": "Loading data...",
+  "no_records": "No {{entity}} registered"
+}

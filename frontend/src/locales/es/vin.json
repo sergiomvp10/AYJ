@@ -1,0 +1,23 @@
+{
+  "title": "Decodificador de VIN",
+  "input_label": "VIN (Número de Identificación del Vehículo)",
+  "input_placeholder": "Ingresa 17 caracteres",
+  "decode_button": "Decodificar",
+  "decoding": "Decodificando...",
+  "clear_button": "Limpiar",
+  "fields": {
+    "make": "Marca",
+    "model": "Modelo",
+    "year": "Año",
+    "trim": "Versión",
+    "body_class": "Tipo de Carrocería",
+    "vehicle_type": "Tipo de Vehículo",
+    "drive_type": "Tracción",
+    "transmission": "Transmisión",
+    "fuel_type": "Combustible",
+    "engine": "Motor",
+    "cylinders": "Cilindros",
+    "displacement": "Cilindrada",
+    "country": "País de Fabricación"
+  }
+}

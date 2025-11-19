@@ -1,0 +1,27 @@
+{
+  "title": "Workshops",
+  "description": "List of all registered workshops",
+  "add_button": "Add Workshop",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "address": "Address",
+      "phone": "Phone",
+      "services": "Services",
+      "actions": "Actions"
+    }
+  },
+  "dialog": {
+    "title": "Add Workshop",
+    "description": "Complete the new workshop details",
+    "name_label": "Name",
+    "name_placeholder": "Central Auto Workshop",
+    "address_label": "Address",
+    "address_placeholder": "456 Main Avenue",
+    "phone_label": "Phone",
+    "phone_placeholder": "+1234567890",
+    "services_label": "Services (comma separated)",
+    "services_placeholder": "Engine repair, Oil change, Alignment",
+    "create_button": "Create Workshop"
+  }
+}

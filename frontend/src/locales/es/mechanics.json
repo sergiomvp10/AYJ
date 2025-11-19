@@ -1,0 +1,37 @@
+{
+  "title": "Mecánicos",
+  "description": "Lista de todos los mecánicos registrados",
+  "add_button": "Agregar Mecánico",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "specialization": "Especialización",
+      "status": "Estado",
+      "actions": "Acciones"
+    }
+  },
+  "status": {
+    "available": "Disponible",
+    "busy": "Ocupado",
+    "offline": "Fuera de línea"
+  },
+  "dialog": {
+    "title": "Agregar Mecánico",
+    "description": "Completa los datos del nuevo mecánico",
+    "name_label": "Nombre",
+    "name_placeholder": "Carlos Rodríguez",
+    "email_label": "Email",
+    "email_placeholder": "carlos@ejemplo.com",
+    "phone_label": "Teléfono",
+    "phone_placeholder": "+1234567890",
+    "address_label": "Dirección",
+    "address_placeholder": "Calle Principal 123, Ciudad",
+    "specialization_label": "Especialidades (separadas por comas)",
+    "specialization_placeholder": "Frenos, Motor, Transmisión",
+    "mobile_label": "Mecánico móvil (va a domicilio)",
+    "speaks_english_label": "Habla Ingles?",
+    "create_button": "Crear Mecánico"
+  }
+}

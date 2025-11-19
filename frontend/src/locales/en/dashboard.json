@@ -1,0 +1,19 @@
+{
+  "title": "Admin Dashboard",
+  "welcome": "Welcome, {{name}}",
+  "logout": "Sign Out",
+  "tabs": {
+    "repairs": "Repairs",
+    "clients": "Clients",
+    "mechanics": "Mechanics",
+    "workshops": "Workshops",
+    "authorized_points": "Authorized Points"
+  },
+  "stats": {
+    "clients": "Clients",
+    "mechanics": "Mechanics",
+    "workshops": "Workshops",
+    "repairs": "Repairs",
+    "authorized_points": "Authorized Points"
+  }
+}

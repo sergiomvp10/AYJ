@@ -1,0 +1,49 @@
+{
+  "client": {
+    "create_success": "Client Added Successfully ✅",
+    "create_error": "Error creating client",
+    "delete_success": "Client deleted successfully",
+    "delete_error": "Error deleting client"
+  },
+  "mechanic": {
+    "create_success": "Mechanic created successfully",
+    "create_error": "Error creating mechanic",
+    "delete_success": "Mechanic deleted successfully",
+    "delete_error": "Error deleting mechanic"
+  },
+  "workshop": {
+    "create_success": "Workshop created successfully",
+    "create_error": "Error creating workshop",
+    "delete_success": "Workshop deleted successfully",
+    "delete_error": "Error deleting workshop"
+  },
+  "authorized_point": {
+    "create_success": "Authorized point registered successfully",
+    "create_error": "Error registering authorized point",
+    "delete_success": "Authorized point deleted successfully",
+    "delete_error": "Error deleting authorized point"
+  },
+  "repair": {
+    "create_success": "Repair created successfully",
+    "create_error": "Error creating repair",
+    "status_update_success": "Status updated successfully",
+    "status_update_error": "Error updating status",
+    "delete_success": "Repair deleted successfully",
+    "delete_error": "Error deleting repair"
+  },
+  "parts": {
+    "create_success": "Part added successfully",
+    "create_error": "Error adding part",
+    "update_success": "Part updated successfully",
+    "update_error": "Error updating part",
+    "delete_success": "Part deleted successfully",
+    "delete_error": "Error deleting part"
+  },
+  "vin": {
+    "decode_success": "VIN decoded successfully ✅",
+    "invalid_format": "Invalid VIN format. Must be 17 characters (no I, O, or Q)",
+    "no_data": "No data found for this VIN",
+    "service_unavailable": "Decoding service unavailable. Try again later",
+    "decode_error": "Error decoding VIN"
+  }
+}
