@@ -24,8 +24,8 @@
     "phone_placeholder": "+1234567890",
     "password_label": "Contraseña",
     "password_placeholder": "••••••••",
-    "address_label": "Dirección",
-    "address_placeholder": "Calle Principal 123",
+    "address_label": "Ciudad",
+    "address_placeholder": "Nueva York",
     "vehicle_label": "Información del Vehículo",
     "vehicle_placeholder": "Toyota Corolla 2020, Placa ABC123",
     "create_button": "Crear Cliente"
