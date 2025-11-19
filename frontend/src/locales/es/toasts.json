@@ -1,6 +1,6 @@
 {
   "client": {
-    "create_success": "Cliente creado exitosamente",
+    "create_success": "Cliente Agregado con Éxito ✅",
     "create_error": "Error al crear cliente",
     "delete_success": "Cliente eliminado exitosamente",
     "delete_error": "Error al eliminar cliente"

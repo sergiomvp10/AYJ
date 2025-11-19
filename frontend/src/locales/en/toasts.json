@@ -1,6 +1,6 @@
 {
   "client": {
-    "create_success": "Client created successfully",
+    "create_success": "Client Added Successfully ✅",
     "create_error": "Error creating client",
     "delete_success": "Client deleted successfully",
     "delete_error": "Error deleting client"

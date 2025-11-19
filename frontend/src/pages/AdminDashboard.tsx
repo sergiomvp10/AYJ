@@ -157,8 +157,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       });
 
       toast({
-        title: t('toasts:client_created_title'),
-        description: t('toasts:client_created_description'),
+        description: t('toasts:client.create_success'),
       });
       
       setClientDialog(false);
