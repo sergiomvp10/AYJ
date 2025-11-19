@@ -1,0 +1,40 @@
+{
+  "manage_button": "Manage",
+  "dialog": {
+    "title": "Manage Parts",
+    "description": "Repair: {{client}} - {{vehicle}}",
+    "add_new": "Add New Part",
+    "name_label": "Part Name *",
+    "name_placeholder": "Ex: Oil filter, Brake pads",
+    "supplier_label": "Supplier (optional)",
+    "supplier_none": "No supplier",
+    "ordered_online": "Ordered online",
+    "arrival_label": "Estimated Arrival Date (optional)",
+    "cost_label": "Cost (optional)",
+    "notes_label": "Notes (optional)",
+    "notes_placeholder": "Additional notes about the part",
+    "add_piece": "Add Part",
+    "registered": "Registered Parts",
+    "no_parts": "No parts registered for this repair",
+    "table": {
+      "headers": {
+        "piece": "Part",
+        "supplier": "Supplier",
+        "status": "Status",
+        "type": "Type",
+        "arrival_est": "Est. Arrival",
+        "cost": "Cost",
+        "actions": "Actions"
+      }
+    }
+  },
+  "status": {
+    "pending": "Pending",
+    "ordered": "Ordered",
+    "received": "Received"
+  },
+  "type": {
+    "online": "Online",
+    "in_person": "In-person"
+  }
+}

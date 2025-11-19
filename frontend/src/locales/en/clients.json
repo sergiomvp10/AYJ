@@ -1,0 +1,50 @@
+{
+  "title": "Clients",
+  "description": "List of all registered clients",
+  "add_button": "Add Client",
+  "schedule_visit": "Schedule Visit",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "vehicle": "Vehicle",
+      "actions": "Actions"
+    }
+  },
+  "dialog": {
+    "title": "Add Client",
+    "description": "Complete the new client details",
+    "name_label": "Name",
+    "name_placeholder": "John Doe",
+    "email_label": "Email",
+    "email_placeholder": "john@example.com",
+    "phone_label": "Phone",
+    "phone_placeholder": "+1234567890",
+    "password_label": "Password",
+    "password_placeholder": "••••••••",
+    "address_label": "Address",
+    "address_placeholder": "123 Main Street",
+    "vehicle_label": "Vehicle Information",
+    "vehicle_placeholder": "Toyota Corolla 2020, Plate ABC123",
+    "create_button": "Create Client"
+  },
+  "visit_dialog": {
+    "title": "Schedule Visit",
+    "description": "Schedule a visit for the selected client",
+    "search_label": "Search Client",
+    "search_placeholder": "Search by name or email...",
+    "select_client": "Select Client",
+    "client_label": "Client",
+    "date_label": "Date",
+    "time_label": "Time",
+    "location_label": "Location",
+    "location_placeholder": "Visit address",
+    "description_label": "Problem Description",
+    "description_placeholder": "Describe the vehicle problem...",
+    "mechanic_label": "Assigned Mechanic",
+    "mechanic_placeholder": "Select a mechanic",
+    "schedule_button": "Schedule Visit"
+  }
+}

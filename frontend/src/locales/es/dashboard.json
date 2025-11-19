@@ -1,0 +1,19 @@
+{
+  "title": "Panel de Administración",
+  "welcome": "Bienvenido, {{name}}",
+  "logout": "Cerrar Sesión",
+  "tabs": {
+    "repairs": "Reparaciones",
+    "clients": "Clientes",
+    "mechanics": "Mecánicos",
+    "workshops": "Talleres",
+    "authorized_points": "Puntos Autorizados"
+  },
+  "stats": {
+    "clients": "Clientes",
+    "mechanics": "Mecánicos",
+    "workshops": "Talleres",
+    "repairs": "Reparaciones",
+    "authorized_points": "Puntos Autorizados"
+  }
+}

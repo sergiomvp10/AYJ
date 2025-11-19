@@ -1,0 +1,30 @@
+{
+  "title": "Puntos Autorizados",
+  "description": "Lugares de confianza para comprar repuestos y materiales",
+  "add_button": "Registrar",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "services": "Servicios/Productos",
+      "contact": "Contacto",
+      "actions": "Acciones"
+    }
+  },
+  "dialog": {
+    "title": "Registrar Punto Autorizado",
+    "description": "Registra un lugar de confianza para comprar repuestos",
+    "name_label": "Nombre",
+    "name_placeholder": "Auto Repuestos Central",
+    "address_label": "Dirección",
+    "address_placeholder": "Calle Comercial 789",
+    "phone_label": "Teléfono",
+    "phone_placeholder": "+1234567890",
+    "services_label": "Servicios/Productos (separados por comas)",
+    "services_placeholder": "Repuestos originales, Accesorios, Herramientas",
+    "contact_label": "Persona de Contacto",
+    "contact_placeholder": "Nombre del contacto",
+    "register_button": "Registrar Punto"
+  }
+}

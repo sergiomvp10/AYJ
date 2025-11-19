@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
+  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'toasts', 'common']);
   const [clients, setClients] = useState<Client[]>([]);
   const [mechanics, setMechanics] = useState<Mechanic[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -982,75 +984,75 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={clientDialog} onOpenChange={setClientDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Agregar Cliente</DialogTitle>
+            <DialogTitle>{t('clients:dialog.title')}</DialogTitle>
             <DialogDescription>
-              Completa los datos del nuevo cliente
+              {t('clients:dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="client-name">Nombre</Label>
+              <Label htmlFor="client-name">{t('clients:dialog.name_label')}</Label>
               <Input
                 id="client-name"
                 value={clientForm.name}
                 onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
-                placeholder="Juan Pérez"
+                placeholder={t('clients:dialog.name_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="client-email">Email</Label>
+              <Label htmlFor="client-email">{t('clients:dialog.email_label')}</Label>
               <Input
                 id="client-email"
                 type="email"
                 value={clientForm.email}
                 onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
-                placeholder="juan@ejemplo.com"
+                placeholder={t('clients:dialog.email_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="client-phone">Teléfono</Label>
+              <Label htmlFor="client-phone">{t('clients:dialog.phone_label')}</Label>
               <Input
                 id="client-phone"
                 value={clientForm.phone}
                 onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
-                placeholder="+1234567890"
+                placeholder={t('clients:dialog.phone_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="client-password">Contraseña</Label>
+              <Label htmlFor="client-password">{t('clients:dialog.password_label')}</Label>
               <Input
                 id="client-password"
                 type="password"
                 value={clientForm.password}
                 onChange={(e) => setClientForm({ ...clientForm, password: e.target.value })}
-                placeholder="••••••••"
+                placeholder={t('clients:dialog.password_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="client-address">Dirección</Label>
+              <Label htmlFor="client-address">{t('clients:dialog.address_label')}</Label>
               <Input
                 id="client-address"
                 value={clientForm.address}
                 onChange={(e) => setClientForm({ ...clientForm, address: e.target.value })}
-                placeholder="Calle Principal 123"
+                placeholder={t('clients:dialog.address_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="client-vehicle">Información del Vehículo</Label>
+              <Label htmlFor="client-vehicle">{t('clients:dialog.vehicle_label')}</Label>
               <Textarea
                 id="client-vehicle"
                 value={clientForm.vehicle_info}
                 onChange={(e) => setClientForm({ ...clientForm, vehicle_info: e.target.value })}
-                placeholder="Toyota Corolla 2020, Placa ABC123"
+                placeholder={t('clients:dialog.vehicle_placeholder')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setClientDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleCreateClient}>
-              Crear Cliente
+              {t('clients:dialog.create_button')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1060,57 +1062,57 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={mechanicDialog} onOpenChange={setMechanicDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Agregar Mecánico</DialogTitle>
+            <DialogTitle>{t('mechanics:dialog.title')}</DialogTitle>
             <DialogDescription>
-              Completa los datos del nuevo mecánico
+              {t('mechanics:dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="mechanic-name">Nombre</Label>
+              <Label htmlFor="mechanic-name">{t('mechanics:dialog.name_label')}</Label>
               <Input
                 id="mechanic-name"
                 value={mechanicForm.name}
                 onChange={(e) => setMechanicForm({ ...mechanicForm, name: e.target.value })}
-                placeholder="Carlos Rodríguez"
+                placeholder={t('mechanics:dialog.name_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="mechanic-email">Email</Label>
+              <Label htmlFor="mechanic-email">{t('mechanics:dialog.email_label')}</Label>
               <Input
                 id="mechanic-email"
                 type="email"
                 value={mechanicForm.email}
                 onChange={(e) => setMechanicForm({ ...mechanicForm, email: e.target.value })}
-                placeholder="carlos@ejemplo.com"
+                placeholder={t('mechanics:dialog.email_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="mechanic-phone">Teléfono</Label>
+              <Label htmlFor="mechanic-phone">{t('mechanics:dialog.phone_label')}</Label>
               <Input
                 id="mechanic-phone"
                 value={mechanicForm.phone}
                 onChange={(e) => setMechanicForm({ ...mechanicForm, phone: e.target.value })}
-                placeholder="+1234567890"
+                placeholder={t('mechanics:dialog.phone_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="mechanic-password">Contraseña</Label>
+              <Label htmlFor="mechanic-password">{t('mechanics:dialog.password_label')}</Label>
               <Input
                 id="mechanic-password"
                 type="password"
                 value={mechanicForm.password}
                 onChange={(e) => setMechanicForm({ ...mechanicForm, password: e.target.value })}
-                placeholder="••••••••"
+                placeholder={t('mechanics:dialog.password_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="mechanic-specialties">Especialidades (separadas por comas)</Label>
+              <Label htmlFor="mechanic-specialties">{t('mechanics:dialog.specialization_label')}</Label>
               <Input
                 id="mechanic-specialties"
                 value={mechanicForm.specialties}
                 onChange={(e) => setMechanicForm({ ...mechanicForm, specialties: e.target.value })}
-                placeholder="Frenos, Motor, Transmisión"
+                placeholder={t('mechanics:dialog.specialization_placeholder')}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -1121,15 +1123,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 onChange={(e) => setMechanicForm({ ...mechanicForm, is_mobile: e.target.checked })}
                 className="w-4 h-4"
               />
-              <Label htmlFor="mechanic-mobile">Mecánico móvil (va a domicilio)</Label>
+              <Label htmlFor="mechanic-mobile">{t('mechanics:dialog.mobile_label')}</Label>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setMechanicDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleCreateMechanic}>
-              Crear Mecánico
+              {t('mechanics:dialog.create_button')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1139,55 +1141,55 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={workshopDialog} onOpenChange={setWorkshopDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Agregar Taller</DialogTitle>
+            <DialogTitle>{t('workshops:dialog.title')}</DialogTitle>
             <DialogDescription>
-              Completa los datos del nuevo taller
+              {t('workshops:dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="workshop-name">Nombre</Label>
+              <Label htmlFor="workshop-name">{t('workshops:dialog.name_label')}</Label>
               <Input
                 id="workshop-name"
                 value={workshopForm.name}
                 onChange={(e) => setWorkshopForm({ ...workshopForm, name: e.target.value })}
-                placeholder="Taller Mecánico Central"
+                placeholder={t('workshops:dialog.name_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="workshop-address">Dirección</Label>
+              <Label htmlFor="workshop-address">{t('workshops:dialog.address_label')}</Label>
               <Input
                 id="workshop-address"
                 value={workshopForm.address}
                 onChange={(e) => setWorkshopForm({ ...workshopForm, address: e.target.value })}
-                placeholder="Av. Principal 456"
+                placeholder={t('workshops:dialog.address_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="workshop-phone">Teléfono</Label>
+              <Label htmlFor="workshop-phone">{t('workshops:dialog.phone_label')}</Label>
               <Input
                 id="workshop-phone"
                 value={workshopForm.phone}
                 onChange={(e) => setWorkshopForm({ ...workshopForm, phone: e.target.value })}
-                placeholder="+1234567890"
+                placeholder={t('workshops:dialog.phone_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="workshop-services">Servicios (separados por comas)</Label>
+              <Label htmlFor="workshop-services">{t('workshops:dialog.services_label')}</Label>
               <Textarea
                 id="workshop-services"
                 value={workshopForm.services}
                 onChange={(e) => setWorkshopForm({ ...workshopForm, services: e.target.value })}
-                placeholder="Reparación de motor, Cambio de aceite, Alineación"
+                placeholder={t('workshops:dialog.services_placeholder')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWorkshopDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleCreateWorkshop}>
-              Crear Taller
+              {t('workshops:dialog.create_button')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1197,64 +1199,64 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={authorizedPointDialog} onOpenChange={setAuthorizedPointDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Registrar Punto Autorizado</DialogTitle>
+            <DialogTitle>{t('authorized_points:dialog.title')}</DialogTitle>
             <DialogDescription>
-              Completa los datos del punto autorizado (tienda de repuestos, materiales, etc.)
+              {t('authorized_points:dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="point-name">Nombre</Label>
+              <Label htmlFor="point-name">{t('authorized_points:dialog.name_label')}</Label>
               <Input
                 id="point-name"
                 value={authorizedPointForm.name}
                 onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, name: e.target.value })}
-                placeholder="Repuestos Central"
+                placeholder={t('authorized_points:dialog.name_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="point-address">Dirección</Label>
+              <Label htmlFor="point-address">{t('authorized_points:dialog.address_label')}</Label>
               <Input
                 id="point-address"
                 value={authorizedPointForm.address}
                 onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, address: e.target.value })}
-                placeholder="Av. Principal 789"
+                placeholder={t('authorized_points:dialog.address_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="point-phone">Teléfono</Label>
+              <Label htmlFor="point-phone">{t('authorized_points:dialog.phone_label')}</Label>
               <Input
                 id="point-phone"
                 value={authorizedPointForm.phone}
                 onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, phone: e.target.value })}
-                placeholder="+1234567890"
+                placeholder={t('authorized_points:dialog.phone_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="point-services">Productos/Servicios (separados por comas)</Label>
+              <Label htmlFor="point-services">{t('authorized_points:dialog.services_label')}</Label>
               <Textarea
                 id="point-services"
                 value={authorizedPointForm.services}
                 onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, services: e.target.value })}
-                placeholder="Repuestos, Aceites, Filtros, Baterías"
+                placeholder={t('authorized_points:dialog.services_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="point-contact">Persona de Contacto</Label>
+              <Label htmlFor="point-contact">{t('authorized_points:dialog.contact_label')}</Label>
               <Input
                 id="point-contact"
                 value={authorizedPointForm.contact_person}
                 onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, contact_person: e.target.value })}
-                placeholder="Juan Pérez"
+                placeholder={t('authorized_points:dialog.contact_placeholder')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAuthorizedPointDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleCreateAuthorizedPoint}>
-              Registrar
+              {t('authorized_points:dialog.register_button')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1264,19 +1266,19 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={visitDialog} onOpenChange={setVisitDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Programar Visita</DialogTitle>
+            <DialogTitle>{t('clients:visit_dialog.title')}</DialogTitle>
             <DialogDescription>
-              Busca y selecciona un cliente para programar una visita
+              {t('clients:visit_dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="client-search">Buscar Cliente</Label>
+              <Label htmlFor="client-search">{t('clients:visit_dialog.search_label')}</Label>
               <Input
                 id="client-search"
                 value={visitForm.client_search}
                 onChange={(e) => setVisitForm({ ...visitForm, client_search: e.target.value })}
-                placeholder="Buscar por nombre o email..."
+                placeholder={t('clients:visit_dialog.search_placeholder')}
               />
               {visitForm.client_search && filteredClients.length > 0 && !selectedClient && (
                 <div className="border rounded-md max-h-40 overflow-y-auto">
@@ -1307,14 +1309,14 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         setVisitForm({ ...visitForm, client_search: '', client_id: '', location: '' });
                       }}
                     >
-                      Cambiar
+                      {t('common:actions.change')}
                     </Button>
                   </div>
                 </div>
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="visit-date">Fecha</Label>
+              <Label htmlFor="visit-date">{t('clients:visit_dialog.date_label')}</Label>
               <Input
                 id="visit-date"
                 type="date"
@@ -1323,7 +1325,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="visit-time">Hora</Label>
+              <Label htmlFor="visit-time">{t('clients:visit_dialog.time_label')}</Label>
               <Input
                 id="visit-time"
                 type="time"
@@ -1332,58 +1334,58 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="visit-type">Tipo de Servicio</Label>
+              <Label htmlFor="visit-type">{t('repairs:dialog.service_type_label')}</Label>
               <select
                 id="visit-type"
                 value={visitForm.service_type}
                 onChange={(e) => setVisitForm({ ...visitForm, service_type: e.target.value as 'mobile' | 'workshop' })}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="mobile">Mecánico Móvil (va a domicilio)</option>
-                <option value="workshop">Taller</option>
+                <option value="mobile">{t('repairs:dialog.service_mobile')}</option>
+                <option value="workshop">{t('repairs:dialog.service_workshop')}</option>
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="visit-location">Ubicación</Label>
+              <Label htmlFor="visit-location">{t('clients:visit_dialog.location_label')}</Label>
               <Input
                 id="visit-location"
                 value={visitForm.location}
                 onChange={(e) => setVisitForm({ ...visitForm, location: e.target.value })}
-                placeholder="Dirección donde se realizará el servicio"
+                placeholder={t('clients:visit_dialog.location_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="visit-mechanic">Mecánico (opcional)</Label>
+              <Label htmlFor="visit-mechanic">{t('clients:visit_dialog.mechanic_label')}</Label>
               <select
                 id="visit-mechanic"
                 value={visitForm.mechanic_id}
                 onChange={(e) => setVisitForm({ ...visitForm, mechanic_id: e.target.value })}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="">Sin asignar</option>
+                <option value="">{t('common:none')}</option>
                 {mechanics.map((mechanic) => (
                   <option key={mechanic.id} value={mechanic.id}>
-                    {mechanic.user_name} - {mechanic.is_mobile ? 'Móvil' : 'Taller'}
+                    {mechanic.user_name} - {mechanic.is_mobile ? t('repairs:service_type.mobile') : t('repairs:service_type.workshop')}
                   </option>
                 ))}
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="visit-issue">Descripción del Problema</Label>
+              <Label htmlFor="visit-issue">{t('clients:visit_dialog.description_label')}</Label>
               <Textarea
                 id="visit-issue"
                 value={visitForm.issue_description}
                 onChange={(e) => setVisitForm({ ...visitForm, issue_description: e.target.value })}
-                placeholder="Describe el problema o servicio requerido"
+                placeholder={t('clients:visit_dialog.description_placeholder')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVisitDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleCreateVisit}>
-              Programar Visita
+              {t('clients:visit_dialog.schedule_button')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1393,19 +1395,19 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={repairDialog} onOpenChange={setRepairDialog}>
         <DialogContent className="sm:max-w-lg max-h-screen overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Crear Reparación</DialogTitle>
+            <DialogTitle>{t('repairs:dialog.title')}</DialogTitle>
             <DialogDescription>
-              Busca y selecciona un cliente para registrar una reparación
+              {t('repairs:dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="repair-client-search">Buscar Cliente</Label>
+              <Label htmlFor="repair-client-search">{t('repairs:dialog.search_client')}</Label>
               <Input
                 id="repair-client-search"
                 value={repairForm.client_search}
                 onChange={(e) => setRepairForm({ ...repairForm, client_search: e.target.value })}
-                placeholder="Buscar por nombre o email..."
+                placeholder={t('repairs:dialog.search_placeholder')}
               />
               {repairForm.client_search && filteredClients.length > 0 && !selectedClient && (
                 <div className="border rounded-md max-h-40 overflow-y-auto">
@@ -1436,53 +1438,53 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         setRepairForm({ ...repairForm, client_search: '', client_id: '', vehicle_info: '', location: '' });
                       }}
                     >
-                      Cambiar
+                      {t('common:actions.change')}
                     </Button>
                   </div>
                 </div>
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-vehicle">Información del Vehículo</Label>
+              <Label htmlFor="repair-vehicle">{t('repairs:dialog.vehicle_label')}</Label>
               <Input
                 id="repair-vehicle"
                 value={repairForm.vehicle_info}
                 onChange={(e) => setRepairForm({ ...repairForm, vehicle_info: e.target.value })}
-                placeholder="Ej: Toyota Corolla 2020, Placa ABC123"
+                placeholder={t('repairs:dialog.vehicle_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-issue">Descripción del Problema</Label>
+              <Label htmlFor="repair-issue">{t('repairs:dialog.issue_label')}</Label>
               <Textarea
                 id="repair-issue"
                 value={repairForm.issue_description}
                 onChange={(e) => setRepairForm({ ...repairForm, issue_description: e.target.value })}
-                placeholder="Describe el problema o servicio requerido"
+                placeholder={t('repairs:dialog.issue_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-type">Tipo de Servicio</Label>
+              <Label htmlFor="repair-type">{t('repairs:dialog.service_type_label')}</Label>
               <select
                 id="repair-type"
                 value={repairForm.service_type}
                 onChange={(e) => setRepairForm({ ...repairForm, service_type: e.target.value as 'mobile' | 'workshop' })}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="mobile">Mecánico Móvil (va a domicilio)</option>
-                <option value="workshop">Taller</option>
+                <option value="mobile">{t('repairs:dialog.service_mobile')}</option>
+                <option value="workshop">{t('repairs:dialog.service_workshop')}</option>
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-location">Ubicación</Label>
+              <Label htmlFor="repair-location">{t('repairs:dialog.location_label')}</Label>
               <Input
                 id="repair-location"
                 value={repairForm.location}
                 onChange={(e) => setRepairForm({ ...repairForm, location: e.target.value })}
-                placeholder="Dirección donde se realizará el servicio"
+                placeholder={t('repairs:dialog.location_placeholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-date">Fecha Programada (opcional)</Label>
+              <Label htmlFor="repair-date">{t('repairs:dialog.date_label')}</Label>
               <Input
                 id="repair-date"
                 type="date"
@@ -1491,7 +1493,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-time">Hora Programada (opcional)</Label>
+              <Label htmlFor="repair-time">{t('repairs:dialog.time_label')}</Label>
               <Input
                 id="repair-time"
                 type="time"
@@ -1500,23 +1502,23 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-mechanic">Mecánico (opcional)</Label>
+              <Label htmlFor="repair-mechanic">{t('repairs:dialog.mechanic_label')}</Label>
               <select
                 id="repair-mechanic"
                 value={repairForm.mechanic_id}
                 onChange={(e) => setRepairForm({ ...repairForm, mechanic_id: e.target.value })}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="">Sin asignar</option>
+                <option value="">{t('common:none')}</option>
                 {mechanics.map((mechanic) => (
                   <option key={mechanic.id} value={mechanic.id}>
-                    {mechanic.user_name} - {mechanic.is_mobile ? 'Móvil' : 'Taller'}
+                    {mechanic.user_name} - {mechanic.is_mobile ? t('repairs:service_type.mobile') : t('repairs:service_type.workshop')}
                   </option>
                 ))}
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-cost">Costo (opcional)</Label>
+              <Label htmlFor="repair-cost">{t('repairs:dialog.cost_label')}</Label>
               <Input
                 id="repair-cost"
                 type="number"
@@ -1527,7 +1529,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-amount-charged">Monto Cobrado (opcional)</Label>
+              <Label htmlFor="repair-amount-charged">{t('repairs:dialog.amount_charged_label')}</Label>
               <Input
                 id="repair-amount-charged"
                 type="number"
@@ -1538,7 +1540,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="repair-balance-pending">Balance Pendiente (opcional)</Label>
+              <Label htmlFor="repair-balance-pending">{t('repairs:dialog.balance_pending_label')}</Label>
               <Input
                 id="repair-balance-pending"
                 type="number"
@@ -1551,10 +1553,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRepairDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleCreateRepair}>
-              Crear Reparación
+              {t('repairs:dialog.create_button')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1563,33 +1565,33 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={partsDialog} onOpenChange={setPartsDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Gestionar Piezas</DialogTitle>
+            <DialogTitle>{t('parts:dialog.title')}</DialogTitle>
             <DialogDescription>
-              {selectedRepairForParts && `Reparación: ${selectedRepairForParts.client_name} - ${selectedRepairForParts.vehicle_info}`}
+              {selectedRepairForParts && `${t('parts:dialog.repair_label')}: ${selectedRepairForParts.client_name} - ${selectedRepairForParts.vehicle_info}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
             <div className="border rounded-lg p-4 bg-gray-50">
-              <h3 className="font-semibold mb-4">Agregar Nueva Pieza</h3>
+              <h3 className="font-semibold mb-4">{t('parts:dialog.add_new_part')}</h3>
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="part-name">Nombre de la Pieza *</Label>
+                  <Label htmlFor="part-name">{t('parts:dialog.name_label')}</Label>
                   <Input
                     id="part-name"
                     value={partForm.name}
                     onChange={(e) => setPartForm({ ...partForm, name: e.target.value })}
-                    placeholder="Ej: Filtro de aceite, Pastillas de freno"
+                    placeholder={t('parts:dialog.name_placeholder')}
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="part-supplier">Proveedor (opcional)</Label>
+                  <Label htmlFor="part-supplier">{t('parts:dialog.supplier_label')}</Label>
                   <select
                     id="part-supplier"
                     value={partForm.supplier_id}
                     onChange={(e) => setPartForm({ ...partForm, supplier_id: e.target.value })}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   >
-                    <option value="">Sin proveedor</option>
+                    <option value="">{t('parts:dialog.no_supplier')}</option>
                     {authorizedPoints.map((point) => (
                       <option key={point.id} value={point.id}>
                         {point.name}
@@ -1605,10 +1607,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     onChange={(e) => setPartForm({ ...partForm, ordered_online: e.target.checked })}
                     className="h-4 w-4"
                   />
-                  <Label htmlFor="part-ordered-online">Ordenado en línea</Label>
+                  <Label htmlFor="part-ordered-online">{t('parts:dialog.ordered_online')}</Label>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="part-arrival">Fecha Estimada de Llegada (opcional)</Label>
+                  <Label htmlFor="part-arrival">{t('parts:dialog.arrival_label')}</Label>
                   <Input
                     id="part-arrival"
                     type="date"
@@ -1617,7 +1619,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="part-cost">Costo (opcional)</Label>
+                  <Label htmlFor="part-cost">{t('parts:dialog.cost_label')}</Label>
                   <Input
                     id="part-cost"
                     type="number"
@@ -1628,38 +1630,38 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="part-notes">Notas (opcional)</Label>
+                  <Label htmlFor="part-notes">{t('parts:dialog.notes_label')}</Label>
                   <Textarea
                     id="part-notes"
                     value={partForm.notes}
                     onChange={(e) => setPartForm({ ...partForm, notes: e.target.value })}
-                    placeholder="Notas adicionales sobre la pieza"
+                    placeholder={t('parts:dialog.notes_placeholder')}
                   />
                 </div>
                 <Button onClick={handleCreatePart}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Agregar Pieza
+                  {t('parts:dialog.add_button')}
                 </Button>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Piezas Registradas</h3>
+              <h3 className="font-semibold mb-4">{t('parts:dialog.registered_parts')}</h3>
               {parts.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  No hay piezas registradas para esta reparación
+                  {t('parts:dialog.no_parts')}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Pieza</TableHead>
-                      <TableHead>Proveedor</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Llegada Est.</TableHead>
-                      <TableHead>Costo</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead>{t('parts:table.part')}</TableHead>
+                      <TableHead>{t('parts:table.supplier')}</TableHead>
+                      <TableHead>{t('parts:table.status')}</TableHead>
+                      <TableHead>{t('parts:table.type')}</TableHead>
+                      <TableHead>{t('parts:table.arrival')}</TableHead>
+                      <TableHead>{t('parts:table.cost')}</TableHead>
+                      <TableHead>{t('parts:table.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1673,14 +1675,14 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                             onChange={(e) => handleUpdatePartStatus(part.id, e.target.value)}
                             className="border rounded px-2 py-1 text-sm"
                           >
-                            <option value="pending">Pendiente</option>
-                            <option value="ordered">Ordenado</option>
-                            <option value="received">Recibido</option>
+                            <option value="pending">{t('parts:status.pending')}</option>
+                            <option value="ordered">{t('parts:status.ordered')}</option>
+                            <option value="received">{t('parts:status.received')}</option>
                           </select>
                         </TableCell>
                         <TableCell>
                           <Badge variant={part.ordered_online ? "default" : "secondary"}>
-                            {part.ordered_online ? 'En línea' : 'Presencial'}
+                            {part.ordered_online ? t('parts:type.online') : t('parts:type.in_person')}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -1707,7 +1709,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </div>
           <DialogFooter>
             <Button onClick={() => setPartsDialog(false)}>
-              Cerrar
+              {t('common:actions.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

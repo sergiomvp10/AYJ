@@ -1,0 +1,27 @@
+{
+  "title": "Talleres",
+  "description": "Lista de todos los talleres registrados",
+  "add_button": "Agregar Taller",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "services": "Servicios",
+      "actions": "Acciones"
+    }
+  },
+  "dialog": {
+    "title": "Agregar Taller",
+    "description": "Completa los datos del nuevo taller",
+    "name_label": "Nombre",
+    "name_placeholder": "Taller Mecánico Central",
+    "address_label": "Dirección",
+    "address_placeholder": "Av. Principal 456",
+    "phone_label": "Teléfono",
+    "phone_placeholder": "+1234567890",
+    "services_label": "Servicios (separados por comas)",
+    "services_placeholder": "Reparación de motor, Cambio de aceite, Alineación",
+    "create_button": "Crear Taller"
+  }
+}

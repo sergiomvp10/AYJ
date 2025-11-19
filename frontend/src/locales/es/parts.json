@@ -1,0 +1,40 @@
+{
+  "manage_button": "Gestionar",
+  "dialog": {
+    "title": "Gestionar Piezas",
+    "description": "Reparación: {{client}} - {{vehicle}}",
+    "add_new": "Agregar Nueva Pieza",
+    "name_label": "Nombre de la Pieza *",
+    "name_placeholder": "Ej: Filtro de aceite, Pastillas de freno",
+    "supplier_label": "Proveedor (opcional)",
+    "supplier_none": "Sin proveedor",
+    "ordered_online": "Ordenado en línea",
+    "arrival_label": "Fecha Estimada de Llegada (opcional)",
+    "cost_label": "Costo (opcional)",
+    "notes_label": "Notas (opcional)",
+    "notes_placeholder": "Notas adicionales sobre la pieza",
+    "add_piece": "Agregar Pieza",
+    "registered": "Piezas Registradas",
+    "no_parts": "No hay piezas registradas para esta reparación",
+    "table": {
+      "headers": {
+        "piece": "Pieza",
+        "supplier": "Proveedor",
+        "status": "Estado",
+        "type": "Tipo",
+        "arrival_est": "Llegada Est.",
+        "cost": "Costo",
+        "actions": "Acciones"
+      }
+    }
+  },
+  "status": {
+    "pending": "Pendiente",
+    "ordered": "Ordenado",
+    "received": "Recibido"
+  },
+  "type": {
+    "online": "En línea",
+    "in_person": "Presencial"
+  }
+}

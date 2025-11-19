@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
+  const { t } = useTranslation(['auth']);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +25,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       await onLogin(email, password);
     } catch {
-      setError('Credenciales inválidas. Por favor, intenta de nuevo.');
+      setError(t('auth:invalid_credentials'));
     } finally {
       setLoading(false);
     }
@@ -32,37 +35,40 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-end mb-2">
+            <LanguageSwitcher />
+          </div>
           <div className="flex justify-center mb-4">
             <img 
               src="/logo.png" 
-              alt="AYJ Auto-Eléctrico Móvil" 
+              alt={t('auth:title')}
               className="w-32 h-32 object-contain"
             />
           </div>
-          <CardTitle className="text-2xl font-bold">AYJ Auto-Eléctrico Móvil</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t('auth:title')}</CardTitle>
           <CardDescription>
-            Plataforma de conexión entre clientes y mecánicos
+            {t('auth:subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo Electrónico</Label>
+              <Label htmlFor="email">{t('auth:email_label')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="correo@ejemplo.com"
+                placeholder={t('auth:email_placeholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t('auth:password_label')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder={t('auth:password_placeholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -74,13 +80,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {loading ? t('auth:logging_in') : t('auth:login_button')}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Credenciales de prueba:</p>
+            <p>{t('auth:test_credentials')}</p>
             <p className="font-mono text-xs mt-2">
-              Admin: admin@ayj.com / admin123
+              {t('auth:admin_credentials')}
             </p>
           </div>
         </CardContent>

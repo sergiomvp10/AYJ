@@ -1,0 +1,55 @@
+{
+  "title": "Reparaciones",
+  "description": "Lista de todas las reparaciones en el sistema",
+  "create_button": "Crear Reparación",
+  "table": {
+    "headers": {
+      "client": "Cliente",
+      "vehicle": "Vehículo",
+      "description": "Descripción",
+      "type": "Tipo",
+      "status": "Estado",
+      "mechanic": "Mecánico",
+      "parts": "Piezas",
+      "actions": "Acciones"
+    }
+  },
+  "status": {
+    "pending": "Pendiente",
+    "assigned": "Asignado",
+    "in_progress": "En Progreso",
+    "waiting_parts": "Esperando Piezas",
+    "completed": "Completado",
+    "cancelled": "Cancelado",
+    "paid": "Pagado",
+    "balance_pending": "Balance Pendiente"
+  },
+  "service_type": {
+    "mobile": "Móvil",
+    "workshop": "Taller"
+  },
+  "dialog": {
+    "title": "Crear Reparación",
+    "description": "Busca y selecciona un cliente para registrar una reparación",
+    "search_client": "Buscar Cliente",
+    "search_placeholder": "Buscar por nombre o email...",
+    "select_client": "Seleccionar Cliente",
+    "vehicle_label": "Información del Vehículo",
+    "vehicle_placeholder": "Ej: Toyota Corolla 2020, Placa ABC123",
+    "issue_label": "Descripción del Problema",
+    "issue_placeholder": "Describe el problema o servicio requerido",
+    "service_type_label": "Tipo de Servicio",
+    "service_mobile": "Mecánico Móvil (va a domicilio)",
+    "service_workshop": "Taller",
+    "location_label": "Ubicación",
+    "location_placeholder": "Dirección donde se realizará el servicio",
+    "date_label": "Fecha Programada (opcional)",
+    "time_label": "Hora Programada (opcional)",
+    "mechanic_label": "Mecánico (opcional)",
+    "mechanic_placeholder": "Selecciona un mecánico",
+    "cost_label": "Costo (opcional)",
+    "amount_charged_label": "Monto Cobrado (opcional)",
+    "balance_pending_label": "Balance Pendiente (opcional)",
+    "create_button": "Crear Reparación"
+  }
+}
