@@ -479,7 +479,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Cargando datos...</div>
+        <div className="text-2xl">Cargando datos...</div>
       </div>
     );
   }
@@ -487,120 +487,120 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="max-w-screen-2xl mx-auto px-6 sm:px-8 lg:px-10 py-6 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
-            <p className="text-sm text-gray-600">Bienvenido, {user.name}</p>
+            <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
+            <p className="text-base text-gray-600">Bienvenido, {user.name}</p>
           </div>
-          <Button onClick={onLogout} variant="outline">
-            <LogOut className="w-4 h-4 mr-2" />
+          <Button onClick={onLogout} variant="outline" size="lg">
+            <LogOut className="w-5 h-5 mr-2" />
             Cerrar Sesión
           </Button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <main className="max-w-screen-2xl mx-auto px-6 sm:px-8 lg:px-10 py-8 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">Clientes</CardTitle>
+              <Users className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{clients.length}</div>
+              <div className="text-3xl font-bold">{clients.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mecánicos</CardTitle>
-              <Wrench className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">Mecánicos</CardTitle>
+              <Wrench className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mechanics.length}</div>
+              <div className="text-3xl font-bold">{mechanics.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Talleres</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">Talleres</CardTitle>
+              <Building2 className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{workshops.length}</div>
+              <div className="text-3xl font-bold">{workshops.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reparaciones</CardTitle>
-              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">Reparaciones</CardTitle>
+              <ClipboardList className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{repairs.length}</div>
+              <div className="text-3xl font-bold">{repairs.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Puntos Autorizados</CardTitle>
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">Puntos Autorizados</CardTitle>
+              <MapPin className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{authorizedPoints.length}</div>
+              <div className="text-3xl font-bold">{authorizedPoints.length}</div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="repairs" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="repairs">Reparaciones</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
-            <TabsTrigger value="mechanics">Mecánicos</TabsTrigger>
-            <TabsTrigger value="workshops">Talleres</TabsTrigger>
-            <TabsTrigger value="points">Puntos Autorizados</TabsTrigger>
+        <Tabs defaultValue="repairs" className="space-y-6">
+          <TabsList className="h-12">
+            <TabsTrigger value="repairs" className="text-base px-6">Reparaciones</TabsTrigger>
+            <TabsTrigger value="clients" className="text-base px-6">Clientes</TabsTrigger>
+            <TabsTrigger value="mechanics" className="text-base px-6">Mecánicos</TabsTrigger>
+            <TabsTrigger value="workshops" className="text-base px-6">Talleres</TabsTrigger>
+            <TabsTrigger value="points" className="text-base px-6">Puntos Autorizados</TabsTrigger>
           </TabsList>
 
           <TabsContent value="repairs">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Reparaciones</CardTitle>
-                  <CardDescription>Lista de todas las reparaciones en el sistema</CardDescription>
+                  <CardTitle className="text-xl">Reparaciones</CardTitle>
+                  <CardDescription className="text-base">Lista de todas las reparaciones en el sistema</CardDescription>
                 </div>
-                <Button onClick={() => setRepairDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={() => setRepairDialog(true)} size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
                   Crear Reparación
                 </Button>
               </CardHeader>
               <CardContent>
                 {repairs.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-12 text-gray-500 text-lg">
                     No hay reparaciones registradas
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Vehículo</TableHead>
-                        <TableHead>Descripción</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Mecánico</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Cliente</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Vehículo</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Descripción</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Tipo</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Estado</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Mecánico</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {repairs.map((repair) => (
                         <TableRow key={repair.id}>
-                          <TableCell className="font-medium">{repair.client_name}</TableCell>
-                          <TableCell>{repair.vehicle_info}</TableCell>
-                          <TableCell className="max-w-xs truncate">{repair.issue_description}</TableCell>
-                          <TableCell>{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</TableCell>
-                          <TableCell>{getStatusBadge(repair.status)}</TableCell>
-                          <TableCell>{repair.mechanic_name || 'Sin asignar'}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium text-base px-6 py-4">{repair.client_name}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{repair.vehicle_info}</TableCell>
+                          <TableCell className="max-w-xs truncate text-base px-6 py-4">{repair.issue_description}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</TableCell>
+                          <TableCell className="px-6 py-4">{getStatusBadge(repair.status)}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{repair.mechanic_name || 'Sin asignar'}</TableCell>
+                          <TableCell className="px-6 py-4">
                             <select
                               value={repair.status}
                               onChange={(e) => handleUpdateRepairStatus(repair.id, e.target.value)}
-                              className="text-sm border rounded px-2 py-1"
+                              className="text-base border rounded px-3 py-2"
                             >
                               <option value="pending">Pendiente</option>
                               <option value="assigned">Asignado</option>
@@ -624,52 +624,52 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Clientes</CardTitle>
-                  <CardDescription>Lista de todos los clientes registrados</CardDescription>
+                  <CardTitle className="text-xl">Clientes</CardTitle>
+                  <CardDescription className="text-base">Lista de todos los clientes registrados</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={() => setVisitDialog(true)}>
-                    <Calendar className="w-4 h-4 mr-2" />
+                  <Button onClick={() => setVisitDialog(true)} size="lg">
+                    <Calendar className="w-5 h-5 mr-2" />
                     Programar Visita
                   </Button>
-                  <Button onClick={() => setClientDialog(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button onClick={() => setClientDialog(true)} size="lg">
+                    <Plus className="w-5 h-5 mr-2" />
                     Agregar Cliente
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {clients.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-12 text-gray-500 text-lg">
                     No hay clientes registrados
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Teléfono</TableHead>
-                        <TableHead>Dirección</TableHead>
-                        <TableHead>Vehículo</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Nombre</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Email</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Teléfono</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Dirección</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Vehículo</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {clients.map((client) => (
                         <TableRow key={client.id}>
-                          <TableCell className="font-medium">{client.user_name}</TableCell>
-                          <TableCell>{client.user_email}</TableCell>
-                          <TableCell>{client.user_phone}</TableCell>
-                          <TableCell>{client.address}</TableCell>
-                          <TableCell>{client.vehicle_info}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium text-base px-6 py-4">{client.user_name}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{client.user_email}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{client.user_phone}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{client.address}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{client.vehicle_info}</TableCell>
+                          <TableCell className="px-6 py-4">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="default"
                               onClick={() => handleDeleteClient(client.id)}
                             >
-                              <Trash2 className="w-4 h-4 text-red-500" />
+                              <Trash2 className="w-5 h-5 text-red-500" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -685,48 +685,48 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Mecánicos</CardTitle>
-                  <CardDescription>Lista de todos los mecánicos registrados</CardDescription>
+                  <CardTitle className="text-xl">Mecánicos</CardTitle>
+                  <CardDescription className="text-base">Lista de todos los mecánicos registrados</CardDescription>
                 </div>
-                <Button onClick={() => setMechanicDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={() => setMechanicDialog(true)} size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
                   Agregar Mecánico
                 </Button>
               </CardHeader>
               <CardContent>
                 {mechanics.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-12 text-gray-500 text-lg">
                     No hay mecánicos registrados
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Teléfono</TableHead>
-                        <TableHead>Especialidades</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Calificación</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Nombre</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Email</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Teléfono</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Especialidades</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Tipo</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Calificación</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {mechanics.map((mechanic) => (
                         <TableRow key={mechanic.id}>
-                          <TableCell className="font-medium">{mechanic.user_name}</TableCell>
-                          <TableCell>{mechanic.user_email}</TableCell>
-                          <TableCell>{mechanic.user_phone}</TableCell>
-                          <TableCell>{mechanic.specialties.join(', ')}</TableCell>
-                          <TableCell>{mechanic.is_mobile ? 'Móvil' : 'Taller'}</TableCell>
-                          <TableCell>{mechanic.rating.toFixed(1)} ⭐</TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium text-base px-6 py-4">{mechanic.user_name}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{mechanic.user_email}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{mechanic.user_phone}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{mechanic.specialties.join(', ')}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{mechanic.is_mobile ? 'Móvil' : 'Taller'}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{mechanic.rating.toFixed(1)} ⭐</TableCell>
+                          <TableCell className="px-6 py-4">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="default"
                               onClick={() => handleDeleteMechanic(mechanic.id)}
                             >
-                              <Trash2 className="w-4 h-4 text-red-500" />
+                              <Trash2 className="w-5 h-5 text-red-500" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -742,46 +742,46 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Talleres</CardTitle>
-                  <CardDescription>Lista de todos los talleres registrados</CardDescription>
+                  <CardTitle className="text-xl">Talleres</CardTitle>
+                  <CardDescription className="text-base">Lista de todos los talleres registrados</CardDescription>
                 </div>
-                <Button onClick={() => setWorkshopDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={() => setWorkshopDialog(true)} size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
                   Agregar Taller
                 </Button>
               </CardHeader>
               <CardContent>
                 {workshops.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-12 text-gray-500 text-lg">
                     No hay talleres registrados
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Dirección</TableHead>
-                        <TableHead>Teléfono</TableHead>
-                        <TableHead>Servicios</TableHead>
-                        <TableHead>Calificación</TableHead>
-                        <TableHead>Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Nombre</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Dirección</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Teléfono</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Servicios</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Calificación</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {workshops.map((workshop) => (
                         <TableRow key={workshop.id}>
-                          <TableCell className="font-medium">{workshop.name}</TableCell>
-                          <TableCell>{workshop.address}</TableCell>
-                          <TableCell>{workshop.phone}</TableCell>
-                          <TableCell>{workshop.services.join(', ')}</TableCell>
-                          <TableCell>{workshop.rating.toFixed(1)} ⭐</TableCell>
-                          <TableCell>
+                          <TableCell className="font-medium text-base px-6 py-4">{workshop.name}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{workshop.address}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{workshop.phone}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{workshop.services.join(', ')}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{workshop.rating.toFixed(1)} ⭐</TableCell>
+                          <TableCell className="px-6 py-4">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="default"
                               onClick={() => handleDeleteWorkshop(workshop.id)}
                             >
-                              <Trash2 className="w-4 h-4 text-red-500" />
+                              <Trash2 className="w-5 h-5 text-red-500" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -797,11 +797,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Puntos Autorizados</CardTitle>
-                  <CardDescription>Lista de todos los puntos autorizados</CardDescription>
+                  <CardTitle className="text-xl">Puntos Autorizados</CardTitle>
+                  <CardDescription className="text-base">Lista de todos los puntos autorizados</CardDescription>
                 </div>
-                <Button onClick={() => setAuthorizedPointDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={() => setAuthorizedPointDialog(true)} size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
                   Registrar
                 </Button>
               </CardHeader>
@@ -809,21 +809,21 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Dirección</TableHead>
-                      <TableHead>Teléfono</TableHead>
-                      <TableHead>Servicios</TableHead>
-                      <TableHead>Contacto</TableHead>
+                      <TableHead className="text-base font-semibold px-6 py-4">Nombre</TableHead>
+                      <TableHead className="text-base font-semibold px-6 py-4">Dirección</TableHead>
+                      <TableHead className="text-base font-semibold px-6 py-4">Teléfono</TableHead>
+                      <TableHead className="text-base font-semibold px-6 py-4">Servicios</TableHead>
+                      <TableHead className="text-base font-semibold px-6 py-4">Contacto</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {authorizedPoints.map((point) => (
                       <TableRow key={point.id}>
-                        <TableCell className="font-medium">{point.name}</TableCell>
-                        <TableCell>{point.address}</TableCell>
-                        <TableCell>{point.phone}</TableCell>
-                        <TableCell>{point.services.join(', ')}</TableCell>
-                        <TableCell>{point.contact_person}</TableCell>
+                        <TableCell className="font-medium text-base px-6 py-4">{point.name}</TableCell>
+                        <TableCell className="text-base px-6 py-4">{point.address}</TableCell>
+                        <TableCell className="text-base px-6 py-4">{point.phone}</TableCell>
+                        <TableCell className="text-base px-6 py-4">{point.services.join(', ')}</TableCell>
+                        <TableCell className="text-base px-6 py-4">{point.contact_person}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -836,7 +836,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
       {/* Client Dialog */}
       <Dialog open={clientDialog} onOpenChange={setClientDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Agregar Cliente</DialogTitle>
             <DialogDescription>
@@ -914,7 +914,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
       {/* Mechanic Dialog */}
       <Dialog open={mechanicDialog} onOpenChange={setMechanicDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Agregar Mecánico</DialogTitle>
             <DialogDescription>
@@ -993,7 +993,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
       {/* Workshop Dialog */}
       <Dialog open={workshopDialog} onOpenChange={setWorkshopDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Agregar Taller</DialogTitle>
             <DialogDescription>
@@ -1051,7 +1051,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
       {/* Authorized Point Dialog */}
       <Dialog open={authorizedPointDialog} onOpenChange={setAuthorizedPointDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Registrar Punto Autorizado</DialogTitle>
             <DialogDescription>
@@ -1118,7 +1118,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
       {/* Visit Scheduling Dialog */}
       <Dialog open={visitDialog} onOpenChange={setVisitDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Programar Visita</DialogTitle>
             <DialogDescription>
@@ -1247,7 +1247,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
       {/* Repair Creation Dialog */}
       <Dialog open={repairDialog} onOpenChange={setRepairDialog}>
-        <DialogContent className="sm:max-w-md max-h-screen overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-screen overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Crear Reparación</DialogTitle>
             <DialogDescription>
