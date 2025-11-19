@@ -54,6 +54,7 @@ class SQLiteDatabase:
                     vehicle_info TEXT NOT NULL,
                     address TEXT NOT NULL,
                     city TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             """)
@@ -62,9 +63,12 @@ class SQLiteDatabase:
                 CREATE TABLE IF NOT EXISTS mechanics (
                     id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
-                    specialization TEXT NOT NULL,
+                    specialties TEXT NOT NULL,
                     address TEXT NOT NULL,
-                    speaks_english INTEGER NOT NULL,
+                    is_mobile INTEGER NOT NULL DEFAULT 1,
+                    speaks_english INTEGER NOT NULL DEFAULT 0,
+                    rating REAL NOT NULL DEFAULT 0.0,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             """)
@@ -75,7 +79,9 @@ class SQLiteDatabase:
                     name TEXT NOT NULL,
                     address TEXT NOT NULL,
                     phone TEXT NOT NULL,
-                    services TEXT NOT NULL
+                    services TEXT NOT NULL,
+                    rating REAL NOT NULL DEFAULT 0.0,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
                 )
             """)
             
@@ -109,7 +115,8 @@ class SQLiteDatabase:
                     address TEXT NOT NULL,
                     phone TEXT NOT NULL,
                     services TEXT NOT NULL,
-                    contact_person TEXT NOT NULL
+                    contact_person TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
                 )
             """)
             
@@ -124,10 +131,53 @@ class SQLiteDatabase:
                     estimated_arrival TEXT,
                     cost REAL,
                     notes TEXT,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                     FOREIGN KEY (repair_id) REFERENCES repairs(id),
                     FOREIGN KEY (supplier_id) REFERENCES authorized_points(id)
                 )
             """)
+            
+            self._run_migrations(cursor)
+    
+    def _run_migrations(self, cursor):
+        """Add missing columns to existing tables"""
+        
+        def get_columns(table_name):
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            return {row[1] for row in cursor.fetchall()}
+        
+        clients_cols = get_columns('clients')
+        if 'created_at' not in clients_cols:
+            cursor.execute("ALTER TABLE clients ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
+            cursor.execute("UPDATE clients SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+        
+        mechanics_cols = get_columns('mechanics')
+        if 'created_at' not in mechanics_cols:
+            cursor.execute("ALTER TABLE mechanics ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
+            cursor.execute("UPDATE mechanics SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+        if 'rating' not in mechanics_cols:
+            cursor.execute("ALTER TABLE mechanics ADD COLUMN rating REAL NOT NULL DEFAULT 0.0")
+        if 'is_mobile' not in mechanics_cols:
+            cursor.execute("ALTER TABLE mechanics ADD COLUMN is_mobile INTEGER NOT NULL DEFAULT 1")
+        if 'specialties' not in mechanics_cols and 'specialization' in mechanics_cols:
+            cursor.execute("ALTER TABLE mechanics RENAME COLUMN specialization TO specialties")
+        
+        workshops_cols = get_columns('workshops')
+        if 'created_at' not in workshops_cols:
+            cursor.execute("ALTER TABLE workshops ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
+            cursor.execute("UPDATE workshops SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+        if 'rating' not in workshops_cols:
+            cursor.execute("ALTER TABLE workshops ADD COLUMN rating REAL NOT NULL DEFAULT 0.0")
+        
+        auth_points_cols = get_columns('authorized_points')
+        if 'created_at' not in auth_points_cols:
+            cursor.execute("ALTER TABLE authorized_points ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
+            cursor.execute("UPDATE authorized_points SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+        
+        parts_cols = get_columns('parts')
+        if 'created_at' not in parts_cols:
+            cursor.execute("ALTER TABLE parts ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
+            cursor.execute("UPDATE parts SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
     
     def _initialize_admin(self):
         with self.get_connection() as conn:
@@ -185,9 +235,9 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO clients (id, user_id, vehicle_info, address, city)
-                VALUES (?, ?, ?, ?, ?)
-            """, (client.id, client.user_id, client.vehicle_info, client.address, client.city))
+                INSERT INTO clients (id, user_id, vehicle_info, address, city, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (client.id, client.user_id, client.vehicle_info, client.address, client.city, client.created_at.isoformat()))
             return client
     
     def get_client(self, client_id: str) -> Optional[Client]:
@@ -226,9 +276,10 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO mechanics (id, user_id, specialization, address, speaks_english)
-                VALUES (?, ?, ?, ?, ?)
-            """, (mechanic.id, mechanic.user_id, mechanic.specialization, mechanic.address, int(mechanic.speaks_english)))
+                INSERT INTO mechanics (id, user_id, specialties, address, is_mobile, speaks_english, rating, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (mechanic.id, mechanic.user_id, json.dumps(mechanic.specialties), mechanic.address, 
+                  int(mechanic.is_mobile), int(mechanic.speaks_english), mechanic.rating, mechanic.created_at.isoformat()))
             return mechanic
     
     def get_mechanic(self, mechanic_id: str) -> Optional[Mechanic]:
@@ -238,6 +289,8 @@ class SQLiteDatabase:
             row = cursor.fetchone()
             if row:
                 data = dict(row)
+                data['specialties'] = json.loads(data['specialties']) if isinstance(data['specialties'], str) else data['specialties']
+                data['is_mobile'] = bool(data['is_mobile'])
                 data['speaks_english'] = bool(data['speaks_english'])
                 return Mechanic(**data)
             return None
@@ -249,6 +302,8 @@ class SQLiteDatabase:
             result = []
             for row in cursor.fetchall():
                 data = dict(row)
+                data['specialties'] = json.loads(data['specialties']) if isinstance(data['specialties'], str) else data['specialties']
+                data['is_mobile'] = bool(data['is_mobile'])
                 data['speaks_english'] = bool(data['speaks_english'])
                 result.append(Mechanic(**data))
             return result
@@ -257,9 +312,10 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE mechanics SET user_id = ?, specialization = ?, address = ?, speaks_english = ?
+                UPDATE mechanics SET user_id = ?, specialties = ?, address = ?, is_mobile = ?, speaks_english = ?, rating = ?
                 WHERE id = ?
-            """, (mechanic.user_id, mechanic.specialization, mechanic.address, int(mechanic.speaks_english), mechanic_id))
+            """, (mechanic.user_id, json.dumps(mechanic.specialties), mechanic.address, 
+                  int(mechanic.is_mobile), int(mechanic.speaks_english), mechanic.rating, mechanic_id))
             if cursor.rowcount > 0:
                 return mechanic
             return None
@@ -274,9 +330,10 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO workshops (id, name, address, phone, services)
-                VALUES (?, ?, ?, ?, ?)
-            """, (workshop.id, workshop.name, workshop.address, workshop.phone, workshop.services))
+                INSERT INTO workshops (id, name, address, phone, services, rating, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (workshop.id, workshop.name, workshop.address, workshop.phone, 
+                  json.dumps(workshop.services), workshop.rating, workshop.created_at.isoformat()))
             return workshop
     
     def get_workshop(self, workshop_id: str) -> Optional[Workshop]:
@@ -285,22 +342,29 @@ class SQLiteDatabase:
             cursor.execute("SELECT * FROM workshops WHERE id = ?", (workshop_id,))
             row = cursor.fetchone()
             if row:
-                return Workshop(**dict(row))
+                data = dict(row)
+                data['services'] = json.loads(data['services']) if isinstance(data['services'], str) else data['services']
+                return Workshop(**data)
             return None
     
     def get_all_workshops(self) -> List[Workshop]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM workshops")
-            return [Workshop(**dict(row)) for row in cursor.fetchall()]
+            result = []
+            for row in cursor.fetchall():
+                data = dict(row)
+                data['services'] = json.loads(data['services']) if isinstance(data['services'], str) else data['services']
+                result.append(Workshop(**data))
+            return result
     
     def update_workshop(self, workshop_id: str, workshop: Workshop) -> Optional[Workshop]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE workshops SET name = ?, address = ?, phone = ?, services = ?
+                UPDATE workshops SET name = ?, address = ?, phone = ?, services = ?, rating = ?
                 WHERE id = ?
-            """, (workshop.name, workshop.address, workshop.phone, workshop.services, workshop_id))
+            """, (workshop.name, workshop.address, workshop.phone, json.dumps(workshop.services), workshop.rating, workshop_id))
             if cursor.rowcount > 0:
                 return workshop
             return None
@@ -386,9 +450,10 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO authorized_points (id, name, address, phone, services, contact_person)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (point.id, point.name, point.address, point.phone, point.services, point.contact_person))
+                INSERT INTO authorized_points (id, name, address, phone, services, contact_person, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (point.id, point.name, point.address, point.phone, 
+                  json.dumps(point.services), point.contact_person, point.created_at.isoformat()))
             return point
     
     def get_authorized_point(self, point_id: str) -> Optional[AuthorizedPoint]:
@@ -397,14 +462,21 @@ class SQLiteDatabase:
             cursor.execute("SELECT * FROM authorized_points WHERE id = ?", (point_id,))
             row = cursor.fetchone()
             if row:
-                return AuthorizedPoint(**dict(row))
+                data = dict(row)
+                data['services'] = json.loads(data['services']) if isinstance(data['services'], str) else data['services']
+                return AuthorizedPoint(**data)
             return None
     
     def get_all_authorized_points(self) -> List[AuthorizedPoint]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM authorized_points")
-            return [AuthorizedPoint(**dict(row)) for row in cursor.fetchall()]
+            result = []
+            for row in cursor.fetchall():
+                data = dict(row)
+                data['services'] = json.loads(data['services']) if isinstance(data['services'], str) else data['services']
+                result.append(AuthorizedPoint(**data))
+            return result
     
     def update_authorized_point(self, point_id: str, point: AuthorizedPoint) -> Optional[AuthorizedPoint]:
         with self.get_connection() as conn:
@@ -412,7 +484,7 @@ class SQLiteDatabase:
             cursor.execute("""
                 UPDATE authorized_points SET name = ?, address = ?, phone = ?, services = ?, contact_person = ?
                 WHERE id = ?
-            """, (point.name, point.address, point.phone, point.services, point.contact_person, point_id))
+            """, (point.name, point.address, point.phone, json.dumps(point.services), point.contact_person, point_id))
             if cursor.rowcount > 0:
                 return point
             return None
@@ -428,12 +500,12 @@ class SQLiteDatabase:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO parts (id, repair_id, name, supplier_id, ordered_online, status,
-                                 estimated_arrival, cost, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                 estimated_arrival, cost, notes, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 part.id, part.repair_id, part.name, part.supplier_id, int(part.ordered_online),
                 part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
-                part.cost, part.notes
+                part.cost, part.notes, part.created_at.isoformat()
             ))
             return part
     
