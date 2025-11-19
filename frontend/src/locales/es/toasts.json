@@ -38,5 +38,12 @@
     "update_error": "Error al actualizar pieza",
     "delete_success": "Pieza eliminada exitosamente",
     "delete_error": "Error al eliminar pieza"
+  },
+  "vin": {
+    "decode_success": "VIN decodificado con éxito ✅",
+    "invalid_format": "Formato de VIN inválido. Debe tener 17 caracteres (sin I, O, o Q)",
+    "no_data": "No se encontraron datos para este VIN",
+    "service_unavailable": "Servicio de decodificación no disponible. Intenta más tarde",
+    "decode_error": "Error al decodificar VIN"
   }
 }

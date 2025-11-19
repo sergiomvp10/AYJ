@@ -258,3 +258,23 @@ class PartResponse(BaseModel):
     cost: Optional[float] = None
     notes: Optional[str] = None
     created_at: datetime
+
+class VinEngineInfo(BaseModel):
+    cylinders: Optional[str] = None
+    displacement_l: Optional[str] = None
+    fuel_type: Optional[str] = None
+    horsepower: Optional[str] = None
+
+class VinDecoded(BaseModel):
+    vin: str
+    make: Optional[str] = None
+    model: Optional[str] = None
+    model_year: Optional[str] = None
+    trim: Optional[str] = None
+    body_class: Optional[str] = None
+    vehicle_type: Optional[str] = None
+    drive_type: Optional[str] = None
+    transmission: Optional[str] = None
+    engine: VinEngineInfo
+    plant_country: Optional[str] = None
+    summary: str

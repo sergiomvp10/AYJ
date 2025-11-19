@@ -2,8 +2,12 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Dict
 import uuid
+import urllib.request
+import json
+import re
+import time
 
 from app.models import (
     UserCreate, UserLogin, UserResponse, Token, TokenData,
@@ -13,7 +17,7 @@ from app.models import (
     RepairCreate, RepairUpdate, RepairResponse, Repair, RepairStatus,
     AuthorizedPointCreate, AuthorizedPointResponse, AuthorizedPoint,
     PartCreate, PartUpdate, PartResponse, Part, PartStatus,
-    User, UserRole
+    User, UserRole, VinDecoded, VinEngineInfo
 )
 from app.auth import (
     verify_password, get_password_hash, create_access_token,
@@ -31,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+vin_cache: Dict[str, dict] = {}
+VIN_CACHE_TTL = 7 * 24 * 60 * 60  # 7 days in seconds
 
 @app.get("/healthz")
 async def healthz():
@@ -815,3 +822,111 @@ async def delete_part(part_id: str, current_user: TokenData = Depends(require_ad
     if not db.delete_part(part_id):
         raise HTTPException(status_code=404, detail="Part not found")
     return {"message": "Part deleted successfully"}
+
+@app.get("/api/vin/decode/{vin}", response_model=VinDecoded)
+async def decode_vin(vin: str):
+    vin = vin.upper().strip()
+    
+    if not re.match(r'^[A-HJ-NPR-Z0-9]{17}$', vin):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid VIN format. VIN must be 17 characters (no I, O, or Q)"
+        )
+    
+    current_time = time.time()
+    if vin in vin_cache:
+        cached_entry = vin_cache[vin]
+        if cached_entry["expires_at"] > current_time:
+            return cached_entry["data"]
+        else:
+            del vin_cache[vin]
+    
+    try:
+        url = f"https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/{vin}?format=json"
+        with urllib.request.urlopen(url, timeout=10) as response:
+            data = json.loads(response.read().decode())
+        
+        if not data.get("Results") or len(data["Results"]) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="No data found for this VIN"
+            )
+        
+        result = data["Results"][0]
+        
+        if not result.get("Make") or result.get("ModelYear") in ["0", "", None]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="No vehicle data found for this VIN"
+            )
+        
+        engine_info = VinEngineInfo(
+            cylinders=result.get("EngineCylinders") or None,
+            displacement_l=result.get("DisplacementL") or None,
+            fuel_type=result.get("FuelTypePrimary") or None,
+            horsepower=result.get("EngineHP") or None
+        )
+        
+        parts = []
+        if result.get("ModelYear"):
+            parts.append(result["ModelYear"])
+        if result.get("Make"):
+            parts.append(result["Make"])
+        if result.get("Model"):
+            parts.append(result["Model"])
+        if result.get("Trim") and result["Trim"] != "Not Applicable":
+            parts.append(result["Trim"])
+        
+        details = []
+        if result.get("DriveType"):
+            details.append(result["DriveType"])
+        if result.get("FuelTypePrimary"):
+            details.append(result["FuelTypePrimary"])
+        if result.get("DisplacementL"):
+            details.append(f"{result['DisplacementL']}L")
+        if result.get("TransmissionStyle"):
+            details.append(result["TransmissionStyle"])
+        
+        summary_parts = [" ".join(parts)]
+        if details:
+            summary_parts.append(" — ".join(details))
+        
+        summary = " — ".join(summary_parts)
+        
+        decoded = VinDecoded(
+            vin=vin,
+            make=result.get("Make") or None,
+            model=result.get("Model") or None,
+            model_year=result.get("ModelYear") or None,
+            trim=result.get("Trim") if result.get("Trim") != "Not Applicable" else None,
+            body_class=result.get("BodyClass") or None,
+            vehicle_type=result.get("VehicleType") or None,
+            drive_type=result.get("DriveType") or None,
+            transmission=result.get("TransmissionStyle") or None,
+            engine=engine_info,
+            plant_country=result.get("PlantCountry") or None,
+            summary=summary
+        )
+        
+        vin_cache[vin] = {
+            "expires_at": current_time + VIN_CACHE_TTL,
+            "data": decoded
+        }
+        
+        return decoded
+        
+    except urllib.error.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="VIN decoding service temporarily unavailable"
+        )
+    except urllib.error.URLError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="VIN decoding service temporarily unavailable"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error decoding VIN: {str(e)}"
+        )

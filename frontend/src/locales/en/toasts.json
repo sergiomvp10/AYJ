@@ -38,5 +38,12 @@
     "update_error": "Error updating part",
     "delete_success": "Part deleted successfully",
     "delete_error": "Error deleting part"
+  },
+  "vin": {
+    "decode_success": "VIN decoded successfully ✅",
+    "invalid_format": "Invalid VIN format. Must be 17 characters (no I, O, or Q)",
+    "no_data": "No data found for this VIN",
+    "service_unavailable": "Decoding service unavailable. Try again later",
+    "decode_error": "Error decoding VIN"
   }
 }

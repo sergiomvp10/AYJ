@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, api } from '@/lib/api';
+import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, api, VinDecoded } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { VinDecoderInput } from '@/components/VinDecoderInput';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface AdminDashboardProps {
   user: User;
@@ -19,7 +21,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
-  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'toasts', 'common']);
+  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'toasts', 'common', 'vin']);
   const [clients, setClients] = useState<Client[]>([]);
   const [mechanics, setMechanics] = useState<Mechanic[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -628,10 +630,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               <p className="text-base text-gray-600">Bienvenido, {user.name}</p>
             </div>
           </div>
-          <Button onClick={onLogout} variant="outline" size="lg">
-            <LogOut className="w-5 h-5 mr-2" />
-            Cerrar Sesión
-          </Button>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+            <Button onClick={onLogout} variant="outline" size="lg">
+              <LogOut className="w-5 h-5 mr-2" />
+              Cerrar Sesión
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -1040,6 +1045,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 placeholder={t('clients:dialog.address_placeholder')}
               />
             </div>
+            <VinDecoderInput
+              onDecoded={(decoded: VinDecoded) => {
+                setClientForm({ ...clientForm, vehicle_info: decoded.summary });
+              }}
+              className="grid gap-2"
+            />
             <div className="grid gap-2">
               <Label htmlFor="client-vehicle">{t('clients:dialog.vehicle_label')}</Label>
               <Textarea
@@ -1447,6 +1458,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
               )}
             </div>
+            <VinDecoderInput
+              onDecoded={(decoded: VinDecoded) => {
+                setRepairForm({ ...repairForm, vehicle_info: decoded.summary });
+              }}
+              className="grid gap-2"
+            />
             <div className="grid gap-2">
               <Label htmlFor="repair-vehicle">{t('repairs:dialog.vehicle_label')}</Label>
               <Input

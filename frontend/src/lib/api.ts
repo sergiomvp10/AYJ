@@ -88,6 +88,28 @@ export interface Part {
   created_at: string;
 }
 
+export interface VinEngineInfo {
+  cylinders?: string;
+  displacement_l?: string;
+  fuel_type?: string;
+  horsepower?: string;
+}
+
+export interface VinDecoded {
+  vin: string;
+  make?: string;
+  model?: string;
+  model_year?: string;
+  trim?: string;
+  body_class?: string;
+  vehicle_type?: string;
+  drive_type?: string;
+  transmission?: string;
+  engine: VinEngineInfo;
+  plant_country?: string;
+  summary: string;
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -353,6 +375,10 @@ class ApiClient {
     return this.request(`/api/parts/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  async decodeVin(vin: string): Promise<VinDecoded> {
+    return this.request(`/api/vin/decode/${encodeURIComponent(vin.toUpperCase().trim())}`);
   }
 }
 
