@@ -31,6 +31,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [workshopDialog, setWorkshopDialog] = useState(false);
   const [visitDialog, setVisitDialog] = useState(false);
   const [repairDialog, setRepairDialog] = useState(false);
+  const [authorizedPointDialog, setAuthorizedPointDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [clientForm, setClientForm] = useState({
@@ -81,6 +82,14 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     mechanic_id: '',
     cost: '',
     status: 'pending' as 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'paid' | 'balance_pending',
+  });
+
+  const [authorizedPointForm, setAuthorizedPointForm] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    services: '',
+    contact_person: '',
   });
 
   useEffect(() => {
@@ -203,6 +212,34 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       toast({
         title: 'Error',
         description: 'No se pudo crear el taller',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCreateAuthorizedPoint = async () => {
+    try {
+      await api.createAuthorizedPoint({
+        name: authorizedPointForm.name,
+        address: authorizedPointForm.address,
+        phone: authorizedPointForm.phone,
+        services: authorizedPointForm.services.split(',').map(s => s.trim()),
+        contact_person: authorizedPointForm.contact_person,
+      });
+
+      toast({
+        title: 'Éxito',
+        description: 'Punto autorizado creado correctamente',
+      });
+      
+      setAuthorizedPointDialog(false);
+      setAuthorizedPointForm({ name: '', address: '', phone: '', services: '', contact_person: '' });
+      loadData();
+    } catch (error) {
+      console.error('Error creating authorized point:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo crear el punto autorizado',
         variant: 'destructive',
       });
     }
@@ -758,9 +795,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
           <TabsContent value="points">
             <Card>
-              <CardHeader>
-                <CardTitle>Puntos Autorizados</CardTitle>
-                <CardDescription>Lista de todos los puntos autorizados</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Puntos Autorizados</CardTitle>
+                  <CardDescription>Lista de todos los puntos autorizados</CardDescription>
+                </div>
+                <Button onClick={() => setAuthorizedPointDialog(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Registrar
+                </Button>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -1001,6 +1044,73 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Button>
             <Button onClick={handleCreateWorkshop}>
               Crear Taller
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Authorized Point Dialog */}
+      <Dialog open={authorizedPointDialog} onOpenChange={setAuthorizedPointDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Registrar Punto Autorizado</DialogTitle>
+            <DialogDescription>
+              Completa los datos del punto autorizado (tienda de repuestos, materiales, etc.)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="point-name">Nombre</Label>
+              <Input
+                id="point-name"
+                value={authorizedPointForm.name}
+                onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, name: e.target.value })}
+                placeholder="Repuestos Central"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="point-address">Dirección</Label>
+              <Input
+                id="point-address"
+                value={authorizedPointForm.address}
+                onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, address: e.target.value })}
+                placeholder="Av. Principal 789"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="point-phone">Teléfono</Label>
+              <Input
+                id="point-phone"
+                value={authorizedPointForm.phone}
+                onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, phone: e.target.value })}
+                placeholder="+1234567890"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="point-services">Productos/Servicios (separados por comas)</Label>
+              <Textarea
+                id="point-services"
+                value={authorizedPointForm.services}
+                onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, services: e.target.value })}
+                placeholder="Repuestos, Aceites, Filtros, Baterías"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="point-contact">Persona de Contacto</Label>
+              <Input
+                id="point-contact"
+                value={authorizedPointForm.contact_person}
+                onChange={(e) => setAuthorizedPointForm({ ...authorizedPointForm, contact_person: e.target.value })}
+                placeholder="Juan Pérez"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAuthorizedPointDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateAuthorizedPoint}>
+              Registrar
             </Button>
           </DialogFooter>
         </DialogContent>
