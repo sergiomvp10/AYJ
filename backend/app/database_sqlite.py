@@ -141,43 +141,71 @@ class SQLiteDatabase:
     
     def _run_migrations(self, cursor):
         """Add missing columns to existing tables"""
+        print(f"[MIGRATION] Running migrations at startup; DB_PATH={DB_PATH}")
         
         def get_columns(table_name):
             cursor.execute(f"PRAGMA table_info({table_name})")
             return {row[1] for row in cursor.fetchall()}
         
+        cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='table'")
+        for row in cursor.fetchall():
+            print(f"[MIGRATION] Table {row[0]}: {row[1][:100]}...")
+        
         clients_cols = get_columns('clients')
+        print(f"[MIGRATION] Clients columns: {clients_cols}")
         if 'created_at' not in clients_cols:
+            print("[MIGRATION] Adding created_at to clients table")
             cursor.execute("ALTER TABLE clients ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
-            cursor.execute("UPDATE clients SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+            cursor.execute("UPDATE clients SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
+            cursor.execute("SELECT COUNT(*) FROM clients")
+            print(f"[MIGRATION] Updated {cursor.fetchone()[0]} client records")
         
         mechanics_cols = get_columns('mechanics')
+        print(f"[MIGRATION] Mechanics columns: {mechanics_cols}")
         if 'created_at' not in mechanics_cols:
+            print("[MIGRATION] Adding created_at to mechanics table")
             cursor.execute("ALTER TABLE mechanics ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
-            cursor.execute("UPDATE mechanics SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+            cursor.execute("UPDATE mechanics SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
         if 'rating' not in mechanics_cols:
+            print("[MIGRATION] Adding rating to mechanics table")
             cursor.execute("ALTER TABLE mechanics ADD COLUMN rating REAL NOT NULL DEFAULT 0.0")
         if 'is_mobile' not in mechanics_cols:
+            print("[MIGRATION] Adding is_mobile to mechanics table")
             cursor.execute("ALTER TABLE mechanics ADD COLUMN is_mobile INTEGER NOT NULL DEFAULT 1")
         if 'specialties' not in mechanics_cols and 'specialization' in mechanics_cols:
-            cursor.execute("ALTER TABLE mechanics RENAME COLUMN specialization TO specialties")
+            try:
+                print("[MIGRATION] Renaming specialization to specialties in mechanics table")
+                cursor.execute("ALTER TABLE mechanics RENAME COLUMN specialization TO specialties")
+            except Exception as e:
+                print(f"[MIGRATION] RENAME COLUMN failed: {e}, using fallback")
+                cursor.execute("ALTER TABLE mechanics ADD COLUMN specialties TEXT NOT NULL DEFAULT '[]'")
+                cursor.execute("UPDATE mechanics SET specialties = COALESCE(specialization, '[]')")
         
         workshops_cols = get_columns('workshops')
+        print(f"[MIGRATION] Workshops columns: {workshops_cols}")
         if 'created_at' not in workshops_cols:
+            print("[MIGRATION] Adding created_at to workshops table")
             cursor.execute("ALTER TABLE workshops ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
-            cursor.execute("UPDATE workshops SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+            cursor.execute("UPDATE workshops SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
         if 'rating' not in workshops_cols:
+            print("[MIGRATION] Adding rating to workshops table")
             cursor.execute("ALTER TABLE workshops ADD COLUMN rating REAL NOT NULL DEFAULT 0.0")
         
         auth_points_cols = get_columns('authorized_points')
+        print(f"[MIGRATION] Authorized points columns: {auth_points_cols}")
         if 'created_at' not in auth_points_cols:
+            print("[MIGRATION] Adding created_at to authorized_points table")
             cursor.execute("ALTER TABLE authorized_points ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
-            cursor.execute("UPDATE authorized_points SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+            cursor.execute("UPDATE authorized_points SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
         
         parts_cols = get_columns('parts')
+        print(f"[MIGRATION] Parts columns: {parts_cols}")
         if 'created_at' not in parts_cols:
+            print("[MIGRATION] Adding created_at to parts table")
             cursor.execute("ALTER TABLE parts ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
-            cursor.execute("UPDATE parts SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+            cursor.execute("UPDATE parts SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
+        
+        print("[MIGRATION] Migrations completed successfully")
     
     def _initialize_admin(self):
         with self.get_connection() as conn:
@@ -252,8 +280,18 @@ class SQLiteDatabase:
     def get_all_clients(self) -> List[Client]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM clients")
-            return [Client(**dict(row)) for row in cursor.fetchall()]
+            try:
+                cursor.execute("SELECT * FROM clients")
+                return [Client(**dict(row)) for row in cursor.fetchall()]
+            except Exception as e:
+                if "no such column: created_at" in str(e).lower():
+                    print("[DEFENSIVE] created_at column missing, running migration")
+                    cursor.execute("ALTER TABLE clients ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
+                    cursor.execute("UPDATE clients SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL OR created_at = ''")
+                    conn.commit()
+                    cursor.execute("SELECT * FROM clients")
+                    return [Client(**dict(row)) for row in cursor.fetchall()]
+                raise
     
     def update_client(self, client_id: str, client: Client) -> Optional[Client]:
         with self.get_connection() as conn:
