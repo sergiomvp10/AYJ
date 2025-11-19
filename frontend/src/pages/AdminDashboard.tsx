@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2 } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminDashboardProps {
@@ -29,6 +29,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [clientDialog, setClientDialog] = useState(false);
   const [mechanicDialog, setMechanicDialog] = useState(false);
   const [workshopDialog, setWorkshopDialog] = useState(false);
+  const [visitDialog, setVisitDialog] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [clientForm, setClientForm] = useState({
     name: '',
@@ -37,6 +39,17 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     password: '',
     address: '',
     vehicle_info: '',
+  });
+
+  const [visitForm, setVisitForm] = useState({
+    client_search: '',
+    client_id: '',
+    scheduled_date: '',
+    scheduled_time: '',
+    service_type: 'mobile' as 'mobile' | 'workshop',
+    location: '',
+    issue_description: '',
+    mechanic_id: '',
   });
 
   const [mechanicForm, setMechanicForm] = useState({
@@ -237,6 +250,72 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  const filteredClients = clients.filter(client => 
+    visitForm.client_search === '' || 
+    client.user_name.toLowerCase().includes(visitForm.client_search.toLowerCase()) ||
+    client.user_email.toLowerCase().includes(visitForm.client_search.toLowerCase())
+  );
+
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    setVisitForm({
+      ...visitForm,
+      client_search: client.user_name,
+      client_id: client.id,
+      location: client.address,
+    });
+  };
+
+  const handleCreateVisit = async () => {
+    if (!selectedClient) {
+      toast({
+        title: 'Error',
+        description: 'Debes seleccionar un cliente',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    try {
+      const scheduledDateTime = `${visitForm.scheduled_date}T${visitForm.scheduled_time}:00`;
+      
+      await api.createRepair({
+        client_id: selectedClient.id,
+        vehicle_info: selectedClient.vehicle_info,
+        issue_description: visitForm.issue_description,
+        service_type: visitForm.service_type,
+        location: visitForm.location,
+        scheduled_date: scheduledDateTime,
+      });
+
+      toast({
+        title: 'Éxito',
+        description: 'Visita programada correctamente',
+      });
+      
+      setVisitDialog(false);
+      setSelectedClient(null);
+      setVisitForm({
+        client_search: '',
+        client_id: '',
+        scheduled_date: '',
+        scheduled_time: '',
+        service_type: 'mobile',
+        location: '',
+        issue_description: '',
+        mechanic_id: '',
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error scheduling visit:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo programar la visita',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -371,10 +450,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <CardTitle>Clientes</CardTitle>
                   <CardDescription>Lista de todos los clientes registrados</CardDescription>
                 </div>
-                <Button onClick={() => setClientDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Agregar Cliente
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => setVisitDialog(true)}>
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Programar Visita
+                  </Button>
+                  <Button onClick={() => setClientDialog(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Agregar Cliente
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {clients.length === 0 ? (
@@ -776,6 +861,135 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Button>
             <Button onClick={handleCreateWorkshop}>
               Crear Taller
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Visit Scheduling Dialog */}
+      <Dialog open={visitDialog} onOpenChange={setVisitDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Programar Visita</DialogTitle>
+            <DialogDescription>
+              Busca y selecciona un cliente para programar una visita
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="client-search">Buscar Cliente</Label>
+              <Input
+                id="client-search"
+                value={visitForm.client_search}
+                onChange={(e) => setVisitForm({ ...visitForm, client_search: e.target.value })}
+                placeholder="Buscar por nombre o email..."
+              />
+              {visitForm.client_search && filteredClients.length > 0 && !selectedClient && (
+                <div className="border rounded-md max-h-40 overflow-y-auto">
+                  {filteredClients.slice(0, 5).map((client) => (
+                    <div
+                      key={client.id}
+                      onClick={() => handleSelectClient(client)}
+                      className="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                    >
+                      <div className="font-medium">{client.user_name}</div>
+                      <div className="text-sm text-gray-500">{client.user_email}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedClient && (
+                <div className="p-2 bg-blue-50 rounded-md border border-blue-200">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{selectedClient.user_name}</div>
+                      <div className="text-sm text-gray-500">{selectedClient.user_email}</div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedClient(null);
+                        setVisitForm({ ...visitForm, client_search: '', client_id: '', location: '' });
+                      }}
+                    >
+                      Cambiar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="visit-date">Fecha</Label>
+              <Input
+                id="visit-date"
+                type="date"
+                value={visitForm.scheduled_date}
+                onChange={(e) => setVisitForm({ ...visitForm, scheduled_date: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="visit-time">Hora</Label>
+              <Input
+                id="visit-time"
+                type="time"
+                value={visitForm.scheduled_time}
+                onChange={(e) => setVisitForm({ ...visitForm, scheduled_time: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="visit-type">Tipo de Servicio</Label>
+              <select
+                id="visit-type"
+                value={visitForm.service_type}
+                onChange={(e) => setVisitForm({ ...visitForm, service_type: e.target.value as 'mobile' | 'workshop' })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="mobile">Mecánico Móvil (va a domicilio)</option>
+                <option value="workshop">Taller</option>
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="visit-location">Ubicación</Label>
+              <Input
+                id="visit-location"
+                value={visitForm.location}
+                onChange={(e) => setVisitForm({ ...visitForm, location: e.target.value })}
+                placeholder="Dirección donde se realizará el servicio"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="visit-mechanic">Mecánico (opcional)</Label>
+              <select
+                id="visit-mechanic"
+                value={visitForm.mechanic_id}
+                onChange={(e) => setVisitForm({ ...visitForm, mechanic_id: e.target.value })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Sin asignar</option>
+                {mechanics.map((mechanic) => (
+                  <option key={mechanic.id} value={mechanic.id}>
+                    {mechanic.user_name} - {mechanic.is_mobile ? 'Móvil' : 'Taller'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="visit-issue">Descripción del Problema</Label>
+              <Textarea
+                id="visit-issue"
+                value={visitForm.issue_description}
+                onChange={(e) => setVisitForm({ ...visitForm, issue_description: e.target.value })}
+                placeholder="Describe el problema o servicio requerido"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVisitDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateVisit}>
+              Programar Visita
             </Button>
           </DialogFooter>
         </DialogContent>
