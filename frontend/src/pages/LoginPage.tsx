@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Wrench } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -34,11 +33,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <Wrench className="w-8 h-8 text-white" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="AYJ Auto-Eléctrico Móvil" 
+              className="w-32 h-32 object-contain"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">AYJ Auto Repair</CardTitle>
+          <CardTitle className="text-2xl font-bold">AYJ Auto-Eléctrico Móvil</CardTitle>
           <CardDescription>
             Plataforma de conexión entre clientes y mecánicos
           </CardDescription>

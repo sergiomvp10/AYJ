@@ -613,9 +613,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
         <div className="max-w-screen-2xl mx-auto px-6 sm:px-8 lg:px-10 py-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-            <p className="text-base text-gray-600">Bienvenido, {user.name}</p>
+          <div className="flex items-center gap-4">
+            <img 
+              src="/logo.png" 
+              alt="AYJ Auto-Eléctrico Móvil" 
+              className="w-16 h-16 object-contain"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
+              <p className="text-base text-gray-600">Bienvenido, {user.name}</p>
+            </div>
           </div>
           <Button onClick={onLogout} variant="outline" size="lg">
             <LogOut className="w-5 h-5 mr-2" />
