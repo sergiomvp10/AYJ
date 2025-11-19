@@ -27,8 +27,10 @@ export interface Mechanic {
   user_name: string;
   user_email: string;
   user_phone: string;
+  address: string;
   specialties: string[];
   is_mobile: boolean;
+  speaks_english: boolean;
   rating: number;
   created_at: string;
 }
@@ -217,14 +219,14 @@ class ApiClient {
     return this.request('/api/mechanics');
   }
 
-  async createMechanic(data: { user_id: string; specialties: string[]; is_mobile: boolean }) {
+  async createMechanic(data: { user_id: string; address: string; specialties: string[]; is_mobile: boolean; speaks_english: boolean }) {
     return this.request('/api/mechanics', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateMechanic(id: string, data: { user_id: string; specialties: string[]; is_mobile: boolean }) {
+  async updateMechanic(id: string, data: { user_id: string; address: string; specialties: string[]; is_mobile: boolean; speaks_english: boolean }) {
     return this.request(`/api/mechanics/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

@@ -178,9 +178,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const handleCreateMechanic = async () => {
     try {
+      const defaultPassword = 'mechanic123';
       const userData = await api.register({
         email: mechanicForm.email,
-        password: mechanicForm.password,
+        password: defaultPassword,
         name: mechanicForm.name,
         role: 'mecanico',
         phone: mechanicForm.phone,
@@ -188,8 +189,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       
       await api.createMechanic({
         user_id: userData.id,
+        address: mechanicForm.address,
         specialties: mechanicForm.specialties.split(',').map(s => s.trim()),
         is_mobile: mechanicForm.is_mobile,
+        speaks_english: mechanicForm.speaks_english,
       });
 
       toast({
@@ -198,7 +201,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       });
       
       setMechanicDialog(false);
-      setMechanicForm({ name: '', email: '', phone: '', password: '', specialties: '', is_mobile: false });
+      setMechanicForm({ name: '', email: '', phone: '', address: '', specialties: '', is_mobile: false, speaks_english: false });
       loadData();
     } catch (error) {
       console.error('Error creating mechanic:', error);
@@ -1112,13 +1115,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="mechanic-password">{t('mechanics:dialog.password_label')}</Label>
+              <Label htmlFor="mechanic-address">{t('mechanics:dialog.address_label')}</Label>
               <Input
-                id="mechanic-password"
-                type="password"
-                value={mechanicForm.password}
-                onChange={(e) => setMechanicForm({ ...mechanicForm, password: e.target.value })}
-                placeholder={t('mechanics:dialog.password_placeholder')}
+                id="mechanic-address"
+                value={mechanicForm.address}
+                onChange={(e) => setMechanicForm({ ...mechanicForm, address: e.target.value })}
+                placeholder={t('mechanics:dialog.address_placeholder')}
               />
             </div>
             <div className="grid gap-2">
@@ -1139,6 +1141,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 className="w-4 h-4"
               />
               <Label htmlFor="mechanic-mobile">{t('mechanics:dialog.mobile_label')}</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="mechanic-speaks-english"
+                checked={mechanicForm.speaks_english}
+                onChange={(e) => setMechanicForm({ ...mechanicForm, speaks_english: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="mechanic-speaks-english">{t('mechanics:dialog.speaks_english_label')}</Label>
             </div>
           </div>
           <DialogFooter>

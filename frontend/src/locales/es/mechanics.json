@@ -26,11 +26,12 @@
     "email_placeholder": "carlos@ejemplo.com",
     "phone_label": "Teléfono",
     "phone_placeholder": "+1234567890",
-    "password_label": "Contraseña",
-    "password_placeholder": "••••••••",
+    "address_label": "Dirección",
+    "address_placeholder": "Calle Principal 123, Ciudad",
     "specialization_label": "Especialidades (separadas por comas)",
     "specialization_placeholder": "Frenos, Motor, Transmisión",
     "mobile_label": "Mecánico móvil (va a domicilio)",
+    "speaks_english_label": "Habla Ingles?",
     "create_button": "Crear Mecánico"
   }
 }
