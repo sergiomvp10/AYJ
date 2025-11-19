@@ -139,9 +139,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const handleCreateClient = async () => {
     try {
+      const defaultPassword = Math.random().toString(36).slice(-8);
+      
       const userData = await api.register({
         email: clientForm.email,
-        password: clientForm.password,
+        password: defaultPassword,
         name: clientForm.name,
         role: 'cliente',
         phone: clientForm.phone,
@@ -154,8 +156,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       });
 
       toast({
-        title: 'Éxito',
-        description: 'Cliente creado correctamente',
+        title: t('toasts:client_created_title'),
+        description: t('toasts:client_created_description'),
       });
       
       setClientDialog(false);
@@ -164,8 +166,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     } catch (error) {
       console.error('Error creating client:', error);
       toast({
-        title: 'Error',
-        description: 'No se pudo crear el cliente',
+        title: t('toasts:error_title'),
+        description: t('toasts:client_creation_error'),
         variant: 'destructive',
       });
     }
@@ -1016,16 +1018,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 value={clientForm.phone}
                 onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
                 placeholder={t('clients:dialog.phone_placeholder')}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="client-password">{t('clients:dialog.password_label')}</Label>
-              <Input
-                id="client-password"
-                type="password"
-                value={clientForm.password}
-                onChange={(e) => setClientForm({ ...clientForm, password: e.target.value })}
-                placeholder={t('clients:dialog.password_placeholder')}
               />
             </div>
             <div className="grid gap-2">
