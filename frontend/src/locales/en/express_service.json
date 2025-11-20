@@ -1,0 +1,50 @@
+{
+  "title": "Express Service",
+  "description": "Emergency services requiring immediate attention",
+  "add_button": "Create Service",
+  "table": {
+    "headers": {
+      "client": "Client",
+      "vehicle": "Vehicle",
+      "emergency_type": "Emergency Type",
+      "priority": "Priority",
+      "status": "Status",
+      "location": "Location",
+      "mechanic": "Mechanic",
+      "created": "Created",
+      "actions": "Actions"
+    }
+  },
+  "dialog": {
+    "title": "Create Express Service",
+    "description": "Register an emergency service requiring immediate attention",
+    "search_client": "Search Client",
+    "search_placeholder": "Search by name or email...",
+    "no_results": "No clients found",
+    "vehicle_label": "Vehicle Information",
+    "vehicle_placeholder": "2020 Toyota Camry",
+    "emergency_type_label": "Emergency Type",
+    "emergency_type_placeholder": "Dead battery, Flat tire, etc.",
+    "description_label": "Description",
+    "description_placeholder": "Describe the problem in detail...",
+    "priority_label": "Priority",
+    "location_label": "Location",
+    "location_placeholder": "Exact emergency address",
+    "contact_phone_label": "Contact Phone",
+    "contact_phone_placeholder": "+1234567890",
+    "create_button": "Create Express Service"
+  },
+  "priority": {
+    "urgent": "Urgent",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "status": {
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "en_route": "En Route",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  }
+}

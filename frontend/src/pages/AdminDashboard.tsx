@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, api, VinDecoded } from '@/lib/api';
+import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, ExpressService, api, VinDecoded } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -21,12 +21,13 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
-  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'toasts', 'common', 'vin']);
+  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'express_service', 'toasts', 'common', 'vin']);
   const [clients, setClients] = useState<Client[]>([]);
   const [mechanics, setMechanics] = useState<Mechanic[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [authorizedPoints, setAuthorizedPoints] = useState<AuthorizedPoint[]>([]);
+  const [expressServices, setExpressServices] = useState<ExpressService[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -37,6 +38,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [repairDialog, setRepairDialog] = useState(false);
   const [authorizedPointDialog, setAuthorizedPointDialog] = useState(false);
   const [partsDialog, setPartsDialog] = useState(false);
+  const [expressServiceDialog, setExpressServiceDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedRepairForParts, setSelectedRepairForParts] = useState<Repair | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
@@ -110,24 +112,37 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     contact_person: '',
   });
 
+  const [expressServiceForm, setExpressServiceForm] = useState({
+    client_search: '',
+    client_id: '',
+    vehicle_info: '',
+    emergency_type: '',
+    description: '',
+    priority: 'urgent' as 'urgent' | 'high' | 'critical',
+    location: '',
+    contact_phone: '',
+  });
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
     try {
-      const [clientsData, mechanicsData, workshopsData, repairsData, pointsData] = await Promise.all([
+      const [clientsData, mechanicsData, workshopsData, repairsData, pointsData, servicesData] = await Promise.all([
         api.getClients(),
         api.getMechanics(),
         api.getWorkshops(),
         api.getRepairs(),
         api.getAuthorizedPoints(),
+        api.getExpressServices(),
       ]);
       setClients(clientsData);
       setMechanics(mechanicsData);
       setWorkshops(workshopsData);
       setRepairs(repairsData);
       setAuthorizedPoints(pointsData);
+      setExpressServices(servicesData);
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
@@ -622,6 +637,112 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  const filteredClientsForExpressService = clients.filter(client =>
+    client.user_name.toLowerCase().includes(expressServiceForm.client_search.toLowerCase()) ||
+    client.user_email.toLowerCase().includes(expressServiceForm.client_search.toLowerCase())
+  );
+
+  const handleSelectClientForExpressService = (client: Client) => {
+    setExpressServiceForm({
+      ...expressServiceForm,
+      client_search: client.user_name,
+      client_id: client.id,
+      vehicle_info: client.vehicle_info,
+      location: client.address,
+      contact_phone: client.user_phone,
+    });
+  };
+
+  const handleCreateExpressService = async () => {
+    try {
+      await api.createExpressService({
+        client_id: expressServiceForm.client_id,
+        vehicle_info: expressServiceForm.vehicle_info,
+        emergency_type: expressServiceForm.emergency_type,
+        description: expressServiceForm.description,
+        priority: expressServiceForm.priority,
+        location: expressServiceForm.location,
+        contact_phone: expressServiceForm.contact_phone,
+      });
+
+      toast({
+        description: t('toasts:express_service.create_success') || 'Servicio Express creado exitosamente',
+      });
+
+      setExpressServiceDialog(false);
+      setExpressServiceForm({
+        client_search: '',
+        client_id: '',
+        vehicle_info: '',
+        emergency_type: '',
+        description: '',
+        priority: 'urgent',
+        location: '',
+        contact_phone: '',
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error creating express service:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('toasts:express_service.create_error') || 'No se pudo crear el servicio express',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateExpressServiceStatus = async (serviceId: string, newStatus: string) => {
+    try {
+      await api.updateExpressService(serviceId, { status: newStatus });
+      
+      toast({
+        description: t('toasts:express_service.update_success') || 'Estado actualizado exitosamente',
+      });
+
+      loadData();
+    } catch (error) {
+      console.error('Error updating express service status:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('toasts:express_service.update_error') || 'No se pudo actualizar el estado',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteExpressService = async (serviceId: string) => {
+    try {
+      await api.deleteExpressService(serviceId);
+      
+      toast({
+        description: t('toasts:express_service.delete_success') || 'Servicio eliminado exitosamente',
+      });
+
+      loadData();
+    } catch (error) {
+      console.error('Error deleting express service:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('toasts:express_service.delete_error') || 'No se pudo eliminar el servicio',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
+      urgent: 'destructive',
+      high: 'default',
+      critical: 'destructive',
+    };
+    const labels: Record<string, string> = {
+      urgent: t('express_service:priority.urgent'),
+      high: t('express_service:priority.high'),
+      critical: t('express_service:priority.critical'),
+    };
+    return <Badge variant={variants[priority] || 'default'}>{labels[priority] || priority}</Badge>;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -702,6 +823,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               <div className="text-3xl font-bold">{authorizedPoints.length}</div>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">{t('dashboard:stats.express_service')}</CardTitle>
+              <Zap className="h-6 w-6 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{expressServices.length}</div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="repairs" className="space-y-6">
@@ -711,6 +841,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <TabsTrigger value="mechanics" className="text-base px-6">Mecánicos</TabsTrigger>
             <TabsTrigger value="workshops" className="text-base px-6">Talleres</TabsTrigger>
             <TabsTrigger value="points" className="text-base px-6">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
+            <TabsTrigger value="express" className="text-base px-6">{t('dashboard:tabs.express_service')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="repairs">
@@ -998,6 +1129,76 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="express">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl">{t('express_service:title')}</CardTitle>
+                  <CardDescription className="text-base">{t('express_service:description')}</CardDescription>
+                </div>
+                <Button onClick={() => setExpressServiceDialog(true)} size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
+                  {t('express_service:add_button')}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {expressServices.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No hay servicios express registrados
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.client')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.emergency_type')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.priority')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.status')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.location')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.mechanic')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('express_service:table.headers.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expressServices.map((service) => (
+                        <TableRow key={service.id}>
+                          <TableCell className="font-medium text-base px-6 py-4">{service.client_name}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{service.emergency_type}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{getPriorityBadge(service.priority)}</TableCell>
+                          <TableCell className="text-base px-6 py-4">
+                            <select
+                              value={service.status}
+                              onChange={(e) => handleUpdateExpressServiceStatus(service.id, e.target.value)}
+                              className="border rounded px-2 py-1"
+                            >
+                              <option value="pending">{t('express_service:status.pending')}</option>
+                              <option value="assigned">{t('express_service:status.assigned')}</option>
+                              <option value="en_route">{t('express_service:status.en_route')}</option>
+                              <option value="in_progress">{t('express_service:status.in_progress')}</option>
+                              <option value="completed">{t('express_service:status.completed')}</option>
+                              <option value="cancelled">{t('express_service:status.cancelled')}</option>
+                            </select>
+                          </TableCell>
+                          <TableCell className="text-base px-6 py-4">{service.location}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{service.mechanic_name || 'Sin asignar'}</TableCell>
+                          <TableCell className="px-6 py-4">
+                            <Button
+                              variant="ghost"
+                              size="default"
+                              onClick={() => handleDeleteExpressService(service.id)}
+                            >
+                              <Trash2 className="w-5 h-5 text-red-500" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1601,6 +1802,113 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Button>
             <Button onClick={handleCreateRepair}>
               {t('repairs:dialog.create_button')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={expressServiceDialog} onOpenChange={setExpressServiceDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('express_service:dialog.title')}</DialogTitle>
+            <DialogDescription>
+              {t('express_service:dialog.description')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="express-client-search">{t('express_service:dialog.search_client')}</Label>
+              <Input
+                id="express-client-search"
+                value={expressServiceForm.client_search}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, client_search: e.target.value })}
+                placeholder={t('express_service:dialog.search_placeholder')}
+              />
+              {expressServiceForm.client_search && filteredClientsForExpressService.length > 0 && (
+                <div className="border rounded-md max-h-40 overflow-y-auto">
+                  {filteredClientsForExpressService.map((client) => (
+                    <div
+                      key={client.id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelectClientForExpressService(client)}
+                    >
+                      <div className="font-medium">{client.user_name}</div>
+                      <div className="text-sm text-gray-500">{client.user_email}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {expressServiceForm.client_search && filteredClientsForExpressService.length === 0 && (
+                <div className="text-sm text-gray-500 p-2">
+                  {t('express_service:dialog.no_results')}
+                </div>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="express-vehicle">{t('express_service:dialog.vehicle_label')}</Label>
+              <Input
+                id="express-vehicle"
+                value={expressServiceForm.vehicle_info}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, vehicle_info: e.target.value })}
+                placeholder={t('express_service:dialog.vehicle_placeholder')}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="express-emergency-type">{t('express_service:dialog.emergency_type_label')}</Label>
+              <Input
+                id="express-emergency-type"
+                value={expressServiceForm.emergency_type}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, emergency_type: e.target.value })}
+                placeholder={t('express_service:dialog.emergency_type_placeholder')}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="express-description">{t('express_service:dialog.description_label')}</Label>
+              <Textarea
+                id="express-description"
+                value={expressServiceForm.description}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, description: e.target.value })}
+                placeholder={t('express_service:dialog.description_placeholder')}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="express-priority">{t('express_service:dialog.priority_label')}</Label>
+              <select
+                id="express-priority"
+                value={expressServiceForm.priority}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, priority: e.target.value as 'urgent' | 'high' | 'critical' })}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="urgent">{t('express_service:priority.urgent')}</option>
+                <option value="high">{t('express_service:priority.high')}</option>
+                <option value="critical">{t('express_service:priority.critical')}</option>
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="express-location">{t('express_service:dialog.location_label')}</Label>
+              <Input
+                id="express-location"
+                value={expressServiceForm.location}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, location: e.target.value })}
+                placeholder={t('express_service:dialog.location_placeholder')}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="express-phone">{t('express_service:dialog.contact_phone_label')}</Label>
+              <Input
+                id="express-phone"
+                value={expressServiceForm.contact_phone}
+                onChange={(e) => setExpressServiceForm({ ...expressServiceForm, contact_phone: e.target.value })}
+                placeholder={t('express_service:dialog.contact_phone_placeholder')}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExpressServiceDialog(false)}>
+              {t('common:actions.cancel')}
+            </Button>
+            <Button onClick={handleCreateExpressService}>
+              {t('express_service:dialog.create_button')}
             </Button>
           </DialogFooter>
         </DialogContent>

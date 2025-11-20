@@ -11,6 +11,7 @@ import clientsES from './locales/es/clients.json';
 import mechanicsES from './locales/es/mechanics.json';
 import workshopsES from './locales/es/workshops.json';
 import authorizedPointsES from './locales/es/authorized_points.json';
+import expressServiceES from './locales/es/express_service.json';
 import toastsES from './locales/es/toasts.json';
 import vinES from './locales/es/vin.json';
 
@@ -23,6 +24,7 @@ import clientsEN from './locales/en/clients.json';
 import mechanicsEN from './locales/en/mechanics.json';
 import workshopsEN from './locales/en/workshops.json';
 import authorizedPointsEN from './locales/en/authorized_points.json';
+import expressServiceEN from './locales/en/express_service.json';
 import toastsEN from './locales/en/toasts.json';
 import vinEN from './locales/en/vin.json';
 
@@ -37,6 +39,7 @@ const resources = {
     mechanics: mechanicsES,
     workshops: workshopsES,
     authorized_points: authorizedPointsES,
+    express_service: expressServiceES,
     toasts: toastsES,
     vin: vinES,
   },
@@ -50,6 +53,7 @@ const resources = {
     mechanics: mechanicsEN,
     workshops: workshopsEN,
     authorized_points: authorizedPointsEN,
+    express_service: expressServiceEN,
     toasts: toastsEN,
     vin: vinEN,
   },
@@ -62,7 +66,7 @@ i18n
     resources,
     supportedLngs: ['en', 'es'],
     fallbackLng: 'es',
-    ns: ['common', 'auth', 'dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'toasts', 'vin'],
+    ns: ['common', 'auth', 'dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'express_service', 'toasts', 'vin'],
     defaultNS: 'common',
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],

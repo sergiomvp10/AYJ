@@ -2,7 +2,7 @@ import sqlite3
 import json
 import os
 from typing import Dict, List, Optional
-from app.models import User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part
+from app.models import User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, ExpressService
 from app.auth import get_password_hash
 from datetime import datetime
 import uuid
@@ -139,6 +139,28 @@ class SQLiteDatabase:
                     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                     FOREIGN KEY (repair_id) REFERENCES repairs(id),
                     FOREIGN KEY (supplier_id) REFERENCES authorized_points(id)
+                )
+            """)
+            
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS express_services (
+                    id TEXT PRIMARY KEY,
+                    client_id TEXT NOT NULL,
+                    mechanic_id TEXT,
+                    vehicle_info TEXT NOT NULL,
+                    emergency_type TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    priority TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    contact_phone TEXT NOT NULL,
+                    estimated_arrival TEXT,
+                    started_at TEXT,
+                    completed_at TEXT,
+                    cost REAL,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+                    FOREIGN KEY (client_id) REFERENCES clients(id),
+                    FOREIGN KEY (mechanic_id) REFERENCES mechanics(id)
                 )
             """)
             
@@ -594,6 +616,78 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM parts WHERE id = ?", (part_id,))
+            return cursor.rowcount > 0
+    
+    def create_express_service(self, service: ExpressService) -> ExpressService:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO express_services (id, client_id, mechanic_id, vehicle_info, emergency_type,
+                                            description, priority, status, location, contact_phone,
+                                            estimated_arrival, started_at, completed_at, cost, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                service.id, service.client_id, service.mechanic_id, service.vehicle_info,
+                service.emergency_type, service.description, service.priority, service.status,
+                service.location, service.contact_phone,
+                service.estimated_arrival.isoformat() if service.estimated_arrival else None,
+                service.started_at.isoformat() if service.started_at else None,
+                service.completed_at.isoformat() if service.completed_at else None,
+                service.cost, service.created_at.isoformat()
+            ))
+            return service
+    
+    def get_express_service(self, service_id: str) -> Optional[ExpressService]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM express_services WHERE id = ?", (service_id,))
+            row = cursor.fetchone()
+            if row:
+                return ExpressService(**dict(row))
+            return None
+    
+    def get_all_express_services(self) -> List[ExpressService]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM express_services ORDER BY created_at DESC")
+            return [ExpressService(**dict(row)) for row in cursor.fetchall()]
+    
+    def get_express_services_by_client(self, client_id: str) -> List[ExpressService]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM express_services WHERE client_id = ? ORDER BY created_at DESC", (client_id,))
+            return [ExpressService(**dict(row)) for row in cursor.fetchall()]
+    
+    def get_express_services_by_mechanic(self, mechanic_id: str) -> List[ExpressService]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM express_services WHERE mechanic_id = ? ORDER BY created_at DESC", (mechanic_id,))
+            return [ExpressService(**dict(row)) for row in cursor.fetchall()]
+    
+    def update_express_service(self, service_id: str, service: ExpressService) -> Optional[ExpressService]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE express_services SET mechanic_id = ?, status = ?, estimated_arrival = ?,
+                                          started_at = ?, completed_at = ?, cost = ?
+                WHERE id = ?
+            """, (
+                service.mechanic_id,
+                service.status,
+                service.estimated_arrival.isoformat() if service.estimated_arrival else None,
+                service.started_at.isoformat() if service.started_at else None,
+                service.completed_at.isoformat() if service.completed_at else None,
+                service.cost,
+                service_id
+            ))
+            if cursor.rowcount > 0:
+                return service
+            return None
+    
+    def delete_express_service(self, service_id: str) -> bool:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM express_services WHERE id = ?", (service_id,))
             return cursor.rowcount > 0
 
 db = SQLiteDatabase()

@@ -17,6 +17,8 @@ from app.models import (
     RepairCreate, RepairUpdate, RepairResponse, Repair, RepairStatus,
     AuthorizedPointCreate, AuthorizedPointResponse, AuthorizedPoint,
     PartCreate, PartUpdate, PartResponse, Part, PartStatus,
+    ExpressServiceCreate, ExpressServiceUpdate, ExpressServiceResponse, ExpressService,
+    ExpressServicePriority, ExpressServiceStatus,
     User, UserRole, VinDecoded, VinEngineInfo
 )
 from app.auth import (
@@ -834,6 +836,195 @@ async def delete_part(part_id: str, current_user: TokenData = Depends(require_ad
     if not db.delete_part(part_id):
         raise HTTPException(status_code=404, detail="Part not found")
     return {"message": "Part deleted successfully"}
+
+@app.get("/api/express-services", response_model=List[ExpressServiceResponse])
+async def list_express_services(current_user: TokenData = Depends(get_current_user)):
+    services = db.get_all_express_services()
+    result = []
+    for service in services:
+        client = db.get_client(service.client_id)
+        if not client:
+            continue
+        user = db.get_user_by_id(client.user_id)
+        if not user:
+            continue
+        
+        mechanic_name = None
+        if service.mechanic_id:
+            mechanic = db.get_mechanic(service.mechanic_id)
+            if mechanic:
+                mechanic_user = db.get_user_by_id(mechanic.user_id)
+                if mechanic_user:
+                    mechanic_name = mechanic_user.name
+        
+        result.append(ExpressServiceResponse(
+            id=service.id,
+            client_id=service.client_id,
+            client_name=user.name,
+            mechanic_id=service.mechanic_id,
+            mechanic_name=mechanic_name,
+            vehicle_info=service.vehicle_info,
+            emergency_type=service.emergency_type,
+            description=service.description,
+            priority=service.priority,
+            status=service.status,
+            location=service.location,
+            contact_phone=service.contact_phone,
+            estimated_arrival=service.estimated_arrival,
+            started_at=service.started_at,
+            completed_at=service.completed_at,
+            cost=service.cost,
+            created_at=service.created_at
+        ))
+    return result
+
+@app.get("/api/express-services/{service_id}", response_model=ExpressServiceResponse)
+async def get_express_service(service_id: str, current_user: TokenData = Depends(get_current_user)):
+    service = db.get_express_service(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Express service not found")
+    
+    client = db.get_client(service.client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    user = db.get_user_by_id(client.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    mechanic_name = None
+    if service.mechanic_id:
+        mechanic = db.get_mechanic(service.mechanic_id)
+        if mechanic:
+            mechanic_user = db.get_user_by_id(mechanic.user_id)
+            if mechanic_user:
+                mechanic_name = mechanic_user.name
+    
+    return ExpressServiceResponse(
+        id=service.id,
+        client_id=service.client_id,
+        client_name=user.name,
+        mechanic_id=service.mechanic_id,
+        mechanic_name=mechanic_name,
+        vehicle_info=service.vehicle_info,
+        emergency_type=service.emergency_type,
+        description=service.description,
+        priority=service.priority,
+        status=service.status,
+        location=service.location,
+        contact_phone=service.contact_phone,
+        estimated_arrival=service.estimated_arrival,
+        started_at=service.started_at,
+        completed_at=service.completed_at,
+        cost=service.cost,
+        created_at=service.created_at
+    )
+
+@app.post("/api/express-services", response_model=ExpressServiceResponse)
+async def create_express_service(service_data: ExpressServiceCreate, current_user: TokenData = Depends(require_admin)):
+    client = db.get_client(service_data.client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    service = ExpressService(
+        id=str(uuid.uuid4()),
+        client_id=service_data.client_id,
+        mechanic_id=None,
+        vehicle_info=service_data.vehicle_info,
+        emergency_type=service_data.emergency_type,
+        description=service_data.description,
+        priority=service_data.priority,
+        status=ExpressServiceStatus.PENDING,
+        location=service_data.location,
+        contact_phone=service_data.contact_phone,
+        estimated_arrival=None,
+        started_at=None,
+        completed_at=None,
+        cost=None,
+        created_at=datetime.utcnow()
+    )
+    
+    created_service = db.create_express_service(service)
+    user = db.get_user_by_id(client.user_id)
+    
+    return ExpressServiceResponse(
+        id=created_service.id,
+        client_id=created_service.client_id,
+        client_name=user.name if user else "Unknown",
+        mechanic_id=created_service.mechanic_id,
+        mechanic_name=None,
+        vehicle_info=created_service.vehicle_info,
+        emergency_type=created_service.emergency_type,
+        description=created_service.description,
+        priority=created_service.priority,
+        status=created_service.status,
+        location=created_service.location,
+        contact_phone=created_service.contact_phone,
+        estimated_arrival=created_service.estimated_arrival,
+        started_at=created_service.started_at,
+        completed_at=created_service.completed_at,
+        cost=created_service.cost,
+        created_at=created_service.created_at
+    )
+
+@app.patch("/api/express-services/{service_id}", response_model=ExpressServiceResponse)
+async def update_express_service(service_id: str, service_update: ExpressServiceUpdate, current_user: TokenData = Depends(require_admin)):
+    service = db.get_express_service(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Express service not found")
+    
+    if service_update.mechanic_id is not None:
+        service.mechanic_id = service_update.mechanic_id
+    if service_update.status is not None:
+        service.status = service_update.status
+    if service_update.estimated_arrival is not None:
+        service.estimated_arrival = service_update.estimated_arrival
+    if service_update.started_at is not None:
+        service.started_at = service_update.started_at
+    if service_update.completed_at is not None:
+        service.completed_at = service_update.completed_at
+    if service_update.cost is not None:
+        service.cost = service_update.cost
+    
+    updated_service = db.update_express_service(service_id, service)
+    if not updated_service:
+        raise HTTPException(status_code=404, detail="Express service not found")
+    
+    client = db.get_client(updated_service.client_id)
+    user = db.get_user_by_id(client.user_id) if client else None
+    
+    mechanic_name = None
+    if updated_service.mechanic_id:
+        mechanic = db.get_mechanic(updated_service.mechanic_id)
+        if mechanic:
+            mechanic_user = db.get_user_by_id(mechanic.user_id)
+            if mechanic_user:
+                mechanic_name = mechanic_user.name
+    
+    return ExpressServiceResponse(
+        id=updated_service.id,
+        client_id=updated_service.client_id,
+        client_name=user.name if user else "Unknown",
+        mechanic_id=updated_service.mechanic_id,
+        mechanic_name=mechanic_name,
+        vehicle_info=updated_service.vehicle_info,
+        emergency_type=updated_service.emergency_type,
+        description=updated_service.description,
+        priority=updated_service.priority,
+        status=updated_service.status,
+        location=updated_service.location,
+        contact_phone=updated_service.contact_phone,
+        estimated_arrival=updated_service.estimated_arrival,
+        started_at=updated_service.started_at,
+        completed_at=updated_service.completed_at,
+        cost=updated_service.cost,
+        created_at=updated_service.created_at
+    )
+
+@app.delete("/api/express-services/{service_id}")
+async def delete_express_service(service_id: str, current_user: TokenData = Depends(require_admin)):
+    if not db.delete_express_service(service_id):
+        raise HTTPException(status_code=404, detail="Express service not found")
+    return {"message": "Express service deleted successfully"}
 
 @app.get("/api/vin/decode/{vin}", response_model=VinDecoded)
 async def decode_vin(vin: str):

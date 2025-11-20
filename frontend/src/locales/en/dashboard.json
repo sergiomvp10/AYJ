@@ -7,13 +7,15 @@
     "clients": "Clients",
     "mechanics": "Mechanics",
     "workshops": "Workshops",
-    "authorized_points": "Auto Parts Store"
+    "authorized_points": "Auto Parts Store",
+    "express_service": "Express Service"
   },
   "stats": {
     "clients": "Clients",
     "mechanics": "Mechanics",
     "workshops": "Workshops",
     "repairs": "Repairs",
-    "authorized_points": "Auto Parts Store"
+    "authorized_points": "Auto Parts Store",
+    "express_service": "Express Service"
   }
 }

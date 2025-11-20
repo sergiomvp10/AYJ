@@ -112,6 +112,26 @@ export interface VinDecoded {
   summary: string;
 }
 
+export interface ExpressService {
+  id: string;
+  client_id: string;
+  client_name: string;
+  mechanic_id?: string;
+  mechanic_name?: string;
+  vehicle_info: string;
+  emergency_type: string;
+  description: string;
+  priority: 'urgent' | 'high' | 'critical';
+  status: 'pending' | 'assigned' | 'en_route' | 'in_progress' | 'completed' | 'cancelled';
+  location: string;
+  contact_phone: string;
+  estimated_arrival?: string;
+  started_at?: string;
+  completed_at?: string;
+  cost?: number;
+  created_at: string;
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -381,6 +401,45 @@ class ApiClient {
 
   async decodeVin(vin: string): Promise<VinDecoded> {
     return this.request(`/api/vin/decode/${encodeURIComponent(vin.toUpperCase().trim())}`);
+  }
+
+  async getExpressServices(): Promise<ExpressService[]> {
+    return this.request('/api/express-services');
+  }
+
+  async createExpressService(data: {
+    client_id: string;
+    vehicle_info: string;
+    emergency_type: string;
+    description: string;
+    priority: string;
+    location: string;
+    contact_phone: string;
+  }) {
+    return this.request('/api/express-services', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateExpressService(id: string, data: {
+    mechanic_id?: string;
+    status?: string;
+    estimated_arrival?: string;
+    started_at?: string;
+    completed_at?: string;
+    cost?: number;
+  }) {
+    return this.request(`/api/express-services/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteExpressService(id: string) {
+    return this.request(`/api/express-services/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

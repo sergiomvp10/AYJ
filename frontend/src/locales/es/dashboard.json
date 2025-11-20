@@ -7,13 +7,15 @@
     "clients": "Clientes",
     "mechanics": "Mecánicos",
     "workshops": "Talleres",
-    "authorized_points": "Tienda Autopartes"
+    "authorized_points": "Tienda Autopartes",
+    "express_service": "Servicio Express"
   },
   "stats": {
     "clients": "Clientes",
     "mechanics": "Mecánicos",
     "workshops": "Talleres",
     "repairs": "Reparaciones",
-    "authorized_points": "Tienda Autopartes"
+    "authorized_points": "Tienda Autopartes",
+    "express_service": "Servicio Express"
   }
 }

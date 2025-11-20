@@ -284,3 +284,69 @@ class VinDecoded(BaseModel):
     engine: VinEngineInfo
     plant_country: Optional[str] = None
     summary: str
+
+class ExpressServicePriority(str, Enum):
+    URGENT = "urgent"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+class ExpressServiceStatus(str, Enum):
+    PENDING = "pending"
+    ASSIGNED = "assigned"
+    EN_ROUTE = "en_route"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class ExpressService(BaseModel):
+    id: str
+    client_id: str
+    mechanic_id: Optional[str] = None
+    vehicle_info: str
+    emergency_type: str
+    description: str
+    priority: ExpressServicePriority
+    status: ExpressServiceStatus
+    location: str
+    contact_phone: str
+    estimated_arrival: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    cost: Optional[float] = None
+    created_at: datetime
+
+class ExpressServiceCreate(BaseModel):
+    client_id: str
+    vehicle_info: str
+    emergency_type: str
+    description: str
+    priority: ExpressServicePriority
+    location: str
+    contact_phone: str
+
+class ExpressServiceUpdate(BaseModel):
+    mechanic_id: Optional[str] = None
+    status: Optional[ExpressServiceStatus] = None
+    estimated_arrival: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    cost: Optional[float] = None
+
+class ExpressServiceResponse(BaseModel):
+    id: str
+    client_id: str
+    client_name: str
+    mechanic_id: Optional[str] = None
+    mechanic_name: Optional[str] = None
+    vehicle_info: str
+    emergency_type: str
+    description: str
+    priority: ExpressServicePriority
+    status: ExpressServiceStatus
+    location: str
+    contact_phone: str
+    estimated_arrival: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    cost: Optional[float] = None
+    created_at: datetime
