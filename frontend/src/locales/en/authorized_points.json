@@ -1,5 +1,5 @@
 {
-  "title": "Authorized Points",
+  "title": "Auto Parts Store",
   "description": "Trusted places to buy parts and materials",
   "add_button": "Register",
   "table": {
@@ -13,7 +13,7 @@
     }
   },
   "dialog": {
-    "title": "Register Authorized Point",
+    "title": "Register Auto Parts Store",
     "description": "Register a trusted place to buy parts",
     "name_label": "Name",
     "name_placeholder": "Central Auto Parts",
@@ -25,6 +25,6 @@
     "services_placeholder": "Original parts, Accessories, Tools",
     "contact_label": "Contact Person",
     "contact_placeholder": "Contact name",
-    "register_button": "Register Point"
+    "register_button": "Register Store"
   }
 }
