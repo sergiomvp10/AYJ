@@ -695,7 +695,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">Puntos Autorizados</CardTitle>
+              <CardTitle className="text-base font-medium">{t('dashboard:stats.authorized_points')}</CardTitle>
               <MapPin className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -710,7 +710,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <TabsTrigger value="clients" className="text-base px-6">Clientes</TabsTrigger>
             <TabsTrigger value="mechanics" className="text-base px-6">Mecánicos</TabsTrigger>
             <TabsTrigger value="workshops" className="text-base px-6">Talleres</TabsTrigger>
-            <TabsTrigger value="points" className="text-base px-6">Puntos Autorizados</TabsTrigger>
+            <TabsTrigger value="points" className="text-base px-6">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="repairs">
@@ -967,8 +967,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Puntos Autorizados</CardTitle>
-                  <CardDescription className="text-base">Lista de todos los puntos autorizados</CardDescription>
+                  <CardTitle className="text-xl">{t('authorized_points:title')}</CardTitle>
+                  <CardDescription className="text-base">{t('authorized_points:description')}</CardDescription>
                 </div>
                 <Button onClick={() => setAuthorizedPointDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
