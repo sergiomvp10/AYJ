@@ -166,11 +166,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setClientDialog(false);
       setClientForm({ name: '', email: '', phone: '', city: '', address: '', vehicle_info: '' });
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating client:', error);
+      const errorMessage = error?.message || t('toasts:client_creation_error');
       toast({
         title: t('toasts:error_title'),
-        description: t('toasts:client_creation_error'),
+        description: errorMessage,
         variant: 'destructive',
       });
     }

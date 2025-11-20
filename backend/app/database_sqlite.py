@@ -8,7 +8,12 @@ from datetime import datetime
 import uuid
 from contextlib import contextmanager
 
-DB_PATH = os.getenv("DB_PATH", "./data/ayj.db")
+if os.path.isdir("/data"):
+    DB_PATH = os.getenv("DB_PATH", "/data/ayj.db")
+else:
+    DB_PATH = os.getenv("DB_PATH", "./data/ayj.db")
+
+print(f"[DATABASE] Using database path: {DB_PATH}")
 
 class SQLiteDatabase:
     def __init__(self):
