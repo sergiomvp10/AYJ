@@ -1683,12 +1683,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
               )}
             </div>
-            <VinDecoderInput
-              onDecoded={(decoded: VinDecoded) => {
-                setRepairForm({ ...repairForm, vehicle_info: decoded.summary });
-              }}
-              className="grid gap-2"
-            />
             <div className="grid gap-2">
               <Label htmlFor="repair-vehicle">{t('repairs:dialog.vehicle_label')}</Label>
               <Input
