@@ -1,0 +1,52 @@
+{
+  "title": "Solicitudes",
+  "subtitle": "Solicitudes de reparación de clientes",
+  "empty": "No hay solicitudes pendientes",
+  "table": {
+    "name": "Nombre",
+    "email": "Email",
+    "phone": "Teléfono",
+    "vehicle": "Vehículo",
+    "service_type": "Tipo",
+    "location": "Ubicación",
+    "date": "Fecha Solicitada",
+    "emergency": "Emergencia",
+    "status": "Estado",
+    "actions": "Acciones"
+  },
+  "status": {
+    "new": "Nueva",
+    "converted": "Convertida",
+    "rejected": "Rechazada"
+  },
+  "service_types": {
+    "mobile": "Móvil",
+    "workshop": "Taller"
+  },
+  "actions": {
+    "view": "Ver",
+    "convert": "Convertir a Reparación",
+    "convert_express": "Convertir a Servicio Express",
+    "reject": "Rechazar",
+    "delete": "Eliminar"
+  },
+  "dialog": {
+    "title": "Detalles de Solicitud",
+    "convert_title": "Convertir Solicitud",
+    "convert_message": "¿Desea convertir esta solicitud en una reparación o servicio express?",
+    "convert_repair": "Reparación Normal",
+    "convert_express": "Servicio Express",
+    "reject_title": "Rechazar Solicitud",
+    "reject_message": "¿Está seguro que desea rechazar esta solicitud?",
+    "delete_title": "Eliminar Solicitud",
+    "delete_message": "¿Está seguro que desea eliminar esta solicitud?"
+  },
+  "toasts": {
+    "convert_success": "Solicitud convertida exitosamente",
+    "convert_error": "Error al convertir solicitud",
+    "reject_success": "Solicitud rechazada",
+    "reject_error": "Error al rechazar solicitud",
+    "delete_success": "Solicitud eliminada",
+    "delete_error": "Error al eliminar solicitud"
+  }
+}

@@ -132,6 +132,22 @@ export interface ExpressService {
   created_at: string;
 }
 
+export interface RepairRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  vehicle_info: string;
+  description: string;
+  service_type: string;
+  location: string;
+  preferred_datetime?: string;
+  is_emergency: boolean;
+  status: 'new' | 'converted' | 'rejected';
+  client_id?: string;
+  created_at: string;
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -438,6 +454,60 @@ class ApiClient {
 
   async deleteExpressService(id: string) {
     return this.request(`/api/express-services/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createPublicRepairRequest(data: {
+    name: string;
+    email: string;
+    phone: string;
+    vehicle_info: string;
+    description: string;
+    service_type: string;
+    location: string;
+    preferred_datetime?: string;
+    is_emergency: boolean;
+  }): Promise<RepairRequest> {
+    const response = await fetch(`${API_URL}/api/public/repair-requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'An error occurred' }));
+      throw new Error(error.detail || 'An error occurred');
+    }
+
+    return response.json();
+  }
+
+  async getRepairRequests(status?: string): Promise<RepairRequest[]> {
+    const url = status ? `/api/repair-requests?status=${status}` : '/api/repair-requests';
+    return this.request(url);
+  }
+
+  async getRepairRequest(id: string): Promise<RepairRequest> {
+    return this.request(`/api/repair-requests/${id}`);
+  }
+
+  async convertRepairRequest(id: string, mode: 'repair' | 'express' = 'repair') {
+    return this.request(`/api/repair-requests/${id}/convert?mode=${mode}`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectRepairRequest(id: string) {
+    return this.request(`/api/repair-requests/${id}/reject`, {
+      method: 'POST',
+    });
+  }
+
+  async deleteRepairRequest(id: string) {
+    return this.request(`/api/repair-requests/${id}`, {
       method: 'DELETE',
     });
   }

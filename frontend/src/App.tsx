@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { api, User } from './lib/api';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import MechanicDashboard from './pages/MechanicDashboard';
+import PublicRepairRequestForm from './pages/PublicRepairRequestForm';
 import { Toaster } from './components/ui/toaster';
 
-function App() {
+function AppContent() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,7 +39,9 @@ function App() {
     setUser(null);
   };
 
-  if (loading) {
+  const isPublicRoute = location.pathname === '/solicitar' || location.pathname === '/schedule';
+
+  if (loading && !isPublicRoute) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl">Cargando...</div>
@@ -44,22 +49,39 @@ function App() {
     );
   }
 
-  if (!user) {
-    return (
-      <>
-        <LoginPage onLogin={handleLogin} />
-        <Toaster />
-      </>
-    );
-  }
-
   return (
     <>
-      {user.role === 'admin' && <AdminDashboard user={user} onLogout={handleLogout} />}
-      {user.role === 'cliente' && <ClientDashboard user={user} onLogout={handleLogout} />}
-      {user.role === 'mecanico' && <MechanicDashboard user={user} onLogout={handleLogout} />}
+      <Routes>
+        <Route path="/solicitar" element={<PublicRepairRequestForm />} />
+        <Route path="/schedule" element={<PublicRepairRequestForm />} />
+        <Route
+          path="/"
+          element={
+            !user ? (
+              <LoginPage onLogin={handleLogin} />
+            ) : user.role === 'admin' ? (
+              <AdminDashboard user={user} onLogout={handleLogout} />
+            ) : user.role === 'cliente' ? (
+              <ClientDashboard user={user} onLogout={handleLogout} />
+            ) : user.role === 'mecanico' ? (
+              <MechanicDashboard user={user} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <Toaster />
     </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 

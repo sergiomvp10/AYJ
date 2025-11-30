@@ -1,0 +1,42 @@
+{
+  "title": "Request Repair",
+  "subtitle": "Complete the form and we will contact you soon",
+  "form": {
+    "name_label": "Full Name",
+    "name_placeholder": "Ex: John Doe",
+    "email_label": "Email",
+    "email_placeholder": "email@example.com",
+    "phone_label": "Phone",
+    "phone_placeholder": "Ex: (787) 123-4567",
+    "vehicle_label": "Vehicle Information",
+    "vehicle_placeholder": "Ex: Toyota Corolla 2020, Plate ABC123",
+    "description_label": "Problem Description",
+    "description_placeholder": "Describe the problem or service you need",
+    "service_type_label": "Service Type",
+    "service_mobile": "Mobile Mechanic (comes to you)",
+    "service_workshop": "Workshop",
+    "location_label": "Location",
+    "location_placeholder": "Address where service will be performed",
+    "preferred_date_label": "Preferred Date (optional)",
+    "preferred_time_label": "Preferred Time (optional)",
+    "is_emergency_label": "Is this an emergency?",
+    "is_emergency_help": "Check if you need urgent attention"
+  },
+  "buttons": {
+    "submit": "Submit Request",
+    "submitting": "Submitting...",
+    "back_home": "Back to Home"
+  },
+  "success": {
+    "title": "Request Received!",
+    "message": "Thank you for contacting us. We will review your request and contact you soon.",
+    "reference": "Reference number"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Invalid email",
+    "invalid_phone": "Invalid phone",
+    "submit_error": "Error submitting request. Please try again.",
+    "rate_limit": "You have exceeded the request limit. Please try again later."
+  }
+}

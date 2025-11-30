@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, ExpressService, api, VinDecoded } from '@/lib/api';
+import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, ExpressService, RepairRequest, api, VinDecoded } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -21,13 +21,14 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
-  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'express_service', 'toasts', 'common', 'vin']);
+  const { t } = useTranslation(['dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'express_service', 'repair_requests', 'toasts', 'common', 'vin']);
   const [clients, setClients] = useState<Client[]>([]);
   const [mechanics, setMechanics] = useState<Mechanic[]>([]);
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [repairs, setRepairs] = useState<Repair[]>([]);
   const [authorizedPoints, setAuthorizedPoints] = useState<AuthorizedPoint[]>([]);
   const [expressServices, setExpressServices] = useState<ExpressService[]>([]);
+  const [repairRequests, setRepairRequests] = useState<RepairRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -39,8 +40,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [authorizedPointDialog, setAuthorizedPointDialog] = useState(false);
   const [partsDialog, setPartsDialog] = useState(false);
   const [expressServiceDialog, setExpressServiceDialog] = useState(false);
+  const [repairRequestDialog, setRepairRequestDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedRepairForParts, setSelectedRepairForParts] = useState<Repair | null>(null);
+  const [selectedRepairRequest, setSelectedRepairRequest] = useState<RepairRequest | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
   const [partForm, setPartForm] = useState({
     name: '',
@@ -129,13 +132,14 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const loadData = async () => {
     try {
-      const [clientsData, mechanicsData, workshopsData, repairsData, pointsData, servicesData] = await Promise.all([
+      const [clientsData, mechanicsData, workshopsData, repairsData, pointsData, servicesData, requestsData] = await Promise.all([
         api.getClients(),
         api.getMechanics(),
         api.getWorkshops(),
         api.getRepairs(),
         api.getAuthorizedPoints(),
         api.getExpressServices(),
+        api.getRepairRequests(),
       ]);
       setClients(clientsData);
       setMechanics(mechanicsData);
@@ -143,6 +147,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setRepairs(repairsData);
       setAuthorizedPoints(pointsData);
       setExpressServices(servicesData);
+      setRepairRequests(requestsData);
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
@@ -743,6 +748,82 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     return <Badge variant={variants[priority] || 'default'}>{labels[priority] || priority}</Badge>;
   };
 
+  const handleViewRepairRequest = (request: RepairRequest) => {
+    setSelectedRepairRequest(request);
+    setRepairRequestDialog(true);
+  };
+
+  const handleConvertRepairRequest = async (requestId: string, mode: 'repair' | 'express') => {
+    try {
+      await api.convertRepairRequest(requestId, mode);
+      toast({
+        title: t('toasts:success_title'),
+        description: t('repair_requests:toasts.convert_success'),
+      });
+      loadData();
+      setRepairRequestDialog(false);
+    } catch (error) {
+      console.error('Error converting repair request:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('repair_requests:toasts.convert_error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRejectRepairRequest = async (requestId: string) => {
+    try {
+      await api.rejectRepairRequest(requestId);
+      toast({
+        title: t('toasts:success_title'),
+        description: t('repair_requests:toasts.reject_success'),
+      });
+      loadData();
+      setRepairRequestDialog(false);
+    } catch (error) {
+      console.error('Error rejecting repair request:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('repair_requests:toasts.reject_error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteRepairRequest = async (requestId: string) => {
+    try {
+      await api.deleteRepairRequest(requestId);
+      toast({
+        title: t('toasts:success_title'),
+        description: t('repair_requests:toasts.delete_success'),
+      });
+      loadData();
+      setRepairRequestDialog(false);
+    } catch (error) {
+      console.error('Error deleting repair request:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('repair_requests:toasts.delete_error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getRequestStatusBadge = (status: string) => {
+    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
+      new: 'default',
+      converted: 'secondary',
+      rejected: 'destructive',
+    };
+    const labels: Record<string, string> = {
+      new: t('repair_requests:status.new'),
+      converted: t('repair_requests:status.converted'),
+      rejected: t('repair_requests:status.rejected'),
+    };
+    return <Badge variant={variants[status] || 'default'}>{labels[status] || status}</Badge>;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -832,6 +913,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               <div className="text-3xl font-bold">{expressServices.length}</div>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-base font-medium">{t('repair_requests:title')}</CardTitle>
+              <FileText className="h-6 w-6 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{repairRequests.filter(r => r.status === 'new').length}</div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="repairs" className="space-y-6">
@@ -842,6 +932,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <TabsTrigger value="workshops" className="text-base px-6">Talleres</TabsTrigger>
             <TabsTrigger value="points" className="text-base px-6">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
             <TabsTrigger value="express" className="text-base px-6">{t('dashboard:tabs.express_service')}</TabsTrigger>
+            <TabsTrigger value="requests" className="text-base px-6">{t('repair_requests:title')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="repairs">
@@ -1193,6 +1284,93 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                             >
                               <Trash2 className="w-5 h-5 text-red-500" />
                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="requests">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">{t('repair_requests:title')}</CardTitle>
+                <CardDescription className="text-base">{t('repair_requests:subtitle')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {repairRequests.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 text-lg">
+                    {t('repair_requests:empty')}
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('repair_requests:table.name')}</TableHead>
+                        <TableHead>{t('repair_requests:table.email')}</TableHead>
+                        <TableHead>{t('repair_requests:table.phone')}</TableHead>
+                        <TableHead>{t('repair_requests:table.vehicle')}</TableHead>
+                        <TableHead>{t('repair_requests:table.service_type')}</TableHead>
+                        <TableHead>{t('repair_requests:table.emergency')}</TableHead>
+                        <TableHead>{t('repair_requests:table.status')}</TableHead>
+                        <TableHead>{t('repair_requests:table.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {repairRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell className="font-medium">{request.name}</TableCell>
+                          <TableCell>{request.email}</TableCell>
+                          <TableCell>{request.phone}</TableCell>
+                          <TableCell>{request.vehicle_info}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {request.service_type === 'mobile' 
+                                ? t('repair_requests:service_types.mobile') 
+                                : t('repair_requests:service_types.workshop')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {request.is_emergency ? (
+                              <Badge variant="destructive">Sí</Badge>
+                            ) : (
+                              <Badge variant="secondary">No</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{getRequestStatusBadge(request.status)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewRepairRequest(request)}
+                              >
+                                {t('repair_requests:actions.view')}
+                              </Button>
+                              {request.status === 'new' && (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleConvertRepairRequest(request.id, 'repair')}
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    {t('repair_requests:actions.convert')}
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleRejectRepairRequest(request.id)}
+                                  >
+                                    <XCircle className="w-4 h-4 mr-1" />
+                                    {t('repair_requests:actions.reject')}
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -2055,6 +2233,113 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </div>
           <DialogFooter>
             <Button onClick={() => setPartsDialog(false)}>
+              {t('common:actions.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={repairRequestDialog} onOpenChange={setRepairRequestDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t('repair_requests:dialog.title')}</DialogTitle>
+          </DialogHeader>
+          {selectedRepairRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.name')}</Label>
+                  <p>{selectedRepairRequest.name}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.email')}</Label>
+                  <p>{selectedRepairRequest.email}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.phone')}</Label>
+                  <p>{selectedRepairRequest.phone}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.service_type')}</Label>
+                  <p>
+                    {selectedRepairRequest.service_type === 'mobile' 
+                      ? t('repair_requests:service_types.mobile') 
+                      : t('repair_requests:service_types.workshop')}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <Label className="font-semibold">{t('repair_requests:table.vehicle')}</Label>
+                <p>{selectedRepairRequest.vehicle_info}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">{t('repair_requests:table.location')}</Label>
+                <p>{selectedRepairRequest.location}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Descripción</Label>
+                <p className="whitespace-pre-wrap">{selectedRepairRequest.description}</p>
+              </div>
+              {selectedRepairRequest.preferred_datetime && (
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.date')}</Label>
+                  <p>{new Date(selectedRepairRequest.preferred_datetime).toLocaleString()}</p>
+                </div>
+              )}
+              <div className="flex gap-4">
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.emergency')}</Label>
+                  <p>{selectedRepairRequest.is_emergency ? 'Sí' : 'No'}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">{t('repair_requests:table.status')}</Label>
+                  <div>{getRequestStatusBadge(selectedRepairRequest.status)}</div>
+                </div>
+              </div>
+              {selectedRepairRequest.status === 'new' && (
+                <div className="pt-4 border-t">
+                  <p className="text-sm text-gray-600 mb-4">{t('repair_requests:dialog.convert_message')}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleConvertRepairRequest(selectedRepairRequest.id, 'repair')}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {t('repair_requests:dialog.convert_repair')}
+                    </Button>
+                    <Button
+                      onClick={() => handleConvertRepairRequest(selectedRepairRequest.id, 'express')}
+                      variant="secondary"
+                      className="flex-1"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      {t('repair_requests:dialog.convert_express')}
+                    </Button>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      onClick={() => handleRejectRepairRequest(selectedRepairRequest.id)}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      {t('repair_requests:actions.reject')}
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteRepairRequest(selectedRepairRequest.id)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t('repair_requests:actions.delete')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setRepairRequestDialog(false)}>
               {t('common:actions.close')}
             </Button>
           </DialogFooter>
