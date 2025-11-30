@@ -511,6 +511,27 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  async generateShareToken(repairId: string): Promise<{ share_token: string; share_url: string }> {
+    return this.request(`/api/repairs/${repairId}/generate-share-token`, {
+      method: 'POST',
+    });
+  }
+
+  async trackRepairByToken(token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/public/track/${token}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Repair not found');
+    }
+
+    return response.json();
+  }
 }
 
 export const api = new ApiClient();

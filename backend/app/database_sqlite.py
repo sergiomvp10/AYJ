@@ -255,6 +255,12 @@ class SQLiteDatabase:
             cursor.execute("ALTER TABLE parts ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
             cursor.execute("UPDATE parts SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
         
+        repairs_cols = get_columns('repairs')
+        print(f"[MIGRATION] Repairs columns: {repairs_cols}")
+        if 'share_token' not in repairs_cols:
+            print("[MIGRATION] Adding share_token to repairs table")
+            cursor.execute("ALTER TABLE repairs ADD COLUMN share_token TEXT")
+        
         print("[MIGRATION] Migrations completed successfully")
     
     def _initialize_admin(self):
@@ -469,14 +475,15 @@ class SQLiteDatabase:
             cursor.execute("""
                 INSERT INTO repairs (id, client_id, mechanic_id, workshop_id, vehicle_info, issue_description,
                                    status, service_type, location, scheduled_date, completed_date, cost,
-                                   amount_charged, balance_pending, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                   amount_charged, balance_pending, share_token, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 repair.id, repair.client_id, repair.mechanic_id, repair.workshop_id, repair.vehicle_info,
                 repair.issue_description, repair.status, repair.service_type, repair.location,
                 repair.scheduled_date.isoformat() if repair.scheduled_date else None,
                 repair.completed_date.isoformat() if repair.completed_date else None,
-                repair.cost, repair.amount_charged, repair.balance_pending, repair.created_at.isoformat()
+                repair.cost, repair.amount_charged, repair.balance_pending, repair.share_token,
+                repair.created_at.isoformat()
             ))
             return repair
     
@@ -514,14 +521,15 @@ class SQLiteDatabase:
                 UPDATE repairs SET client_id = ?, mechanic_id = ?, workshop_id = ?, vehicle_info = ?,
                                  issue_description = ?, status = ?, service_type = ?, location = ?,
                                  scheduled_date = ?, completed_date = ?, cost = ?, amount_charged = ?,
-                                 balance_pending = ?, created_at = ?
+                                 balance_pending = ?, share_token = ?, created_at = ?
                 WHERE id = ?
             """, (
                 repair.client_id, repair.mechanic_id, repair.workshop_id, repair.vehicle_info,
                 repair.issue_description, repair.status, repair.service_type, repair.location,
                 repair.scheduled_date.isoformat() if repair.scheduled_date else None,
                 repair.completed_date.isoformat() if repair.completed_date else None,
-                repair.cost, repair.amount_charged, repair.balance_pending, repair.created_at.isoformat(),
+                repair.cost, repair.amount_charged, repair.balance_pending, repair.share_token,
+                repair.created_at.isoformat(),
                 repair_id
             ))
             if cursor.rowcount > 0:

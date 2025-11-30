@@ -1,17 +1,3 @@
 {
-  "actions": {
-    "add": "Agregar",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "create": "Crear",
-    "close": "Cerrar",
-    "change": "Cambiar",
-    "search": "Buscar"
-  },
-  "none": "Sin asignar",
-  "n_a": "N/A",
-  "loading": "Cargando datos...",
-  "no_records": "No hay {{entity}} registrados"
+  "loading": "Cargando..."
 }

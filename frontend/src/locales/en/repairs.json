@@ -51,5 +51,7 @@
     "amount_charged_label": "Amount Charged (optional)",
     "balance_pending_label": "Balance Pending (optional)",
     "create_button": "Create Repair"
-  }
+  },
+  "share_success": "Tracking link copied to clipboard",
+  "share_error": "Error generating tracking link"
 }

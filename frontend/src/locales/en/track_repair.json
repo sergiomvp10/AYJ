@@ -1,0 +1,24 @@
+{
+  "title": "Repair Tracking",
+  "vehicle_info": "Vehicle Information",
+  "client_info": "Client Information",
+  "issue_description": "Issue Description",
+  "mechanic_assigned": "Assigned Mechanic",
+  "progress": "Repair Progress",
+  "parts_needed": "Parts Needed",
+  "estimated_cost": "Estimated Cost",
+  "status": {
+    "initiated": "Initiated",
+    "in_progress": "In Progress",
+    "waiting_parts": "Waiting for Parts",
+    "completed": "Completed"
+  },
+  "part_status": {
+    "pending": "Pending",
+    "ordered": "Ordered",
+    "received": "Received"
+  },
+  "error": {
+    "not_found": "Repair not found. Please check the link."
+  }
+}

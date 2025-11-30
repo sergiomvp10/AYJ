@@ -1363,3 +1363,80 @@ async def decode_vin(vin: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error decoding VIN: {str(e)}"
         )
+
+@app.post("/api/repairs/{repair_id}/generate-share-token")
+async def generate_share_token(repair_id: str, current_user: TokenData = Depends(require_admin)):
+    repair = db.get_repair(repair_id)
+    if not repair:
+        raise HTTPException(status_code=404, detail="Repair not found")
+    
+    # Generate a unique share token if it doesn't exist
+    if not repair.share_token:
+        share_token = str(uuid.uuid4())
+        db.update_repair(repair_id, {"share_token": share_token})
+    else:
+        share_token = repair.share_token
+    
+    return {"share_token": share_token, "share_url": f"/track/{share_token}"}
+
+@app.get("/api/public/track/{share_token}")
+async def track_repair_by_token(share_token: str):
+    """Public endpoint to view repair status by share token (no authentication required)"""
+    with db.get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT r.*, 
+                   u.name as client_name, u.email as client_email, u.phone as client_phone,
+                   m_user.name as mechanic_name, m_user.phone as mechanic_phone
+            FROM repairs r
+            JOIN clients c ON r.client_id = c.id
+            JOIN users u ON c.user_id = u.id
+            LEFT JOIN mechanics m ON r.mechanic_id = m.id
+            LEFT JOIN users m_user ON m.user_id = m_user.id
+            WHERE r.share_token = ?
+        """, (share_token,))
+        
+        row = cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Repair not found")
+        
+        # Get parts for this repair
+        cursor.execute("""
+            SELECT p.*, ap.name as supplier_name
+            FROM parts p
+            LEFT JOIN authorized_points ap ON p.supplier_id = ap.id
+            WHERE p.repair_id = ?
+            ORDER BY p.created_at DESC
+        """, (row['id'],))
+        
+        parts_rows = cursor.fetchall()
+        parts = []
+        for part_row in parts_rows:
+            parts.append({
+                "id": part_row['id'],
+                "name": part_row['name'],
+                "status": part_row['status'],
+                "ordered_online": bool(part_row['ordered_online']),
+                "supplier_name": part_row['supplier_name'],
+                "estimated_arrival": part_row['estimated_arrival'],
+                "cost": part_row['cost']
+            })
+        
+        return {
+            "id": row['id'],
+            "client_name": row['client_name'],
+            "client_email": row['client_email'],
+            "client_phone": row['client_phone'],
+            "vehicle_info": row['vehicle_info'],
+            "issue_description": row['issue_description'],
+            "status": row['status'],
+            "service_type": row['service_type'],
+            "location": row['location'],
+            "mechanic_name": row['mechanic_name'],
+            "mechanic_phone": row['mechanic_phone'],
+            "scheduled_date": row['scheduled_date'],
+            "completed_date": row['completed_date'],
+            "cost": row['cost'],
+            "created_at": row['created_at'],
+            "parts": parts
+        }

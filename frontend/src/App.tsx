@@ -6,6 +6,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import MechanicDashboard from './pages/MechanicDashboard';
 import PublicRepairRequestForm from './pages/PublicRepairRequestForm';
+import { TrackRepair } from './pages/TrackRepair';
 import { Toaster } from './components/ui/toaster';
 
 function AppContent() {
@@ -39,7 +40,7 @@ function AppContent() {
     setUser(null);
   };
 
-  const isPublicRoute = location.pathname === '/solicitar' || location.pathname === '/schedule';
+  const isPublicRoute = location.pathname === '/solicitar' || location.pathname === '/schedule' || location.pathname.startsWith('/track/');
 
   if (loading && !isPublicRoute) {
     return (
@@ -54,6 +55,7 @@ function AppContent() {
       <Routes>
         <Route path="/solicitar" element={<PublicRepairRequestForm />} />
         <Route path="/schedule" element={<PublicRepairRequestForm />} />
+        <Route path="/track/:token" element={<TrackRepair />} />
         <Route
           path="/"
           element={

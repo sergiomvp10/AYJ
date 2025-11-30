@@ -1,0 +1,24 @@
+{
+  "title": "Seguimiento de Reparación",
+  "vehicle_info": "Información del Vehículo",
+  "client_info": "Información del Cliente",
+  "issue_description": "Descripción del Problema",
+  "mechanic_assigned": "Mecánico Asignado",
+  "progress": "Progreso de la Reparación",
+  "parts_needed": "Piezas Necesarias",
+  "estimated_cost": "Costo Estimado",
+  "status": {
+    "initiated": "Iniciado",
+    "in_progress": "En Progreso",
+    "waiting_parts": "Esperando Piezas",
+    "completed": "Completado"
+  },
+  "part_status": {
+    "pending": "Pendiente",
+    "ordered": "Ordenado",
+    "received": "Recibido"
+  },
+  "error": {
+    "not_found": "Reparación no encontrada. Verifique el enlace."
+  }
+}

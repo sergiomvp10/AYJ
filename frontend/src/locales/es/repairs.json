@@ -51,5 +51,7 @@
     "amount_charged_label": "Monto Cobrado (opcional)",
     "balance_pending_label": "Balance Pendiente (opcional)",
     "create_button": "Crear Reparación"
-  }
+  },
+  "share_success": "Enlace de seguimiento copiado al portapapeles",
+  "share_error": "Error al generar enlace de seguimiento"
 }

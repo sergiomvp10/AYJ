@@ -152,6 +152,7 @@ class Repair(BaseModel):
     cost: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
+    share_token: Optional[str] = None
     created_at: datetime
 
 class RepairCreate(BaseModel):
@@ -190,6 +191,7 @@ class RepairResponse(BaseModel):
     cost: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
+    share_token: Optional[str] = None
     created_at: datetime
 
 class AuthorizedPoint(BaseModel):

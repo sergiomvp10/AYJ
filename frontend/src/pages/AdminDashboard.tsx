@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -824,6 +824,27 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     return <Badge variant={variants[status] || 'default'}>{labels[status] || status}</Badge>;
   };
 
+  const handleShareRepair = async (repairId: string) => {
+    try {
+      const result = await api.generateShareToken(repairId);
+      const shareUrl = `${window.location.origin}/track/${result.share_token}`;
+      
+      await navigator.clipboard.writeText(shareUrl);
+      
+      toast({
+        title: t('toasts:success_title'),
+        description: t('repairs:share_success'),
+      });
+    } catch (error) {
+      console.error('Error sharing repair:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: t('repairs:share_error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -963,6 +984,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         <TableHead className="text-base font-semibold px-6 py-4">Estado</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Mecánico</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Piezas</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Compartir</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -983,6 +1005,16 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                             >
                               <Package className="w-4 h-4 mr-2" />
                               Gestionar
+                            </Button>
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <Button
+                              onClick={() => handleShareRepair(repair.id)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Share2 className="w-4 h-4 mr-2" />
+                              Compartir
                             </Button>
                           </TableCell>
                           <TableCell className="px-6 py-4">
