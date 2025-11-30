@@ -164,6 +164,29 @@ class SQLiteDatabase:
                 )
             """)
             
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS repair_requests (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    vehicle_info TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    service_type TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    preferred_datetime TEXT,
+                    is_emergency INTEGER NOT NULL DEFAULT 0,
+                    status TEXT NOT NULL,
+                    client_id TEXT,
+                    ip TEXT,
+                    user_agent TEXT,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+                )
+            """)
+            
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_repair_requests_status ON repair_requests(status)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_repair_requests_created_at ON repair_requests(created_at)")
+            
             self._run_migrations(cursor)
     
     def _run_migrations(self, cursor):
@@ -689,5 +712,76 @@ class SQLiteDatabase:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM express_services WHERE id = ?", (service_id,))
             return cursor.rowcount > 0
+    
+    def create_repair_request(self, request: 'RepairRequest') -> 'RepairRequest':
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO repair_requests (id, name, email, phone, vehicle_info, description,
+                                            service_type, location, preferred_datetime, is_emergency,
+                                            status, client_id, ip, user_agent, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                request.id, request.name, request.email, request.phone, request.vehicle_info,
+                request.description, request.service_type, request.location,
+                request.preferred_datetime.isoformat() if request.preferred_datetime else None,
+                1 if request.is_emergency else 0,
+                request.status, request.client_id, request.ip, request.user_agent,
+                request.created_at.isoformat()
+            ))
+            return request
+    
+    def get_repair_request(self, request_id: str) -> Optional['RepairRequest']:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM repair_requests WHERE id = ?", (request_id,))
+            row = cursor.fetchone()
+            if row:
+                from app.models import RepairRequest
+                return RepairRequest(**dict(row))
+            return None
+    
+    def get_repair_requests(self, status: Optional[str] = None) -> List['RepairRequest']:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            if status:
+                cursor.execute("SELECT * FROM repair_requests WHERE status = ? ORDER BY created_at DESC", (status,))
+            else:
+                cursor.execute("SELECT * FROM repair_requests ORDER BY created_at DESC")
+            from app.models import RepairRequest
+            return [RepairRequest(**dict(row)) for row in cursor.fetchall()]
+    
+    def update_repair_request_status(self, request_id: str, status: str, client_id: Optional[str] = None) -> bool:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            if client_id:
+                cursor.execute("""
+                    UPDATE repair_requests SET status = ?, client_id = ? WHERE id = ?
+                """, (status, client_id, request_id))
+            else:
+                cursor.execute("""
+                    UPDATE repair_requests SET status = ? WHERE id = ?
+                """, (status, request_id))
+            return cursor.rowcount > 0
+    
+    def delete_repair_request(self, request_id: str) -> bool:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM repair_requests WHERE id = ?", (request_id,))
+            return cursor.rowcount > 0
+    
+    def get_client_by_email(self, email: str) -> Optional[Client]:
+        """Helper method to find a client by email through the users table"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT c.* FROM clients c
+                JOIN users u ON c.user_id = u.id
+                WHERE u.email = ?
+            """, (email,))
+            row = cursor.fetchone()
+            if row:
+                return Client(**dict(row))
+            return None
 
 db = SQLiteDatabase()

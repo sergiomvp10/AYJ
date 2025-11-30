@@ -350,3 +350,52 @@ class ExpressServiceResponse(BaseModel):
     completed_at: Optional[datetime] = None
     cost: Optional[float] = None
     created_at: datetime
+
+class RepairRequestStatus(str, Enum):
+    NEW = "new"
+    CONVERTED = "converted"
+    REJECTED = "rejected"
+
+class RepairRequest(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    phone: str
+    vehicle_info: str
+    description: str
+    service_type: str  # 'mobile' | 'workshop'
+    location: str
+    preferred_datetime: Optional[datetime] = None
+    is_emergency: bool = False
+    status: RepairRequestStatus
+    client_id: Optional[str] = None
+    ip: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime
+
+class RepairRequestCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
+    vehicle_info: str
+    description: str
+    service_type: str
+    location: str
+    preferred_datetime: Optional[datetime] = None
+    is_emergency: bool = False
+    captcha_token: Optional[str] = None  # reserved for future
+
+class RepairRequestResponse(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    phone: str
+    vehicle_info: str
+    description: str
+    service_type: str
+    location: str
+    preferred_datetime: Optional[datetime] = None
+    is_emergency: bool
+    status: RepairRequestStatus
+    client_id: Optional[str] = None
+    created_at: datetime

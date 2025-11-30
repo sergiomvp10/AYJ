@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import List, Dict, Optional
+from collections import deque, defaultdict
 import uuid
 import urllib.request
 import json
 import re
 import time
+import threading
 
 from app.models import (
     UserCreate, UserLogin, UserResponse, Token, TokenData,
@@ -19,6 +21,7 @@ from app.models import (
     PartCreate, PartUpdate, PartResponse, Part, PartStatus,
     ExpressServiceCreate, ExpressServiceUpdate, ExpressServiceResponse, ExpressService,
     ExpressServicePriority, ExpressServiceStatus,
+    RepairRequestCreate, RepairRequestResponse, RepairRequest, RepairRequestStatus,
     User, UserRole, VinDecoded, VinEngineInfo
 )
 from app.auth import (
@@ -30,13 +33,37 @@ from app.database import db
 
 app = FastAPI(title="AYJ Auto Repair Platform")
 
+ALLOWED_ORIGINS = [
+    "https://repo-access-app-inch4qir.devinapps.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["POST", "GET", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+RATE_LIMIT = 3  # requests
+WINDOW_SEC = 3600  # per hour
+_ip_buckets = defaultdict(deque)
+_rl_lock = threading.Lock()
+
+def rate_limit_public(request: Request):
+    """Rate limit dependency for public endpoints"""
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or request.client.host
+    now = time.time()
+    with _rl_lock:
+        dq = _ip_buckets[ip]
+        while dq and now - dq[0] > WINDOW_SEC:
+            dq.popleft()
+        if len(dq) >= RATE_LIMIT:
+            raise HTTPException(status_code=429, detail="Too many requests, try later.")
+        dq.append(now)
+    return None
 
 vin_cache: Dict[str, dict] = {}
 VIN_CACHE_TTL = 7 * 24 * 60 * 60  # 7 days in seconds
@@ -1025,6 +1052,209 @@ async def delete_express_service(service_id: str, current_user: TokenData = Depe
     if not db.delete_express_service(service_id):
         raise HTTPException(status_code=404, detail="Express service not found")
     return {"message": "Express service deleted successfully"}
+
+@app.post("/api/public/repair-requests", response_model=RepairRequestResponse)
+async def create_public_repair_request(
+    payload: RepairRequestCreate,
+    request: Request,
+    _: None = Depends(rate_limit_public)
+):
+    rid = str(uuid.uuid4())
+    rr = RepairRequest(
+        id=rid,
+        name=payload.name.strip(),
+        email=payload.email,
+        phone=payload.phone.strip(),
+        vehicle_info=payload.vehicle_info.strip(),
+        description=payload.description.strip(),
+        service_type=payload.service_type,
+        location=payload.location.strip(),
+        preferred_datetime=payload.preferred_datetime,
+        is_emergency=payload.is_emergency,
+        status=RepairRequestStatus.NEW,
+        client_id=None,
+        ip=request.headers.get("x-forwarded-for", "").split(",")[0].strip() or request.client.host,
+        user_agent=request.headers.get("user-agent"),
+        created_at=datetime.utcnow(),
+    )
+    db.create_repair_request(rr)
+    return RepairRequestResponse(
+        id=rr.id,
+        name=rr.name,
+        email=rr.email,
+        phone=rr.phone,
+        vehicle_info=rr.vehicle_info,
+        description=rr.description,
+        service_type=rr.service_type,
+        location=rr.location,
+        preferred_datetime=rr.preferred_datetime,
+        is_emergency=rr.is_emergency,
+        status=rr.status,
+        client_id=rr.client_id,
+        created_at=rr.created_at
+    )
+
+@app.get("/api/repair-requests", response_model=List[RepairRequestResponse])
+async def list_repair_requests(
+    status: Optional[str] = None,
+    current_user: TokenData = Depends(require_admin)
+):
+    requests = db.get_repair_requests(status)
+    return [
+        RepairRequestResponse(
+            id=req.id,
+            name=req.name,
+            email=req.email,
+            phone=req.phone,
+            vehicle_info=req.vehicle_info,
+            description=req.description,
+            service_type=req.service_type,
+            location=req.location,
+            preferred_datetime=req.preferred_datetime,
+            is_emergency=req.is_emergency,
+            status=req.status,
+            client_id=req.client_id,
+            created_at=req.created_at
+        )
+        for req in requests
+    ]
+
+@app.get("/api/repair-requests/{request_id}", response_model=RepairRequestResponse)
+async def get_repair_request(request_id: str, current_user: TokenData = Depends(require_admin)):
+    req = db.get_repair_request(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    return RepairRequestResponse(
+        id=req.id,
+        name=req.name,
+        email=req.email,
+        phone=req.phone,
+        vehicle_info=req.vehicle_info,
+        description=req.description,
+        service_type=req.service_type,
+        location=req.location,
+        preferred_datetime=req.preferred_datetime,
+        is_emergency=req.is_emergency,
+        status=req.status,
+        client_id=req.client_id,
+        created_at=req.created_at
+    )
+
+@app.post("/api/repair-requests/{request_id}/convert")
+async def convert_repair_request(
+    request_id: str,
+    mode: str = "repair",
+    current_user: TokenData = Depends(require_admin)
+):
+    req = db.get_repair_request(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    
+    if req.status != RepairRequestStatus.NEW:
+        raise HTTPException(status_code=409, detail="Request already processed")
+    
+    existing_client = db.get_client_by_email(req.email)
+    
+    if existing_client:
+        client_id = existing_client.id
+    else:
+        user_id = str(uuid.uuid4())
+        random_password = str(uuid.uuid4())
+        user = User(
+            id=user_id,
+            email=req.email,
+            password_hash=get_password_hash(random_password),
+            name=req.name,
+            role=UserRole.CLIENTE,
+            phone=req.phone,
+            created_at=datetime.utcnow()
+        )
+        db.create_user(user)
+        
+        client_id = str(uuid.uuid4())
+        client = Client(
+            id=client_id,
+            user_id=user_id,
+            city="",
+            address=req.location,
+            vehicle_info=req.vehicle_info,
+            created_at=datetime.utcnow()
+        )
+        db.create_client(client)
+    
+    if mode == "express":
+        service_id = str(uuid.uuid4())
+        priority = ExpressServicePriority.URGENT if req.is_emergency else ExpressServicePriority.HIGH
+        express_service = ExpressService(
+            id=service_id,
+            client_id=client_id,
+            mechanic_id=None,
+            vehicle_info=req.vehicle_info,
+            emergency_type="Emergency Repair",
+            description=req.description,
+            priority=priority,
+            status=ExpressServiceStatus.PENDING,
+            location=req.location,
+            contact_phone=req.phone,
+            estimated_arrival=None,
+            started_at=None,
+            completed_at=None,
+            cost=None,
+            created_at=datetime.utcnow()
+        )
+        db.create_express_service(express_service)
+        entity_id = service_id
+        entity_type = "express_service"
+    else:
+        repair_id = str(uuid.uuid4())
+        repair = Repair(
+            id=repair_id,
+            client_id=client_id,
+            mechanic_id=None,
+            workshop_id=None,
+            vehicle_info=req.vehicle_info,
+            issue_description=req.description,
+            status=RepairStatus.PENDING,
+            service_type=req.service_type,
+            location=req.location,
+            scheduled_date=req.preferred_datetime,
+            completed_date=None,
+            cost=None,
+            amount_charged=None,
+            balance_pending=None,
+            created_at=datetime.utcnow()
+        )
+        db.create_repair(repair)
+        entity_id = repair_id
+        entity_type = "repair"
+    
+    db.update_repair_request_status(request_id, RepairRequestStatus.CONVERTED, client_id)
+    
+    return {
+        "message": f"Request converted to {entity_type} successfully",
+        "entity_id": entity_id,
+        "entity_type": entity_type,
+        "client_id": client_id,
+        "client_existed": existing_client is not None
+    }
+
+@app.post("/api/repair-requests/{request_id}/reject")
+async def reject_repair_request(request_id: str, current_user: TokenData = Depends(require_admin)):
+    req = db.get_repair_request(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    
+    if req.status != RepairRequestStatus.NEW:
+        raise HTTPException(status_code=409, detail="Request already processed")
+    
+    db.update_repair_request_status(request_id, RepairRequestStatus.REJECTED)
+    return {"message": "Request rejected successfully"}
+
+@app.delete("/api/repair-requests/{request_id}")
+async def delete_repair_request(request_id: str, current_user: TokenData = Depends(require_admin)):
+    if not db.delete_repair_request(request_id):
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    return {"message": "Repair request deleted successfully"}
 
 @app.get("/api/vin/decode/{vin}", response_model=VinDecoded)
 async def decode_vin(vin: str):
