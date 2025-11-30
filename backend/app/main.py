@@ -1373,7 +1373,8 @@ async def generate_share_token(repair_id: str, current_user: TokenData = Depends
     # Generate a unique share token if it doesn't exist
     if not repair.share_token:
         share_token = str(uuid.uuid4())
-        db.update_repair(repair_id, {"share_token": share_token})
+        repair.share_token = share_token
+        db.update_repair(repair_id, repair)
     else:
         share_token = repair.share_token
     
