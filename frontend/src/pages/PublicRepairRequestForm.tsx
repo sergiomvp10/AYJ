@@ -38,7 +38,39 @@ export default function PublicRepairRequestForm() {
     is_emergency: false,
   });
 
+  const [vin, setVin] = useState('');
+  const [isDecodingVin, setIsDecodingVin] = useState(false);
+  const [vinError, setVinError] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleDecodeVin = async () => {
+    if (!vin.trim()) {
+      return;
+    }
+
+    setIsDecodingVin(true);
+    setVinError('');
+
+    try {
+      const response = await api.decodeVin(vin.trim());
+      
+      if (response.make && response.model_year) {
+        const parts = [response.make];
+        if (response.model) {
+          parts.push(response.model);
+        }
+        parts.push(response.model_year);
+        const vehicleInfo = parts.join(' ');
+        setFormData({ ...formData, vehicle_info: vehicleInfo });
+      } else {
+        setVinError(t('public_form:form.vin_error'));
+      }
+    } catch (error) {
+      setVinError(t('public_form:form.vin_error'));
+    } finally {
+      setIsDecodingVin(false);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -221,6 +253,29 @@ export default function PublicRepairRequestForm() {
                   <option value="workshop">{t('public_form:form.service_workshop')}</option>
                 </select>
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="vin">{t('public_form:form.vin_label')}</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="vin"
+                  value={vin}
+                  onChange={(e) => setVin(e.target.value.toUpperCase())}
+                  placeholder={t('public_form:form.vin_placeholder')}
+                  maxLength={17}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleDecodeVin}
+                  disabled={!vin.trim() || isDecodingVin}
+                  variant="outline"
+                >
+                  {isDecodingVin ? t('public_form:form.vin_decoding') : t('public_form:form.vin_decode_button')}
+                </Button>
+              </div>
+              {vinError && <p className="text-sm text-red-600 mt-1">{vinError}</p>}
             </div>
 
             <div>
