@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2 } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -952,8 +952,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <TabsTrigger value="mechanics" className="text-base px-6">Mecánicos</TabsTrigger>
             <TabsTrigger value="workshops" className="text-base px-6">Talleres</TabsTrigger>
             <TabsTrigger value="points" className="text-base px-6">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
-            <TabsTrigger value="express" className="text-base px-6">{t('dashboard:tabs.express_service')}</TabsTrigger>
-            <TabsTrigger value="requests" className="text-base px-6">{t('repair_requests:title')}</TabsTrigger>
+            <TabsTrigger value="express" className="text-base px-6 relative">
+              {t('dashboard:tabs.express_service')}
+              {expressServices.filter(s => s.status !== 'completed' && s.status !== 'cancelled').length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500">
+                  <AlertCircle className="h-3 w-3 text-white" />
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="text-base px-6 relative">
+              {t('repair_requests:title')}
+              {repairRequests.filter(r => r.status === 'new').length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500">
+                  <AlertCircle className="h-3 w-3 text-white" />
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="repairs">
