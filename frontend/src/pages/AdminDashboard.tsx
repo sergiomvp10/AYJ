@@ -1012,15 +1012,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               className="w-20 h-20 object-contain"
             />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-              <p className="text-base text-gray-600">Bienvenido, {user.name}</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('dashboard:title')}</h1>
+              <p className="text-base text-gray-600">{t('dashboard:welcome', { name: user.name })}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
             <Button onClick={onLogout} variant="outline" size="lg">
               <LogOut className="w-5 h-5 mr-2" />
-              Cerrar Sesión
+              {t('dashboard:logout')}
             </Button>
           </div>
         </div>
@@ -1030,7 +1030,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">Clientes</CardTitle>
+              <CardTitle className="text-base font-medium">{t('dashboard:stats.clients')}</CardTitle>
               <Users className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -1039,7 +1039,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">Mecánicos</CardTitle>
+              <CardTitle className="text-base font-medium">{t('dashboard:stats.mechanics')}</CardTitle>
               <Wrench className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -1048,7 +1048,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">Talleres</CardTitle>
+              <CardTitle className="text-base font-medium">{t('dashboard:stats.workshops')}</CardTitle>
               <Building2 className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -1057,7 +1057,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">Reparaciones</CardTitle>
+              <CardTitle className="text-base font-medium">{t('dashboard:stats.repairs')}</CardTitle>
               <ClipboardList className="h-6 w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -1095,10 +1095,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
         <Tabs defaultValue="repairs" className="space-y-6">
           <TabsList className="h-12">
-            <TabsTrigger value="repairs" className="text-base px-6">Reparaciones</TabsTrigger>
-            <TabsTrigger value="clients" className="text-base px-6">Clientes</TabsTrigger>
-            <TabsTrigger value="mechanics" className="text-base px-6">Mecánicos</TabsTrigger>
-            <TabsTrigger value="workshops" className="text-base px-6">Talleres</TabsTrigger>
+            <TabsTrigger value="repairs" className="text-base px-6">{t('dashboard:tabs.repairs')}</TabsTrigger>
+            <TabsTrigger value="clients" className="text-base px-6">{t('dashboard:tabs.clients')}</TabsTrigger>
+            <TabsTrigger value="mechanics" className="text-base px-6">{t('dashboard:tabs.mechanics')}</TabsTrigger>
+            <TabsTrigger value="workshops" className="text-base px-6">{t('dashboard:tabs.workshops')}</TabsTrigger>
             <TabsTrigger value="points" className="text-base px-6">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
             <TabsTrigger value="express" className="text-base px-6 relative">
               {t('dashboard:tabs.express_service')}
@@ -1122,8 +1122,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Reparaciones</CardTitle>
-                  <CardDescription className="text-base">Lista de todas las reparaciones en el sistema</CardDescription>
+                  <CardTitle className="text-xl">{t('dashboard:sections.repairs.title')}</CardTitle>
+                  <CardDescription className="text-base">{t('dashboard:sections.repairs.description')}</CardDescription>
                 </div>
                 <Button onClick={() => setRepairDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
@@ -1210,8 +1210,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Clientes</CardTitle>
-                  <CardDescription className="text-base">Lista de todos los clientes registrados</CardDescription>
+                  <CardTitle className="text-xl">{t('dashboard:sections.clients.title')}</CardTitle>
+                  <CardDescription className="text-base">{t('dashboard:sections.clients.description')}</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={() => setVisitDialog(true)} size="lg">
@@ -1273,8 +1273,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Mecánicos</CardTitle>
-                  <CardDescription className="text-base">Lista de todos los mecánicos registrados</CardDescription>
+                  <CardTitle className="text-xl">{t('dashboard:sections.mechanics.title')}</CardTitle>
+                  <CardDescription className="text-base">{t('dashboard:sections.mechanics.description')}</CardDescription>
                 </div>
                 <Button onClick={() => setMechanicDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
@@ -1330,8 +1330,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Talleres</CardTitle>
-                  <CardDescription className="text-base">Lista de todos los talleres registrados</CardDescription>
+                  <CardTitle className="text-xl">{t('dashboard:sections.workshops.title')}</CardTitle>
+                  <CardDescription className="text-base">{t('dashboard:sections.workshops.description')}</CardDescription>
                 </div>
                 <Button onClick={() => setWorkshopDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />

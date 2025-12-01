@@ -17,5 +17,23 @@
     "repairs": "Repairs",
     "authorized_points": "Auto Parts Store",
     "express_service": "Express Service"
+  },
+  "sections": {
+    "repairs": {
+      "title": "Repairs",
+      "description": "List of all repairs in the system"
+    },
+    "clients": {
+      "title": "Clients",
+      "description": "List of all registered clients"
+    },
+    "mechanics": {
+      "title": "Mechanics",
+      "description": "List of all registered mechanics"
+    },
+    "workshops": {
+      "title": "Workshops",
+      "description": "List of all registered workshops"
+    }
   }
 }
