@@ -129,15 +129,6 @@ export function TrackRepair() {
               <p className="text-gray-900">{repair.issue_description}</p>
             </div>
 
-            {/* Mechanic Info */}
-            {repair.mechanic_name && (
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">{t('track_repair:mechanic_assigned')}</h3>
-                <p className="text-gray-900">{repair.mechanic_name}</p>
-                {repair.mechanic_phone && <p className="text-gray-600 text-sm">{repair.mechanic_phone}</p>}
-              </div>
-            )}
-
             {/* Vertical Progress Timeline */}
             <div>
               <h3 className="font-semibold text-gray-700 mb-4">{t('track_repair:progress')}</h3>
@@ -186,6 +177,15 @@ export function TrackRepair() {
                 })}
               </div>
             </div>
+
+            {/* Mechanic Info */}
+            {repair.mechanic_name && (
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">{t('track_repair:mechanic_assigned')}</h3>
+                <p className="text-gray-900">{repair.mechanic_name}</p>
+                {repair.mechanic_phone && <p className="text-gray-600 text-sm">{repair.mechanic_phone}</p>}
+              </div>
+            )}
 
             {/* Parts Information */}
             {repair.parts.length > 0 && (
