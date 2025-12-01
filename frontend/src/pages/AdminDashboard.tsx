@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2, AlertCircle } from 'lucide-react';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2, AlertCircle, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -44,6 +44,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedRepairForParts, setSelectedRepairForParts] = useState<Repair | null>(null);
   const [selectedRepairRequest, setSelectedRepairRequest] = useState<RepairRequest | null>(null);
+  
+  const [editRepairDialog, setEditRepairDialog] = useState(false);
+  const [editRepair, setEditRepair] = useState<Repair | null>(null);
+  const [editExpressDialog, setEditExpressDialog] = useState(false);
+  const [editExpress, setEditExpress] = useState<ExpressService | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{type: 'repair' | 'express' | 'request', id: string} | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
   const [partForm, setPartForm] = useState({
     name: '',
@@ -490,6 +496,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  // @ts-ignore - Unused but kept for potential future use
   const handleUpdateRepairStatus = async (repairId: string, newStatus: string) => {
     try {
       await api.updateRepair(repairId, { status: newStatus });
@@ -715,6 +722,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  // @ts-ignore - Unused but kept for potential future use
   const handleDeleteExpressService = async (serviceId: string) => {
     try {
       await api.deleteExpressService(serviceId);
@@ -840,6 +848,122 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       toast({
         title: t('toasts:error_title'),
         description: t('repairs:share_error'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleOpenEditRepair = (repair: Repair) => {
+    setEditRepair(repair);
+    setEditRepairDialog(true);
+  };
+
+  const handleUpdateRepair = async () => {
+    if (!editRepair) return;
+
+    try {
+      const updateData: any = {
+        mechanic_id: editRepair.mechanic_id || undefined,
+        service_type: editRepair.service_type,
+        location: editRepair.location,
+        issue_description: editRepair.issue_description,
+        scheduled_date: editRepair.scheduled_date || undefined,
+        cost: editRepair.cost ? Number(editRepair.cost) : undefined,
+        amount_charged: editRepair.amount_charged ? Number(editRepair.amount_charged) : undefined,
+        balance_pending: editRepair.balance_pending ? Number(editRepair.balance_pending) : undefined,
+      };
+
+      await api.updateRepair(editRepair.id, updateData);
+      
+      setRepairs(prev => prev.map(r => r.id === editRepair.id ? { ...r, ...updateData } : r));
+      
+      toast({
+        title: t('toasts:success_title'),
+        description: 'Reparación actualizada exitosamente',
+      });
+      
+      setEditRepairDialog(false);
+      setEditRepair(null);
+    } catch (error) {
+      console.error('Error updating repair:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: 'Error al actualizar la reparación',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleOpenEditExpress = (service: ExpressService) => {
+    setEditExpress(service);
+    setEditExpressDialog(true);
+  };
+
+  const handleUpdateExpress = async () => {
+    if (!editExpress) return;
+
+    try {
+      const updateData: any = {
+        mechanic_id: editExpress.mechanic_id || undefined,
+        priority: editExpress.priority,
+        location: editExpress.location,
+        description: editExpress.description,
+      };
+
+      await api.updateExpressService(editExpress.id, updateData);
+      
+      setExpressServices(prev => prev.map(s => s.id === editExpress.id ? { ...s, ...updateData } : s));
+      
+      toast({
+        title: t('toasts:success_title'),
+        description: 'Servicio express actualizado exitosamente',
+      });
+      
+      setEditExpressDialog(false);
+      setEditExpress(null);
+    } catch (error) {
+      console.error('Error updating express service:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: 'Error al actualizar el servicio express',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+
+    try {
+      if (confirmDelete.type === 'repair') {
+        await api.deleteRepair(confirmDelete.id);
+        setRepairs(prev => prev.filter(r => r.id !== confirmDelete.id));
+        toast({
+          title: t('toasts:success_title'),
+          description: 'Reparación eliminada exitosamente',
+        });
+      } else if (confirmDelete.type === 'express') {
+        await api.deleteExpressService(confirmDelete.id);
+        setExpressServices(prev => prev.filter(s => s.id !== confirmDelete.id));
+        toast({
+          title: t('toasts:success_title'),
+          description: 'Servicio express eliminado exitosamente',
+        });
+      } else if (confirmDelete.type === 'request') {
+        await api.deleteRepairRequest(confirmDelete.id);
+        setRepairRequests(prev => prev.filter(r => r.id !== confirmDelete.id));
+        toast({
+          title: t('toasts:success_title'),
+          description: 'Solicitud eliminada exitosamente',
+        });
+      }
+      
+      setConfirmDelete(null);
+    } catch (error) {
+      console.error('Error deleting:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: 'Error al eliminar',
         variant: 'destructive',
       });
     }
@@ -1032,20 +1156,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                             </Button>
                           </TableCell>
                           <TableCell className="px-6 py-4">
-                            <select
-                              value={repair.status}
-                              onChange={(e) => handleUpdateRepairStatus(repair.id, e.target.value)}
-                              className="text-base border rounded px-3 py-2"
-                            >
-                              <option value="pending">Pendiente</option>
-                              <option value="assigned">Asignado</option>
-                              <option value="in_progress">En Progreso</option>
-                              <option value="waiting_parts">Esperando Piezas</option>
-                              <option value="completed">Completado</option>
-                              <option value="cancelled">Cancelado</option>
-                              <option value="paid">Pagado</option>
-                              <option value="balance_pending">Balance Pendiente</option>
-                            </select>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => handleOpenEditRepair(repair)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Edit className="w-5 h-5 text-blue-500" />
+                              </Button>
+                              <Button
+                                onClick={() => setConfirmDelete({ type: 'repair', id: repair.id })}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Trash2 className="w-5 h-5 text-red-500" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1323,13 +1449,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="text-base px-6 py-4">{service.location}</TableCell>
                           <TableCell className="text-base px-6 py-4">{service.mechanic_name || 'Sin asignar'}</TableCell>
                           <TableCell className="px-6 py-4">
-                            <Button
-                              variant="ghost"
-                              size="default"
-                              onClick={() => handleDeleteExpressService(service.id)}
-                            >
-                              <Trash2 className="w-5 h-5 text-red-500" />
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => handleOpenEditExpress(service)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Edit className="w-5 h-5 text-blue-500" />
+                              </Button>
+                              <Button
+                                onClick={() => setConfirmDelete({ type: 'express', id: service.id })}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Trash2 className="w-5 h-5 text-red-500" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1416,6 +1551,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                                   </Button>
                                 </>
                               )}
+                              <Button
+                                onClick={() => setConfirmDelete({ type: 'request', id: request.id })}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Trash2 className="w-5 h-5 text-red-500" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -2387,6 +2529,162 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           <DialogFooter>
             <Button onClick={() => setRepairRequestDialog(false)}>
               {t('common:actions.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editRepairDialog} onOpenChange={setEditRepairDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Reparación</DialogTitle>
+          </DialogHeader>
+          {editRepair && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Mecánico Asignado</Label>
+                <select
+                  value={editRepair.mechanic_id || ''}
+                  onChange={(e) => setEditRepair({ ...editRepair, mechanic_id: e.target.value })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Sin asignar</option>
+                  {mechanics.map((mechanic) => (
+                    <option key={mechanic.id} value={mechanic.id}>
+                      {mechanic.user_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Tipo de Servicio</Label>
+                <select
+                  value={editRepair.service_type}
+                  onChange={(e) => setEditRepair({ ...editRepair, service_type: e.target.value as 'mobile' | 'workshop' })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="mobile">Móvil</option>
+                  <option value="workshop">Taller</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Ubicación</Label>
+                <Input
+                  value={editRepair.location || ''}
+                  onChange={(e) => setEditRepair({ ...editRepair, location: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Descripción del Problema</Label>
+                <Textarea
+                  value={editRepair.issue_description}
+                  onChange={(e) => setEditRepair({ ...editRepair, issue_description: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Fecha Programada</Label>
+                <Input
+                  type="datetime-local"
+                  value={editRepair.scheduled_date ? new Date(editRepair.scheduled_date).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => setEditRepair({ ...editRepair, scheduled_date: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Costo Estimado</Label>
+                <Input
+                  type="number"
+                  value={editRepair.cost || ''}
+                  onChange={(e) => setEditRepair({ ...editRepair, cost: e.target.value ? Number(e.target.value) : undefined })}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRepairDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateRepair}>
+              Guardar Cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editExpressDialog} onOpenChange={setEditExpressDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Servicio Express</DialogTitle>
+          </DialogHeader>
+          {editExpress && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label>Mecánico Asignado</Label>
+                <select
+                  value={editExpress.mechanic_id || ''}
+                  onChange={(e) => setEditExpress({ ...editExpress, mechanic_id: e.target.value })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Sin asignar</option>
+                  {mechanics.map((mechanic) => (
+                    <option key={mechanic.id} value={mechanic.id}>
+                      {mechanic.user_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Prioridad</Label>
+                <select
+                  value={editExpress.priority}
+                  onChange={(e) => setEditExpress({ ...editExpress, priority: e.target.value as 'urgent' | 'high' | 'critical' })}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="urgent">Urgente</option>
+                  <option value="high">Alta</option>
+                  <option value="critical">Crítica</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Ubicación</Label>
+                <Input
+                  value={editExpress.location}
+                  onChange={(e) => setEditExpress({ ...editExpress, location: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Descripción</Label>
+                <Textarea
+                  value={editExpress.description}
+                  onChange={(e) => setEditExpress({ ...editExpress, description: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditExpressDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateExpress}>
+              Guardar Cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Eliminación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>
