@@ -978,7 +978,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     try {
       await navigator.clipboard.writeText(url);
       toast({
-        title: t('toasts:success_title'),
+        title: language === 'es' ? '¡Enlace copiado!' : 'Link copied!',
         description: language === 'es' 
           ? 'Enlace en español copiado al portapapeles' 
           : 'English link copied to clipboard',
@@ -986,7 +986,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       toast({
-        title: t('toasts:error_title'),
+        title: language === 'es' ? 'Error' : 'Error',
         description: 'Error al copiar el enlace',
         variant: 'destructive',
       });
