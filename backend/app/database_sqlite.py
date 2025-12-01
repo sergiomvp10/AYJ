@@ -337,7 +337,7 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
-                cursor.execute("SELECT * FROM clients")
+                cursor.execute("SELECT * FROM clients ORDER BY datetime(created_at) ASC, id ASC")
                 return [Client(**dict(row)) for row in cursor.fetchall()]
             except Exception as e:
                 if "no such column: created_at" in str(e).lower():
@@ -345,7 +345,7 @@ class SQLiteDatabase:
                     cursor.execute("ALTER TABLE clients ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
                     cursor.execute("UPDATE clients SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL OR created_at = ''")
                     conn.commit()
-                    cursor.execute("SELECT * FROM clients")
+                    cursor.execute("SELECT * FROM clients ORDER BY datetime(created_at) ASC, id ASC")
                     return [Client(**dict(row)) for row in cursor.fetchall()]
                 raise
     
@@ -392,7 +392,7 @@ class SQLiteDatabase:
     def get_all_mechanics(self) -> List[Mechanic]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM mechanics")
+            cursor.execute("SELECT * FROM mechanics ORDER BY datetime(created_at) ASC, id ASC")
             result = []
             for row in cursor.fetchall():
                 data = dict(row)
@@ -444,7 +444,7 @@ class SQLiteDatabase:
     def get_all_workshops(self) -> List[Workshop]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM workshops")
+            cursor.execute("SELECT * FROM workshops ORDER BY datetime(created_at) ASC, id ASC")
             result = []
             for row in cursor.fetchall():
                 data = dict(row)
@@ -499,7 +499,7 @@ class SQLiteDatabase:
     def get_all_repairs(self) -> List[Repair]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM repairs")
+            cursor.execute("SELECT * FROM repairs ORDER BY datetime(created_at) DESC, id DESC")
             return [Repair(**dict(row)) for row in cursor.fetchall()]
     
     def get_repairs_by_client(self, client_id: str) -> List[Repair]:
@@ -566,7 +566,7 @@ class SQLiteDatabase:
     def get_all_authorized_points(self) -> List[AuthorizedPoint]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM authorized_points")
+            cursor.execute("SELECT * FROM authorized_points ORDER BY datetime(created_at) ASC, id ASC")
             result = []
             for row in cursor.fetchall():
                 data = dict(row)

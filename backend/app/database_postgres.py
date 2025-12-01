@@ -262,7 +262,7 @@ class PostgresDatabase:
     def get_all_clients(self) -> List[Client]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM clients")
+            cursor.execute("SELECT * FROM clients ORDER BY created_at ASC, id ASC")
             return [Client(**row) for row in cursor.fetchall()]
     
     def update_client(self, client_id: str, client: Client) -> Optional[Client]:
@@ -306,7 +306,7 @@ class PostgresDatabase:
     def get_all_mechanics(self) -> List[Mechanic]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM mechanics")
+            cursor.execute("SELECT * FROM mechanics ORDER BY created_at ASC, id ASC")
             result = []
             for row in cursor.fetchall():
                 data = dict(row)
@@ -356,7 +356,7 @@ class PostgresDatabase:
     def get_all_workshops(self) -> List[Workshop]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM workshops")
+            cursor.execute("SELECT * FROM workshops ORDER BY created_at ASC, id ASC")
             result = []
             for row in cursor.fetchall():
                 data = dict(row)
@@ -407,7 +407,7 @@ class PostgresDatabase:
     def get_all_repairs(self) -> List[Repair]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM repairs")
+            cursor.execute("SELECT * FROM repairs ORDER BY created_at DESC, id DESC")
             return [Repair(**row) for row in cursor.fetchall()]
     
     def get_repairs_by_client(self, client_id: str) -> List[Repair]:
@@ -467,7 +467,7 @@ class PostgresDatabase:
     def get_all_authorized_points(self) -> List[AuthorizedPoint]:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM authorized_points")
+            cursor.execute("SELECT * FROM authorized_points ORDER BY created_at ASC, id ASC")
             result = []
             for row in cursor.fetchall():
                 data = dict(row)
