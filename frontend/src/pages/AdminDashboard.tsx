@@ -978,7 +978,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     try {
       await navigator.clipboard.writeText(url);
       toast({
-        title: language === 'es' ? '¡Enlace copiado!' : 'Link copied!',
+        title: language === 'es' ? 'Completado ✓' : 'Completed ✓',
         description: language === 'es' 
           ? 'Enlace en español copiado al portapapeles' 
           : 'English link copied to clipboard',
