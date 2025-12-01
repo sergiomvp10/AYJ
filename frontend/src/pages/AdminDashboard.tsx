@@ -4,6 +4,7 @@ import { User, Client, Mechanic, Workshop, Repair, AuthorizedPoint, Part, Expres
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -1004,96 +1005,100 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
-        <div className="max-w-screen-2xl mx-auto px-6 sm:px-8 lg:px-10 py-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <img 
-              src="/logo.png" 
-              alt="AYJ Auto-Eléctrico Móvil" 
-              className="w-20 h-20 object-contain"
-            />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t('dashboard:title')}</h1>
-              <p className="text-base text-gray-600">{t('dashboard:welcome', { name: user.name })}</p>
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-4 md:py-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <img 
+                src="/logo.png" 
+                alt="AYJ Auto-Eléctrico Móvil" 
+                className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0"
+              />
+              <div className="min-w-0">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">{t('dashboard:title')}</h1>
+                <p className="text-sm md:text-base text-gray-600 truncate">{t('dashboard:welcome', { name: user.name })}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            <Button onClick={onLogout} variant="outline" size="lg">
-              <LogOut className="w-5 h-5 mr-2" />
-              {t('dashboard:logout')}
-            </Button>
+            <div className="flex items-center gap-3 md:gap-4 justify-end">
+              <LanguageSwitcher />
+              <Button onClick={onLogout} variant="outline" size="default" className="md:size-lg">
+                <LogOut className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                <span className="hidden sm:inline">{t('dashboard:logout')}</span>
+                <span className="sm:hidden">Salir</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-screen-2xl mx-auto px-6 sm:px-8 lg:px-10 py-8 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8">
+      <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-8 space-y-6 md:space-y-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-7 gap-3 md:gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('dashboard:stats.clients')}</CardTitle>
-              <Users className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.clients')}</CardTitle>
+              <Users className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{clients.length}</div>
+              <div className="text-xl md:text-3xl font-bold">{clients.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('dashboard:stats.mechanics')}</CardTitle>
-              <Wrench className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.mechanics')}</CardTitle>
+              <Wrench className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{mechanics.length}</div>
+              <div className="text-xl md:text-3xl font-bold">{mechanics.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('dashboard:stats.workshops')}</CardTitle>
-              <Building2 className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.workshops')}</CardTitle>
+              <Building2 className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{workshops.length}</div>
+              <div className="text-xl md:text-3xl font-bold">{workshops.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('dashboard:stats.repairs')}</CardTitle>
-              <ClipboardList className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.repairs')}</CardTitle>
+              <ClipboardList className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{repairs.length}</div>
+              <div className="text-xl md:text-3xl font-bold">{repairs.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('dashboard:stats.authorized_points')}</CardTitle>
-              <MapPin className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.authorized_points')}</CardTitle>
+              <MapPin className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{authorizedPoints.length}</div>
+              <div className="text-xl md:text-3xl font-bold">{authorizedPoints.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('dashboard:stats.express_service')}</CardTitle>
-              <Zap className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.express_service')}</CardTitle>
+              <Zap className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{expressServices.length}</div>
+              <div className="text-xl md:text-3xl font-bold">{expressServices.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-base font-medium">{t('repair_requests:title')}</CardTitle>
-              <FileText className="h-6 w-6 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
+              <CardTitle className="text-xs md:text-base font-medium">{t('repair_requests:title')}</CardTitle>
+              <FileText className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{repairRequests.filter(r => r.status === 'new').length}</div>
+              <div className="text-xl md:text-3xl font-bold">{repairRequests.filter(r => r.status === 'new').length}</div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="repairs" className="space-y-6">
+        {/* Desktop: Tabs */}
+        <Tabs defaultValue="repairs" className="hidden md:block space-y-6">
           <TabsList className="h-12">
             <TabsTrigger value="repairs" className="text-base px-6">{t('dashboard:tabs.repairs')}</TabsTrigger>
             <TabsTrigger value="clients" className="text-base px-6">{t('dashboard:tabs.clients')}</TabsTrigger>
@@ -1603,6 +1608,372 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Mobile: Accordion */}
+        <div className="md:hidden space-y-4">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="repairs" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <ClipboardList className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('dashboard:tabs.repairs')}</span>
+                  </div>
+                  <Badge variant="secondary">{repairs.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <Button onClick={() => setRepairDialog(true)} className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('common:buttons.create_repair')}
+                  </Button>
+                  {repairs.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay reparaciones registradas</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {repairs.map((repair) => (
+                        <Card key={repair.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-start">
+                              <div className="font-semibold">{repair.client_name}</div>
+                              {getStatusBadge(repair.status)}
+                            </div>
+                            <div className="text-gray-600">{repair.vehicle_info}</div>
+                            <div className="text-gray-500 text-xs line-clamp-2">{repair.issue_description}</div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</span>
+                              <span>•</span>
+                              <span>{repair.mechanic_name || t('common:unassigned')}</span>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                              <Button onClick={() => handleOpenPartsDialog(repair)} variant="outline" size="sm" className="flex-1">
+                                <Package className="w-3 h-3 mr-1" />
+                                Piezas
+                              </Button>
+                              <Button onClick={() => handleShareRepair(repair.id)} variant="outline" size="sm" className="flex-1">
+                                <Share2 className="w-3 h-3 mr-1" />
+                                Compartir
+                              </Button>
+                              <Button onClick={() => handleOpenEditRepair(repair)} variant="ghost" size="sm">
+                                <Edit className="w-4 h-4 text-blue-500" />
+                              </Button>
+                              <Button onClick={() => setConfirmDelete({ type: 'repair', id: repair.id })} variant="ghost" size="sm">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="clients" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('dashboard:tabs.clients')}</span>
+                  </div>
+                  <Badge variant="secondary">{clients.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <div className="flex gap-2">
+                    <Button onClick={() => setVisitDialog(true)} className="flex-1" size="sm">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      {t('common:buttons.schedule_visit')}
+                    </Button>
+                    <Button onClick={() => setClientDialog(true)} className="flex-1" size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t('common:buttons.add_client')}
+                    </Button>
+                  </div>
+                  {clients.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay clientes registrados</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {clients.map((client) => (
+                        <Card key={client.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-start">
+                              <div className="font-semibold">{client.user_name}</div>
+                              <Button onClick={() => handleDeleteClient(client.id)} variant="ghost" size="sm">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                            <div className="text-gray-600">{client.user_email}</div>
+                            <div className="text-gray-500 text-xs">{client.user_phone}</div>
+                            <div className="text-gray-500 text-xs">{client.city} • {client.address}</div>
+                            {client.vehicle_info && (
+                              <div className="text-gray-600 text-xs bg-gray-50 p-2 rounded">{client.vehicle_info}</div>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="mechanics" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <Wrench className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('dashboard:tabs.mechanics')}</span>
+                  </div>
+                  <Badge variant="secondary">{mechanics.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <Button onClick={() => setMechanicDialog(true)} className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('common:buttons.add_mechanic')}
+                  </Button>
+                  {mechanics.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay mecánicos registrados</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {mechanics.map((mechanic) => (
+                        <Card key={mechanic.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-start">
+                              <div className="font-semibold">{mechanic.user_name}</div>
+                              <Button onClick={() => handleDeleteMechanic(mechanic.id)} variant="ghost" size="sm">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                            <div className="text-gray-600">{mechanic.user_email}</div>
+                            <div className="text-gray-500 text-xs">{mechanic.user_phone}</div>
+                            <div className="text-gray-500 text-xs">{mechanic.address}</div>
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {mechanic.specialties.map((specialty, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">{specialty}</Badge>
+                              ))}
+                            </div>
+                            <div className="flex gap-2 text-xs">
+                              {mechanic.is_mobile && <Badge variant="secondary">Móvil</Badge>}
+                              {mechanic.speaks_english && <Badge variant="secondary">English</Badge>}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="workshops" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('dashboard:tabs.workshops')}</span>
+                  </div>
+                  <Badge variant="secondary">{workshops.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <Button onClick={() => setWorkshopDialog(true)} className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('common:buttons.add_workshop')}
+                  </Button>
+                  {workshops.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay talleres registrados</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {workshops.map((workshop) => (
+                        <Card key={workshop.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-start">
+                              <div className="font-semibold">{workshop.name}</div>
+                              <Button onClick={() => handleDeleteWorkshop(workshop.id)} variant="ghost" size="sm">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                            <div className="text-gray-600">{workshop.address}</div>
+                            <div className="text-gray-500 text-xs">{workshop.phone}</div>
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {workshop.services.map((service, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">{service}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="points" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('dashboard:tabs.authorized_points')}</span>
+                  </div>
+                  <Badge variant="secondary">{authorizedPoints.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <Button onClick={() => setAuthorizedPointDialog(true)} className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('common:buttons.add_authorized_point')}
+                  </Button>
+                  {authorizedPoints.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay tiendas registradas</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {authorizedPoints.map((point) => (
+                        <Card key={point.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="font-semibold">{point.name}</div>
+                            <div className="text-gray-600">{point.address}</div>
+                            <div className="text-gray-500 text-xs">{point.phone}</div>
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {point.services.map((service, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">{service}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="express" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <Zap className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('dashboard:tabs.express_service')}</span>
+                    {expressServices.filter(s => s.status !== 'completed' && s.status !== 'cancelled').length > 0 && (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                  <Badge variant="secondary">{expressServices.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <Button onClick={() => setExpressServiceDialog(true)} className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('common:buttons.create_express_service')}
+                  </Button>
+                  {expressServices.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay servicios express registrados</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {expressServices.map((service) => (
+                        <Card key={service.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-start">
+                              <div className="font-semibold">{service.client_name}</div>
+                              {getPriorityBadge(service.priority)}
+                            </div>
+                            <div className="text-gray-600">{service.vehicle_info}</div>
+                            <div className="text-gray-500 text-xs line-clamp-2">{service.description}</div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>{service.location}</span>
+                              <span>•</span>
+                              <span>{service.mechanic_name || t('common:unassigned')}</span>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                              <Button onClick={() => handleOpenEditExpress(service)} variant="outline" size="sm" className="flex-1">
+                                <Edit className="w-3 h-3 mr-1" />
+                                Editar
+                              </Button>
+                              <Button onClick={() => setConfirmDelete({ type: 'express', id: service.id })} variant="ghost" size="sm">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="requests" className="border rounded-lg px-4 bg-white">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <span className="font-semibold">{t('repair_requests:title')}</span>
+                    {repairRequests.filter(r => r.status === 'new').length > 0 && (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                  <Badge variant="secondary">{repairRequests.filter(r => r.status === 'new').length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2">
+                  <Button onClick={() => setShareFormDialog(true)} className="w-full" size="sm" variant="outline">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    {t('common:buttons.share_form')}
+                  </Button>
+                  {repairRequests.length === 0 ? (
+                    <p className="text-center py-8 text-gray-500 text-sm">No hay solicitudes</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {repairRequests.map((request) => (
+                        <Card key={request.id} className="p-3">
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-start">
+                              <div className="font-semibold">{request.name}</div>
+                              {getRequestStatusBadge(request.status)}
+                            </div>
+                            <div className="text-gray-600">{request.vehicle_info}</div>
+                            <div className="text-gray-500 text-xs">{request.email} • {request.phone}</div>
+                            <div className="text-gray-500 text-xs line-clamp-2">{request.description}</div>
+                            {request.status === 'new' && (
+                              <div className="flex gap-2 pt-2">
+                                <Button onClick={() => handleViewRepairRequest(request)} variant="outline" size="sm" className="flex-1">
+                                  Ver
+                                </Button>
+                                <Button onClick={() => handleConvertRepairRequest(request.id, 'repair')} variant="default" size="sm" className="flex-1">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Convertir
+                                </Button>
+                                <Button onClick={() => handleRejectRepairRequest(request.id)} variant="ghost" size="sm">
+                                  <XCircle className="w-4 h-4 text-red-500" />
+                                </Button>
+                              </div>
+                            )}
+                            {request.status !== 'new' && (
+                              <Button onClick={() => setConfirmDelete({ type: 'request', id: request.id })} variant="ghost" size="sm" className="w-full">
+                                <Trash2 className="w-4 h-4 text-red-500 mr-2" />
+                                Eliminar
+                              </Button>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
       </main>
 
       {/* Client Dialog */}
