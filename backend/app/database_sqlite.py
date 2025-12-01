@@ -248,6 +248,26 @@ class SQLiteDatabase:
             cursor.execute("ALTER TABLE authorized_points ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
             cursor.execute("UPDATE authorized_points SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
         
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='parts'")
+        if not cursor.fetchone():
+            print("[MIGRATION] Creating missing parts table")
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS parts (
+                    id TEXT PRIMARY KEY,
+                    repair_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    supplier_id TEXT,
+                    ordered_online INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    estimated_arrival TEXT,
+                    cost REAL,
+                    notes TEXT,
+                    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+                    FOREIGN KEY (repair_id) REFERENCES repairs(id),
+                    FOREIGN KEY (supplier_id) REFERENCES authorized_points(id)
+                )
+            """)
+        
         parts_cols = get_columns('parts')
         print(f"[MIGRATION] Parts columns: {parts_cols}")
         if 'created_at' not in parts_cols:
