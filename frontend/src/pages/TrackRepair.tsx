@@ -132,7 +132,7 @@ export function TrackRepair() {
             {/* Vertical Progress Timeline */}
             <div>
               <h3 className="font-semibold text-gray-700 mb-4">{t('track_repair:progress')}</h3>
-              <div className="relative pl-8">
+              <div className="relative">
                 {steps.map((step, index) => {
                   const isCompleted = isStepCompleted(step.key);
                   const isLast = index === steps.length - 1;
