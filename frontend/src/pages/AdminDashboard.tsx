@@ -1127,7 +1127,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
                 <Button onClick={() => setRepairDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
-                  Crear Reparación
+                  {t('common:buttons.create_repair')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -1216,11 +1216,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 <div className="flex gap-2">
                   <Button onClick={() => setVisitDialog(true)} size="lg">
                     <Calendar className="w-5 h-5 mr-2" />
-                    Programar Visita
+                    {t('common:buttons.schedule_visit')}
                   </Button>
                   <Button onClick={() => setClientDialog(true)} size="lg">
                     <Plus className="w-5 h-5 mr-2" />
-                    Agregar Cliente
+                    {t('common:buttons.add_client')}
                   </Button>
                 </div>
               </CardHeader>
@@ -1278,7 +1278,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
                 <Button onClick={() => setMechanicDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
-                  Agregar Mecánico
+                  {t('common:buttons.add_mechanic')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -1335,7 +1335,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
                 <Button onClick={() => setWorkshopDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
-                  Agregar Taller
+                  {t('common:buttons.add_workshop')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -1390,7 +1390,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
                 <Button onClick={() => setAuthorizedPointDialog(true)} size="lg">
                   <Plus className="w-5 h-5 mr-2" />
-                  Registrar
+                  {t('common:buttons.register')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -2571,7 +2571,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={editRepairDialog} onOpenChange={setEditRepairDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Editar Reparación</DialogTitle>
+            <DialogTitle>{t('common:dialogs.edit_repair')}</DialogTitle>
           </DialogHeader>
           {editRepair && (
             <div className="grid gap-4 py-4">
@@ -2635,10 +2635,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditRepairDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleUpdateRepair}>
-              Guardar Cambios
+              {t('common:actions.save_changes')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2647,7 +2647,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={editExpressDialog} onOpenChange={setEditExpressDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Editar Servicio Express</DialogTitle>
+            <DialogTitle>{t('common:dialogs.edit_express_service')}</DialogTitle>
           </DialogHeader>
           {editExpress && (
             <div className="grid gap-4 py-4">
@@ -2696,10 +2696,10 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditExpressDialog(false)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button onClick={handleUpdateExpress}>
-              Guardar Cambios
+              {t('common:actions.save_changes')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2708,17 +2708,17 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Eliminación</DialogTitle>
+            <DialogTitle>{t('common:dialogs.confirm_delete')}</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.
+              {t('common:dialogs.confirm_delete_message')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmDelete(null)}>
-              Cancelar
+              {t('common:actions.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>
-              Eliminar
+              {t('common:actions.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2727,9 +2727,9 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       <Dialog open={shareFormDialog} onOpenChange={setShareFormDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Compartir Formulario Público</DialogTitle>
+            <DialogTitle>{t('common:dialogs.share_public_form')}</DialogTitle>
             <DialogDescription>
-              Comparte estos enlaces con tus clientes para que puedan solicitar servicios
+              {t('common:dialogs.share_public_form_description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -2770,7 +2770,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </div>
           <DialogFooter>
             <Button onClick={() => setShareFormDialog(false)}>
-              Cerrar
+              {t('common:actions.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,3 +1,37 @@
 {
-  "loading": "Cargando..."
+  "loading": "Cargando...",
+  "actions": {
+    "create": "Crear",
+    "add": "Agregar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "view": "Ver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "search": "Buscar",
+    "select": "Seleccionar",
+    "register": "Registrar",
+    "schedule": "Programar",
+    "convert": "Convertir",
+    "reject": "Rechazar",
+    "save_changes": "Guardar Cambios"
+  },
+  "buttons": {
+    "create_repair": "Crear Reparación",
+    "schedule_visit": "Programar Visita",
+    "add_client": "Agregar Cliente",
+    "add_mechanic": "Agregar Mecánico",
+    "add_workshop": "Agregar Taller",
+    "register": "Registrar"
+  },
+  "dialogs": {
+    "edit_repair": "Editar Reparación",
+    "edit_express_service": "Editar Servicio Express",
+    "confirm_delete": "Confirmar Eliminación",
+    "confirm_delete_message": "¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.",
+    "share_public_form": "Compartir Formulario Público",
+    "share_public_form_description": "Comparte estos enlaces con tus clientes para que puedan solicitar servicios"
+  }
 }

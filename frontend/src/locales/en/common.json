@@ -1,3 +1,37 @@
 {
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "actions": {
+    "create": "Create",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "search": "Search",
+    "select": "Select",
+    "register": "Register",
+    "schedule": "Schedule",
+    "convert": "Convert",
+    "reject": "Reject",
+    "save_changes": "Save Changes"
+  },
+  "buttons": {
+    "create_repair": "Create Repair",
+    "schedule_visit": "Schedule Visit",
+    "add_client": "Add Client",
+    "add_mechanic": "Add Mechanic",
+    "add_workshop": "Add Workshop",
+    "register": "Register"
+  },
+  "dialogs": {
+    "edit_repair": "Edit Repair",
+    "edit_express_service": "Edit Express Service",
+    "confirm_delete": "Confirm Deletion",
+    "confirm_delete_message": "Are you sure you want to delete this item? This action cannot be undone.",
+    "share_public_form": "Share Public Form",
+    "share_public_form_description": "Share these links with your clients so they can request services"
+  }
 }
