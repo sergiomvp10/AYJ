@@ -3,7 +3,7 @@
   "vehicle_info": "Información del Vehículo",
   "client_info": "Información del Cliente",
   "issue_description": "Descripción del Problema",
-  "mechanic_assigned": "Mecánico Asignado",
+  "mechanic_assigned": "ESPECIALISTA ENCARGADO",
   "progress": "Progreso de la Reparación",
   "parts_needed": "Piezas Necesarias",
   "estimated_cost": "Costo Estimado",

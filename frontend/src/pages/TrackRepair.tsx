@@ -117,17 +117,10 @@ export function TrackRepair() {
             <CardTitle className="text-2xl">{t('track_repair:title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Vehicle and Client Info */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">{t('track_repair:vehicle_info')}</h3>
-                <p className="text-gray-900">{repair.vehicle_info}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">{t('track_repair:client_info')}</h3>
-                <p className="text-gray-900">{repair.client_name}</p>
-                <p className="text-gray-600 text-sm">{repair.client_phone}</p>
-              </div>
+            {/* Vehicle Info */}
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">{t('track_repair:vehicle_info')}</h3>
+              <p className="text-gray-900">{repair.vehicle_info}</p>
             </div>
 
             {/* Issue Description */}
