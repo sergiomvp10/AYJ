@@ -1158,7 +1158,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="max-w-xs truncate text-base px-6 py-4">{repair.issue_description}</TableCell>
                           <TableCell className="text-base px-6 py-4">{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</TableCell>
                           <TableCell className="px-6 py-4">{getStatusBadge(repair.status)}</TableCell>
-                          <TableCell className="text-base px-6 py-4">{repair.mechanic_name || 'Sin asignar'}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{repair.mechanic_name || t('common:unassigned')}</TableCell>
                           <TableCell className="px-6 py-4">
                             <Button
                               onClick={() => handleOpenPartsDialog(repair)}
@@ -1471,7 +1471,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                             </select>
                           </TableCell>
                           <TableCell className="text-base px-6 py-4">{service.location}</TableCell>
-                          <TableCell className="text-base px-6 py-4">{service.mechanic_name || 'Sin asignar'}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{service.mechanic_name || t('common:unassigned')}</TableCell>
                           <TableCell className="px-6 py-4">
                             <div className="flex gap-2">
                               <Button
@@ -2582,7 +2582,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   onChange={(e) => setEditRepair({ ...editRepair, mechanic_id: e.target.value })}
                   className="border rounded px-3 py-2"
                 >
-                  <option value="">Sin asignar</option>
+                  <option value="">{t('common:unassigned')}</option>
                   {mechanics.map((mechanic) => (
                     <option key={mechanic.id} value={mechanic.id}>
                       {mechanic.user_name}
@@ -2658,7 +2658,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   onChange={(e) => setEditExpress({ ...editExpress, mechanic_id: e.target.value })}
                   className="border rounded px-3 py-2"
                 >
-                  <option value="">Sin asignar</option>
+                  <option value="">{t('common:unassigned')}</option>
                   {mechanics.map((mechanic) => (
                     <option key={mechanic.id} value={mechanic.id}>
                       {mechanic.user_name}

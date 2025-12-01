@@ -33,5 +33,7 @@
     "confirm_delete_message": "¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer.",
     "share_public_form": "Compartir Formulario Público",
     "share_public_form_description": "Comparte estos enlaces con tus clientes para que puedan solicitar servicios"
-  }
+  },
+  "none": "Ninguno",
+  "unassigned": "Sin asignar"
 }

@@ -33,5 +33,7 @@
     "confirm_delete_message": "Are you sure you want to delete this item? This action cannot be undone.",
     "share_public_form": "Share Public Form",
     "share_public_form_description": "Share these links with your clients so they can request services"
-  }
+  },
+  "none": "None",
+  "unassigned": "Unassigned"
 }
