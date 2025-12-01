@@ -50,6 +50,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [editExpressDialog, setEditExpressDialog] = useState(false);
   const [editExpress, setEditExpress] = useState<ExpressService | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{type: 'repair' | 'express' | 'request', id: string} | null>(null);
+  const [shareFormDialog, setShareFormDialog] = useState(false);
   const [parts, setParts] = useState<Part[]>([]);
   const [partForm, setPartForm] = useState({
     name: '',
@@ -969,6 +970,29 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  const handleCopyFormLink = async (language: 'es' | 'en') => {
+    const baseUrl = window.location.origin;
+    const path = language === 'es' ? '/solicitar' : '/request';
+    const url = `${baseUrl}${path}`;
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: t('toasts:success_title'),
+        description: language === 'es' 
+          ? 'Enlace en español copiado al portapapeles' 
+          : 'English link copied to clipboard',
+      });
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: 'Error al copiar el enlace',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -1477,9 +1501,19 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
           <TabsContent value="requests">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">{t('repair_requests:title')}</CardTitle>
-                <CardDescription className="text-base">{t('repair_requests:subtitle')}</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-xl">{t('repair_requests:title')}</CardTitle>
+                  <CardDescription className="text-base">{t('repair_requests:subtitle')}</CardDescription>
+                </div>
+                <Button
+                  onClick={() => setShareFormDialog(true)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10"
+                >
+                  <Share2 className="h-6 w-6" />
+                </Button>
               </CardHeader>
               <CardContent>
                 {repairRequests.length === 0 ? (
@@ -2685,6 +2719,58 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>
               Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={shareFormDialog} onOpenChange={setShareFormDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Compartir Formulario Público</DialogTitle>
+            <DialogDescription>
+              Comparte estos enlaces con tus clientes para que puedan solicitar servicios
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Español</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={`${window.location.origin}/solicitar`}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => handleCopyFormLink('es')}
+                  variant="outline"
+                  size="icon"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">English</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={`${window.location.origin}/request`}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => handleCopyFormLink('en')}
+                  variant="outline"
+                  size="icon"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShareFormDialog(false)}>
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>
