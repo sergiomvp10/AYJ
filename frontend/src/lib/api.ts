@@ -384,6 +384,7 @@ class ApiClient {
     repair_id: string;
     name: string;
     supplier_id?: string;
+    supplier_name?: string;
     ordered_online: boolean;
     estimated_arrival?: string;
     cost?: number;
