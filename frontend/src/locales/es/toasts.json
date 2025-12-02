@@ -1,4 +1,5 @@
 {
+  "success_title": "Completado ✓",
   "client": {
     "create_success": "Cliente Agregado con Éxito ✅",
     "create_error": "Error al crear cliente",
