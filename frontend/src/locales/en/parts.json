@@ -37,6 +37,15 @@
       }
     }
   },
+  "table": {
+    "part": "Part",
+    "supplier": "Supplier",
+    "status": "Status",
+    "type": "Type",
+    "arrival": "Est. Arrival",
+    "cost": "Cost",
+    "actions": "Actions"
+  },
   "status": {
     "pending": "Pending",
     "ordered": "Ordered",

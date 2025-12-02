@@ -37,6 +37,15 @@
       }
     }
   },
+  "table": {
+    "part": "Pieza",
+    "supplier": "Proveedor",
+    "status": "Estado",
+    "type": "Tipo",
+    "arrival": "Llegada Est.",
+    "cost": "Costo",
+    "actions": "Acciones"
+  },
   "status": {
     "pending": "Pendiente",
     "ordered": "Ordenado",
