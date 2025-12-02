@@ -11,6 +11,7 @@
     "supplier_placeholder": "Selecciona un proveedor...",
     "supplier_search": "Buscar proveedor...",
     "supplier_no_results": "No se encontraron proveedores",
+    "supplier_use_custom": "Usar \"{{query}}\" como proveedor",
     "supplier_custom": "Otro (escribir manualmente)",
     "supplier_custom_placeholder": "Escribe el nombre del proveedor",
     "no_supplier": "Sin proveedor",

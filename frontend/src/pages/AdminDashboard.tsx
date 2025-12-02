@@ -66,6 +66,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   });
   const [supplierMode, setSupplierMode] = useState<'registered' | 'custom'>('registered');
   const [supplierComboboxOpen, setSupplierComboboxOpen] = useState(false);
+  const [supplierSearchQuery, setSupplierSearchQuery] = useState('');
 
   const [clientForm, setClientForm] = useState({
     name: '',
@@ -2728,7 +2729,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
                       <Command>
-                        <CommandInput placeholder={t('parts:dialog.supplier_search')} />
+                        <CommandInput 
+                          placeholder={t('parts:dialog.supplier_search')} 
+                          value={supplierSearchQuery}
+                          onValueChange={setSupplierSearchQuery}
+                        />
                         <CommandList>
                           <CommandEmpty>
                             <div className="p-2 text-sm text-muted-foreground">
@@ -2741,6 +2746,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                                 setSupplierMode('registered');
                                 setPartForm({ ...partForm, supplier_id: '', supplier_name: '' });
                                 setSupplierComboboxOpen(false);
+                                setSupplierSearchQuery('');
                               }}
                             >
                               <Check
@@ -2758,6 +2764,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                                   setSupplierMode('registered');
                                   setPartForm({ ...partForm, supplier_id: point.id, supplier_name: '' });
                                   setSupplierComboboxOpen(false);
+                                  setSupplierSearchQuery('');
                                 }}
                               >
                                 <Check
@@ -2768,11 +2775,25 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                                 {point.name}
                               </CommandItem>
                             ))}
+                            {supplierSearchQuery.trim() && (
+                              <CommandItem
+                                onSelect={() => {
+                                  setSupplierMode('custom');
+                                  setPartForm({ ...partForm, supplier_id: '', supplier_name: supplierSearchQuery.trim() });
+                                  setSupplierComboboxOpen(false);
+                                  setSupplierSearchQuery('');
+                                }}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t('parts:dialog.supplier_use_custom', { query: supplierSearchQuery.trim() })}
+                              </CommandItem>
+                            )}
                             <CommandItem
                               onSelect={() => {
                                 setSupplierMode('custom');
                                 setPartForm({ ...partForm, supplier_id: '', supplier_name: '' });
                                 setSupplierComboboxOpen(false);
+                                setSupplierSearchQuery('');
                               }}
                             >
                               <Plus className="mr-2 h-4 w-4" />
@@ -2861,7 +2882,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     {parts.map((part) => (
                       <TableRow key={part.id}>
                         <TableCell className="font-medium">{part.name}</TableCell>
-                        <TableCell>{part.supplier_name || 'N/A'}</TableCell>
+                        <TableCell>
+                          {part.supplier_id 
+                            ? authorizedPoints.find(p => p.id === part.supplier_id)?.name || 'N/A'
+                            : part.supplier_name || 'N/A'}
+                        </TableCell>
                         <TableCell>
                           <select
                             value={part.status}
