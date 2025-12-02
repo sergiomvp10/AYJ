@@ -615,11 +615,11 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO parts (id, repair_id, name, supplier_id, ordered_online, status,
+                INSERT INTO parts (id, repair_id, name, supplier_id, supplier_name, ordered_online, status,
                                  estimated_arrival, cost, notes, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                part.id, part.repair_id, part.name, part.supplier_id, int(part.ordered_online),
+                part.id, part.repair_id, part.name, part.supplier_id, part.supplier_name, int(part.ordered_online),
                 part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
                 part.cost, part.notes, part.created_at.isoformat()
             ))
@@ -651,11 +651,11 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE parts SET repair_id = ?, name = ?, supplier_id = ?, ordered_online = ?,
+                UPDATE parts SET repair_id = ?, name = ?, supplier_id = ?, supplier_name = ?, ordered_online = ?,
                                status = ?, estimated_arrival = ?, cost = ?, notes = ?
                 WHERE id = ?
             """, (
-                part.repair_id, part.name, part.supplier_id, int(part.ordered_online),
+                part.repair_id, part.name, part.supplier_id, part.supplier_name, int(part.ordered_online),
                 part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
                 part.cost, part.notes, part_id
             ))
