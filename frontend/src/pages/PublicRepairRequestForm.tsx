@@ -19,7 +19,8 @@ export default function PublicRepairRequestForm() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const targetLang = location.pathname.includes('/schedule') ? 'en' : 'es';
+    const isEnglishRoute = location.pathname.includes('/schedule') || location.pathname.includes('/request');
+    const targetLang = isEnglishRoute ? 'en' : 'es';
     if (i18n.language !== targetLang) {
       i18n.changeLanguage(targetLang);
     }
@@ -187,6 +188,7 @@ export default function PublicRepairRequestForm() {
               </p>
             </div>
             <button
+              type="button"
               onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
             >
