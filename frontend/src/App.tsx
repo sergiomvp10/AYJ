@@ -40,7 +40,8 @@ function AppContent() {
     setUser(null);
   };
 
-  const isPublicRoute = location.pathname === '/solicitar' || location.pathname === '/schedule' || location.pathname.startsWith('/track/');
+  const publicPrefixes = ['/solicitar', '/request', '/schedule', '/track/', '/seguimiento/'];
+  const isPublicRoute = publicPrefixes.some(prefix => location.pathname.startsWith(prefix));
 
   if (loading && !isPublicRoute) {
     return (
@@ -54,8 +55,10 @@ function AppContent() {
     <>
       <Routes>
         <Route path="/solicitar" element={<PublicRepairRequestForm />} />
+        <Route path="/request" element={<PublicRepairRequestForm />} />
         <Route path="/schedule" element={<PublicRepairRequestForm />} />
         <Route path="/track/:token" element={<TrackRepair />} />
+        <Route path="/seguimiento/:token" element={<TrackRepair />} />
         <Route
           path="/"
           element={
