@@ -11,7 +11,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2, AlertCircle, Edit } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2, AlertCircle, Edit, ChevronsUpDown, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -56,11 +58,14 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [partForm, setPartForm] = useState({
     name: '',
     supplier_id: '',
+    supplier_name: '',
     ordered_online: false,
     estimated_arrival: '',
     cost: '',
     notes: '',
   });
+  const [supplierMode, setSupplierMode] = useState<'registered' | 'custom'>('registered');
+  const [supplierComboboxOpen, setSupplierComboboxOpen] = useState(false);
 
   const [clientForm, setClientForm] = useState({
     name: '',
@@ -573,7 +578,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       await api.createPart({
         repair_id: selectedRepairForParts.id,
         name: partForm.name,
-        supplier_id: partForm.supplier_id || undefined,
+        supplier_id: supplierMode === 'registered' && partForm.supplier_id ? partForm.supplier_id : undefined,
+        supplier_name: supplierMode === 'custom' && partForm.supplier_name ? partForm.supplier_name : undefined,
         ordered_online: partForm.ordered_online,
         estimated_arrival: partForm.estimated_arrival || undefined,
         cost: partForm.cost ? parseFloat(partForm.cost) : undefined,
@@ -590,11 +596,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       setPartForm({
         name: '',
         supplier_id: '',
+        supplier_name: '',
         ordered_online: false,
         estimated_arrival: '',
         cost: '',
         notes: '',
       });
+      setSupplierMode('registered');
     } catch (error) {
       console.error('Error creating part:', error);
       toast({
@@ -2702,19 +2710,87 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="part-supplier">{t('parts:dialog.supplier_label')}</Label>
-                  <select
-                    id="part-supplier"
-                    value={partForm.supplier_id}
-                    onChange={(e) => setPartForm({ ...partForm, supplier_id: e.target.value })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">{t('parts:dialog.no_supplier')}</option>
-                    {authorizedPoints.map((point) => (
-                      <option key={point.id} value={point.id}>
-                        {point.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Popover open={supplierComboboxOpen} onOpenChange={setSupplierComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={supplierComboboxOpen}
+                        className="w-full justify-between"
+                      >
+                        {supplierMode === 'custom' && partForm.supplier_name
+                          ? partForm.supplier_name
+                          : supplierMode === 'registered' && partForm.supplier_id
+                          ? authorizedPoints.find((p) => p.id === partForm.supplier_id)?.name
+                          : t('parts:dialog.supplier_placeholder')}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder={t('parts:dialog.supplier_search')} />
+                        <CommandList>
+                          <CommandEmpty>
+                            <div className="p-2 text-sm text-muted-foreground">
+                              {t('parts:dialog.supplier_no_results')}
+                            </div>
+                          </CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              onSelect={() => {
+                                setSupplierMode('registered');
+                                setPartForm({ ...partForm, supplier_id: '', supplier_name: '' });
+                                setSupplierComboboxOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  !partForm.supplier_id && !partForm.supplier_name ? 'opacity-100' : 'opacity-0'
+                                }`}
+                              />
+                              {t('parts:dialog.no_supplier')}
+                            </CommandItem>
+                            {authorizedPoints.map((point) => (
+                              <CommandItem
+                                key={point.id}
+                                value={point.name}
+                                onSelect={() => {
+                                  setSupplierMode('registered');
+                                  setPartForm({ ...partForm, supplier_id: point.id, supplier_name: '' });
+                                  setSupplierComboboxOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    partForm.supplier_id === point.id ? 'opacity-100' : 'opacity-0'
+                                  }`}
+                                />
+                                {point.name}
+                              </CommandItem>
+                            ))}
+                            <CommandItem
+                              onSelect={() => {
+                                setSupplierMode('custom');
+                                setPartForm({ ...partForm, supplier_id: '', supplier_name: '' });
+                                setSupplierComboboxOpen(false);
+                              }}
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              {t('parts:dialog.supplier_custom')}
+                            </CommandItem>
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {supplierMode === 'custom' && (
+                    <Input
+                      value={partForm.supplier_name}
+                      onChange={(e) => setPartForm({ ...partForm, supplier_name: e.target.value })}
+                      placeholder={t('parts:dialog.supplier_custom_placeholder')}
+                      className="mt-2"
+                    />
+                  )}
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
