@@ -24,7 +24,8 @@ export default function PublicRepairRequestForm() {
     if (i18n.language !== targetLang) {
       i18n.changeLanguage(targetLang);
     }
-  }, [location.pathname, i18n]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -189,7 +190,11 @@ export default function PublicRepairRequestForm() {
             </div>
             <button
               type="button"
-              onClick={() => i18n.changeLanguage(i18n.language === 'es' ? 'en' : 'es')}
+              onClick={() => {
+                const newLang = i18n.language === 'es' ? 'en' : 'es';
+                i18n.changeLanguage(newLang);
+                navigate(newLang === 'en' ? '/request' : '/solicitar');
+              }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
             >
               {i18n.language === 'es' ? 'EN' : 'ES'}
