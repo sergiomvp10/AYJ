@@ -1096,13 +1096,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
         {/* Desktop: Tabs */}
         <Tabs defaultValue="repairs" className="hidden md:block space-y-6">
-          <TabsList className="h-12">
-            <TabsTrigger value="repairs" className="text-base px-6">{t('dashboard:tabs.repairs')}</TabsTrigger>
-            <TabsTrigger value="clients" className="text-base px-6">{t('dashboard:tabs.clients')}</TabsTrigger>
-            <TabsTrigger value="mechanics" className="text-base px-6">{t('dashboard:tabs.mechanics')}</TabsTrigger>
-            <TabsTrigger value="workshops" className="text-base px-6">{t('dashboard:tabs.workshops')}</TabsTrigger>
-            <TabsTrigger value="points" className="text-base px-6">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
-            <TabsTrigger value="express" className="text-base px-6 relative">
+          <TabsList className="h-14 w-full grid grid-cols-7 gap-1">
+            <TabsTrigger value="repairs" className="text-lg font-medium">{t('dashboard:tabs.repairs')}</TabsTrigger>
+            <TabsTrigger value="clients" className="text-lg font-medium">{t('dashboard:tabs.clients')}</TabsTrigger>
+            <TabsTrigger value="mechanics" className="text-lg font-medium">{t('dashboard:tabs.mechanics')}</TabsTrigger>
+            <TabsTrigger value="workshops" className="text-lg font-medium">{t('dashboard:tabs.workshops')}</TabsTrigger>
+            <TabsTrigger value="points" className="text-lg font-medium">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
+            <TabsTrigger value="express" className="text-lg font-medium relative">
               {t('dashboard:tabs.express_service')}
               {expressServices.filter(s => s.status !== 'completed' && s.status !== 'cancelled').length > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500">
@@ -1110,7 +1110,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="requests" className="text-base px-6 relative">
+            <TabsTrigger value="requests" className="text-lg font-medium relative">
               {t('repair_requests:title')}
               {repairRequests.filter(r => r.status === 'new').length > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500">
