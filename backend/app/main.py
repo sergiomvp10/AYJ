@@ -1125,19 +1125,19 @@ async def list_repair_requests(
     requests = db.get_repair_requests(status)
     return [
         RepairRequestResponse(
-            id=req.id,
-            name=req.name,
-            email=req.email,
-            phone=req.phone,
-            vehicle_info=req.vehicle_info,
-            description=req.description,
-            service_type=req.service_type,
-            location=req.location,
-            preferred_datetime=req.preferred_datetime,
-            is_emergency=req.is_emergency,
-            status=req.status,
-            client_id=req.client_id,
-            created_at=req.created_at
+            id=req['id'],
+            name=req['name'],
+            email=req['email'],
+            phone=req['phone'],
+            vehicle_info=req['vehicle_info'],
+            description=req['description'],
+            service_type=req['service_type'],
+            location=req['location'],
+            preferred_datetime=req['preferred_datetime'],
+            is_emergency=req['is_emergency'],
+            status=req['status'],
+            client_id=req['client_id'],
+            created_at=req['created_at']
         )
         for req in requests
     ]
