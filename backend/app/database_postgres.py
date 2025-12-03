@@ -599,7 +599,7 @@ class PostgresDatabase:
     def create_repair_request(self, request_data: dict) -> dict:
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            request_id = str(uuid.uuid4())
+            request_id = request_data.get('id') or str(uuid.uuid4())
             cursor.execute("""
                 INSERT INTO repair_requests (id, name, email, phone, vehicle_info, description,
                                            service_type, location, preferred_datetime, is_emergency,
@@ -609,7 +609,7 @@ class PostgresDatabase:
             """, (request_id, request_data['name'], request_data['email'], request_data['phone'],
                   request_data['vehicle_info'], request_data['description'], request_data['service_type'],
                   request_data['location'], request_data.get('preferred_datetime'), 
-                  request_data.get('is_emergency', False), 'pending', request_data.get('client_id'),
+                  request_data.get('is_emergency', False), request_data.get('status', 'new'), request_data.get('client_id'),
                   request_data.get('ip'), request_data.get('user_agent'), datetime.utcnow()))
             return cursor.fetchone()
     
