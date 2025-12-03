@@ -1016,16 +1016,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     setCostBreakdownDialog(true);
   };
 
-  const calculateTotalCost = (repair: Repair) => {
-    const partsCost = parts
-      .filter(p => p.repair_id === repair.id)
-      .reduce((sum, part) => sum + (part.cost || 0), 0);
-    
-    const totalCost = (repair.cost || 0);
-    
-    return totalCost;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
