@@ -1100,7 +1100,7 @@ async def create_public_repair_request(
         user_agent=request.headers.get("user-agent"),
         created_at=datetime.utcnow(),
     )
-    db.create_repair_request(rr)
+    db.create_repair_request(rr.model_dump())
     return RepairRequestResponse(
         id=rr.id,
         name=rr.name,
