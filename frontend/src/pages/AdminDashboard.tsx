@@ -1174,7 +1174,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         <TableHead className="text-base font-semibold px-6 py-4">Mecánico</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Piezas</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Costo</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4 text-transparent">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
