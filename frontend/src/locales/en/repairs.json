@@ -11,6 +11,7 @@
       "status": "Status",
       "mechanic": "Mechanic",
       "parts": "Parts",
+      "cost": "Cost",
       "actions": "Actions"
     }
   },

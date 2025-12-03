@@ -11,6 +11,7 @@
       "status": "Estado",
       "mechanic": "Mecánico",
       "parts": "Piezas",
+      "cost": "Costo",
       "actions": "Acciones"
     }
   },

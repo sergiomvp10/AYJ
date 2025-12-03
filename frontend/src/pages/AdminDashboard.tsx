@@ -1166,15 +1166,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-base font-semibold px-6 py-4">Cliente</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Vehículo</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Descripción</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Tipo</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Estado</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Mecánico</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Piezas</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Costo</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4 text-transparent">Acciones</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.client')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.vehicle')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.description')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.type')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.status')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.mechanic')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.parts')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.cost')}</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4 text-transparent">{t('repairs:table.headers.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1183,7 +1183,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="font-medium text-base px-6 py-4">{repair.client_name}</TableCell>
                           <TableCell className="text-base px-6 py-4">{repair.vehicle_info}</TableCell>
                           <TableCell className="max-w-xs truncate text-base px-6 py-4">{repair.issue_description}</TableCell>
-                          <TableCell className="text-base px-6 py-4">{repair.service_type === 'mobile' ? 'Móvil' : 'Taller'}</TableCell>
+                          <TableCell className="text-base px-6 py-4">{t(`repairs:service_type.${repair.service_type}`)}</TableCell>
                           <TableCell className="px-6 py-4">{getStatusBadge(repair.status)}</TableCell>
                           <TableCell className="text-base px-6 py-4">{repair.mechanic_name || t('common:unassigned')}</TableCell>
                           <TableCell className="px-6 py-4">
@@ -1193,7 +1193,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                               size="sm"
                             >
                               <Package className="w-4 h-4 mr-2" />
-                              Gestionar
+                              {t('common:actions.manage')}
                             </Button>
                           </TableCell>
                           <TableCell className="px-6 py-4">
