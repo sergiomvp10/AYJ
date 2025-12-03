@@ -1,4 +1,4 @@
-app = "app-vfhfzlyo"
+app = "ayj-backend-sergio"
 primary_region = "iad"
 
 [build]
@@ -18,7 +18,3 @@ primary_region = "iad"
   memory = "1gb"
   cpu_kind = "shared"
   cpus = 1
-
-[mounts]
-  source = "ayj_data"
-  destination = "/data"
