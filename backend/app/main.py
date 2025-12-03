@@ -72,6 +72,17 @@ VIN_CACHE_TTL = 7 * 24 * 60 * 60  # 7 days in seconds
 async def healthz():
     return {"status": "ok"}
 
+@app.get("/api/db_info")
+async def db_info():
+    """Diagnostic endpoint to check which database engine is being used"""
+    import os
+    from app.database import db_engine
+    return {
+        "engine": db_engine,
+        "database_url_present": bool(os.getenv("DATABASE_URL")),
+        "production_mode": bool(os.getenv("FLY_APP_NAME"))
+    }
+
 @app.post("/api/auth/register", response_model=UserResponse)
 async def register(user_data: UserCreate):
     if db.get_user_by_email(user_data.email):
