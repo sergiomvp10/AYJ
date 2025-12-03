@@ -27,6 +27,7 @@
   "repair": {
     "create_success": "Repair created successfully",
     "create_error": "Error creating repair",
+    "status_updated": "Status updated successfully",
     "status_update_success": "Status updated successfully",
     "status_update_error": "Error updating status",
     "delete_success": "Repair deleted successfully",

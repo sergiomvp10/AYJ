@@ -17,6 +17,7 @@ import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, 
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { StatusEditor } from '@/components/StatusEditor';
 
 interface AdminDashboardProps {
   user: User;
@@ -506,49 +507,23 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
-  // @ts-ignore - Unused but kept for potential future use
   const handleUpdateRepairStatus = async (repairId: string, newStatus: string) => {
     try {
       await api.updateRepair(repairId, { status: newStatus });
       
       toast({
-        title: 'Éxito',
-        description: 'Estado actualizado correctamente',
+        description: t('toasts:repair.status_updated'),
       });
       
       loadData();
     } catch (error) {
       console.error('Error updating repair status:', error);
       toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el estado',
+        title: t('toasts:error_title'),
+        description: t('toasts:repair.status_update_error'),
         variant: 'destructive',
       });
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      assigned: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-purple-100 text-purple-800',
-      waiting_parts: 'bg-amber-100 text-amber-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-      paid: 'bg-emerald-100 text-emerald-800',
-      balance_pending: 'bg-orange-100 text-orange-800',
-    };
-    const labels: Record<string, string> = {
-      pending: 'Pendiente',
-      assigned: 'Asignado',
-      in_progress: 'En Progreso',
-      waiting_parts: 'Esperando Piezas',
-      completed: 'Completado',
-      cancelled: 'Cancelado',
-      paid: 'Pagado',
-      balance_pending: 'Balance Pendiente',
-    };
-    return <Badge className={variants[status] || ''}>{labels[status] || status}</Badge>;
   };
 
   const handleOpenPartsDialog = async (repair: Repair) => {
@@ -1184,7 +1159,13 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="text-base px-6 py-4">{repair.vehicle_info}</TableCell>
                           <TableCell className="max-w-xs truncate text-base px-6 py-4">{repair.issue_description}</TableCell>
                           <TableCell className="text-base px-6 py-4">{t(`repairs:service_type.${repair.service_type}`)}</TableCell>
-                          <TableCell className="px-6 py-4">{getStatusBadge(repair.status)}</TableCell>
+                          <TableCell className="px-6 py-4">
+                            <StatusEditor
+                              status={repair.status}
+                              repairId={repair.id}
+                              onStatusUpdate={handleUpdateRepairStatus}
+                            />
+                          </TableCell>
                           <TableCell className="text-base px-6 py-4">{repair.mechanic_name || t('common:unassigned')}</TableCell>
                           <TableCell className="px-6 py-4">
                             <Button
@@ -1667,7 +1648,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between items-start">
                               <div className="font-semibold">{repair.client_name}</div>
-                              {getStatusBadge(repair.status)}
+                              <StatusEditor
+                                status={repair.status}
+                                repairId={repair.id}
+                                onStatusUpdate={handleUpdateRepairStatus}
+                              />
                             </div>
                             <div className="text-gray-600">{repair.vehicle_info}</div>
                             <div className="text-gray-500 text-xs line-clamp-2">{repair.issue_description}</div>

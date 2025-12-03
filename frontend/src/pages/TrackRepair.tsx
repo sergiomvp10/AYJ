@@ -42,6 +42,12 @@ export function TrackRepair() {
   useEffect(() => {
     if (token) {
       loadRepairData();
+      
+      const intervalId = setInterval(() => {
+        loadRepairData();
+      }, 10000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [token]);
 
