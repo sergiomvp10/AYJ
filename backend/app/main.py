@@ -1406,61 +1406,58 @@ async def generate_share_token(repair_id: str, current_user: TokenData = Depends
 @app.get("/api/public/track/{share_token}")
 async def track_repair_by_token(share_token: str):
     """Public endpoint to view repair status by share token (no authentication required)"""
-    with db.get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT r.*, 
-                   u.name as client_name, u.email as client_email, u.phone as client_phone,
-                   m_user.name as mechanic_name, m_user.phone as mechanic_phone
-            FROM repairs r
-            JOIN clients c ON r.client_id = c.id
-            JOIN users u ON c.user_id = u.id
-            LEFT JOIN mechanics m ON r.mechanic_id = m.id
-            LEFT JOIN users m_user ON m.user_id = m_user.id
-            WHERE r.share_token = ?
-        """, (share_token,))
+    repair = db.get_repair_by_share_token(share_token)
+    if not repair:
+        raise HTTPException(status_code=404, detail="Repair not found")
+    
+    client = db.get_client(repair.client_id)
+    client_user = db.get_user_by_id(client.user_id) if client else None
+    
+    mechanic_name = None
+    mechanic_phone = None
+    if repair.mechanic_id:
+        mechanic = db.get_mechanic(repair.mechanic_id)
+        if mechanic:
+            mechanic_user = db.get_user_by_id(mechanic.user_id)
+            if mechanic_user:
+                mechanic_name = mechanic_user.name
+                mechanic_phone = mechanic_user.phone
+    
+    # Get parts for this repair
+    parts_list = db.get_parts_by_repair(repair.id)
+    parts = []
+    for part in parts_list:
+        supplier_name = None
+        if part.supplier_id:
+            supplier = db.get_authorized_point(part.supplier_id)
+            if supplier:
+                supplier_name = supplier.name
         
-        row = cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Repair not found")
-        
-        # Get parts for this repair
-        cursor.execute("""
-            SELECT p.*, ap.name as supplier_name
-            FROM parts p
-            LEFT JOIN authorized_points ap ON p.supplier_id = ap.id
-            WHERE p.repair_id = ?
-            ORDER BY p.created_at DESC
-        """, (row['id'],))
-        
-        parts_rows = cursor.fetchall()
-        parts = []
-        for part_row in parts_rows:
-            parts.append({
-                "id": part_row['id'],
-                "name": part_row['name'],
-                "status": part_row['status'],
-                "ordered_online": bool(part_row['ordered_online']),
-                "supplier_name": part_row['supplier_name'],
-                "estimated_arrival": part_row['estimated_arrival'],
-                "cost": part_row['cost']
-            })
-        
-        return {
-            "id": row['id'],
-            "client_name": row['client_name'],
-            "client_email": row['client_email'],
-            "client_phone": row['client_phone'],
-            "vehicle_info": row['vehicle_info'],
-            "issue_description": row['issue_description'],
-            "status": row['status'],
-            "service_type": row['service_type'],
-            "location": row['location'],
-            "mechanic_name": row['mechanic_name'],
-            "mechanic_phone": row['mechanic_phone'],
-            "scheduled_date": row['scheduled_date'],
-            "completed_date": row['completed_date'],
-            "cost": row['cost'],
-            "created_at": row['created_at'],
-            "parts": parts
-        }
+        parts.append({
+            "id": part.id,
+            "name": part.name,
+            "status": part.status,
+            "ordered_online": bool(part.ordered_online),
+            "supplier_name": supplier_name,
+            "estimated_arrival": part.estimated_arrival,
+            "cost": part.cost
+        })
+    
+    return {
+        "id": repair.id,
+        "client_name": client_user.name if client_user else "Unknown",
+        "client_email": client_user.email if client_user else None,
+        "client_phone": client_user.phone if client_user else None,
+        "vehicle_info": repair.vehicle_info,
+        "issue_description": repair.issue_description,
+        "status": repair.status,
+        "service_type": repair.service_type,
+        "location": repair.location,
+        "mechanic_name": mechanic_name,
+        "mechanic_phone": mechanic_phone,
+        "scheduled_date": repair.scheduled_date,
+        "completed_date": repair.completed_date,
+        "cost": repair.cost,
+        "created_at": repair.created_at,
+        "parts": parts
+    }
