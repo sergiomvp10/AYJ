@@ -53,5 +53,16 @@
     "create_button": "Create Repair"
   },
   "share_success": "Tracking link copied to clipboard",
-  "share_error": "Error generating tracking link"
+  "share_error": "Error generating tracking link",
+  "cost_breakdown": {
+    "title": "Cost Breakdown",
+    "details": "Cost Details",
+    "parts_cost": "Parts Cost",
+    "labor_cost": "Labor Cost",
+    "additional_services": "Additional Services",
+    "total_cost": "Total Cost",
+    "payment_status": "Payment Status",
+    "amount_charged": "Amount Charged",
+    "balance_pending": "Balance Pending"
+  }
 }

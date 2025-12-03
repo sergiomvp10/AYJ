@@ -54,6 +54,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [editExpress, setEditExpress] = useState<ExpressService | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{type: 'repair' | 'express' | 'request', id: string} | null>(null);
   const [shareFormDialog, setShareFormDialog] = useState(false);
+  const [costBreakdownDialog, setCostBreakdownDialog] = useState(false);
+  const [selectedRepairForCost, setSelectedRepairForCost] = useState<Repair | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
   const [partForm, setPartForm] = useState({
     name: '',
@@ -1003,6 +1005,27 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  const handleOpenCostBreakdown = async (repair: Repair) => {
+    setSelectedRepairForCost(repair);
+    try {
+      const partsData = await api.getPartsByRepair(repair.id);
+      setParts(partsData);
+    } catch (error) {
+      console.error('Error fetching parts:', error);
+    }
+    setCostBreakdownDialog(true);
+  };
+
+  const calculateTotalCost = (repair: Repair) => {
+    const partsCost = parts
+      .filter(p => p.repair_id === repair.id)
+      .reduce((sum, part) => sum + (part.cost || 0), 0);
+    
+    const totalCost = (repair.cost || 0);
+    
+    return totalCost;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -1160,7 +1183,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         <TableHead className="text-base font-semibold px-6 py-4">Estado</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Mecánico</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Piezas</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">Compartir</TableHead>
+                        <TableHead className="text-base font-semibold px-6 py-4">Costo</TableHead>
                         <TableHead className="text-base font-semibold px-6 py-4">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1185,16 +1208,24 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           </TableCell>
                           <TableCell className="px-6 py-4">
                             <Button
-                              onClick={() => handleShareRepair(repair.id)}
+                              onClick={() => handleOpenCostBreakdown(repair)}
                               variant="outline"
                               size="sm"
+                              className="font-semibold"
                             >
-                              <Share2 className="w-4 h-4 mr-2" />
-                              Compartir
+                              {repair.cost ? `$${repair.cost.toFixed(2)}` : 'N/A'}
                             </Button>
                           </TableCell>
                           <TableCell className="px-6 py-4">
                             <div className="flex gap-2">
+                              <Button
+                                onClick={() => handleShareRepair(repair.id)}
+                                variant="ghost"
+                                size="icon"
+                                title="Compartir"
+                              >
+                                <Share2 className="w-5 h-5 text-gray-600" />
+                              </Button>
                               <Button
                                 onClick={() => handleOpenEditRepair(repair)}
                                 variant="ghost"
@@ -2927,6 +2958,76 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </div>
           <DialogFooter>
             <Button onClick={() => setPartsDialog(false)}>
+              {t('common:actions.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={costBreakdownDialog} onOpenChange={setCostBreakdownDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t('repairs:cost_breakdown.title')}</DialogTitle>
+            <DialogDescription>
+              {selectedRepairForCost && `${selectedRepairForCost.client_name} - ${selectedRepairForCost.vehicle_info}`}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRepairForCost && (
+            <div className="space-y-4">
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold mb-4 text-lg">{t('repairs:cost_breakdown.details')}</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-gray-700">{t('repairs:cost_breakdown.parts_cost')}</span>
+                    <span className="font-semibold">
+                      ${parts
+                        .filter(p => p.repair_id === selectedRepairForCost.id)
+                        .reduce((sum, part) => sum + (part.cost || 0), 0)
+                        .toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-gray-700">{t('repairs:cost_breakdown.labor_cost')}</span>
+                    <span className="font-semibold">
+                      ${((selectedRepairForCost.cost || 0) - parts
+                        .filter(p => p.repair_id === selectedRepairForCost.id)
+                        .reduce((sum, part) => sum + (part.cost || 0), 0)).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-gray-700">{t('repairs:cost_breakdown.additional_services')}</span>
+                    <span className="font-semibold">$0.00</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-t-2 border-gray-400 mt-2">
+                    <span className="text-lg font-bold">{t('repairs:cost_breakdown.total_cost')}</span>
+                    <span className="text-lg font-bold text-blue-600">
+                      ${(selectedRepairForCost.cost || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <h3 className="font-semibold mb-3 text-lg">{t('repairs:cost_breakdown.payment_status')}</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-700">{t('repairs:cost_breakdown.amount_charged')}</span>
+                    <span className="font-semibold">
+                      ${(selectedRepairForCost.amount_charged || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-t">
+                    <span className="text-gray-700 font-semibold">{t('repairs:cost_breakdown.balance_pending')}</span>
+                    <span className={`font-bold text-lg ${(selectedRepairForCost.balance_pending || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      ${(selectedRepairForCost.balance_pending || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setCostBreakdownDialog(false)}>
               {t('common:actions.close')}
             </Button>
           </DialogFooter>
