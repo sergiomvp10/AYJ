@@ -65,16 +65,23 @@ export function StatusEditor({ status, repairId, onStatusUpdate }: StatusEditorP
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Badge
-          className={cn(
-            'cursor-pointer transition-colors',
-            STATUS_VARIANTS[status] || 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-          )}
+        <button
+          type="button"
+          className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded"
+          onClick={() => setOpen(!open)}
         >
-          {STATUS_LABELS[status] || status}
-        </Badge>
+          <Badge
+            className={cn(
+              'cursor-pointer transition-colors',
+              STATUS_VARIANTS[status] || 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+            )}
+          >
+            {STATUS_LABELS[status] || status}
+            <span className="ml-1">▾</span>
+          </Badge>
+        </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[200px] p-0 z-50" align="start">
         <Command>
           <CommandList>
             <CommandGroup>
