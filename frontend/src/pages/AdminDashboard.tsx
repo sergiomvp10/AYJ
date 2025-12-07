@@ -55,6 +55,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [editExpress, setEditExpress] = useState<ExpressService | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{type: 'repair' | 'express' | 'request', id: string} | null>(null);
   const [shareFormDialog, setShareFormDialog] = useState(false);
+  const [shareLinkDialog, setShareLinkDialog] = useState(false);
+  const [shareLink, setShareLink] = useState('');
   const [costBreakdownDialog, setCostBreakdownDialog] = useState(false);
   const [selectedRepairForCost, setSelectedRepairForCost] = useState<Repair | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
@@ -825,14 +827,47 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       const result = await api.generateShareToken(repairId);
       const shareUrl = `${window.location.origin}/track/${result.share_token}`;
       
-      await navigator.clipboard.writeText(shareUrl);
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'AYJ - ' + t('repairs:share_title'),
+            text: t('repairs:share_text'),
+            url: shareUrl,
+          });
+          toast({
+            title: t('toasts:success_title'),
+            description: t('repairs:share_success'),
+          });
+          return;
+        } catch (shareError: any) {
+          if (shareError.name === 'AbortError') {
+            return;
+          }
+          console.warn('Web Share failed, falling back to clipboard', shareError);
+        }
+      }
       
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast({
+            title: t('toasts:success_title'),
+            description: t('repairs:share_success'),
+          });
+          return;
+        } catch (clipboardError) {
+          console.warn('Clipboard write failed, showing manual dialog', clipboardError);
+        }
+      }
+      
+      setShareLink(shareUrl);
+      setShareLinkDialog(true);
       toast({
         title: t('toasts:success_title'),
-        description: t('repairs:share_success'),
+        description: t('repairs:share_manual'),
       });
     } catch (error) {
-      console.error('Error sharing repair:', error);
+      console.error('Error generating share token:', error);
       toast({
         title: t('toasts:error_title'),
         description: t('repairs:share_error'),
@@ -3318,6 +3353,63 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </div>
           <DialogFooter>
             <Button onClick={() => setShareFormDialog(false)}>
+              {t('common:actions.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={shareLinkDialog} onOpenChange={setShareLinkDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('repairs:share_dialog_title')}</DialogTitle>
+            <DialogDescription>
+              {t('repairs:share_dialog_description')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={shareLink}
+                className="flex-1"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <Button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(shareLink);
+                    toast({
+                      title: t('toasts:success_title'),
+                      description: t('repairs:share_copied'),
+                    });
+                    setShareLinkDialog(false);
+                  } catch (err) {
+                    const input = document.createElement('input');
+                    input.value = shareLink;
+                    input.style.position = 'fixed';
+                    input.style.top = '0';
+                    input.style.left = '0';
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    toast({
+                      title: t('toasts:success_title'),
+                      description: t('repairs:share_copied'),
+                    });
+                    setShareLinkDialog(false);
+                  }
+                }}
+                variant="outline"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                {t('common:copy')}
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShareLinkDialog(false)}>
               {t('common:actions.close')}
             </Button>
           </DialogFooter>
