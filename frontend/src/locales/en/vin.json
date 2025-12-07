@@ -1,7 +1,7 @@
 {
   "title": "VIN Decoder",
   "input_label": "VIN (Vehicle Identification Number)",
-  "input_placeholder": "Enter 17 characters",
+  "input_placeholder": "",
   "decode_button": "Decode",
   "decoding": "Decoding...",
   "clear_button": "Clear",

@@ -1,7 +1,7 @@
 {
   "title": "Decodificador de VIN",
   "input_label": "VIN (Número de Identificación del Vehículo)",
-  "input_placeholder": "Ingresa 17 caracteres",
+  "input_placeholder": "",
   "decode_button": "Decodificar",
   "decoding": "Decodificando...",
   "clear_button": "Limpiar",
