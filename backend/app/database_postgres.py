@@ -129,6 +129,7 @@ class PostgresDatabase:
                     repair_id TEXT NOT NULL,
                     name TEXT NOT NULL,
                     supplier_id TEXT,
+                    supplier_name TEXT,
                     ordered_online BOOLEAN NOT NULL,
                     status TEXT NOT NULL,
                     estimated_arrival TIMESTAMP,
@@ -189,6 +190,7 @@ class PostgresDatabase:
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS share_token TEXT")
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS amount_charged REAL")
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS balance_pending REAL")
+            cursor.execute("ALTER TABLE parts ADD COLUMN IF NOT EXISTS supplier_name TEXT")
             
             print("[DATABASE] PostgreSQL tables initialized successfully")
     
@@ -500,10 +502,10 @@ class PostgresDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO parts (id, repair_id, name, supplier_id, ordered_online, status, 
+                INSERT INTO parts (id, repair_id, name, supplier_id, supplier_name, ordered_online, status, 
                                  estimated_arrival, cost, notes, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (part.id, part.repair_id, part.name, part.supplier_id, part.ordered_online,
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (part.id, part.repair_id, part.name, part.supplier_id, part.supplier_name, part.ordered_online,
                   part.status, part.estimated_arrival, part.cost, part.notes, part.created_at))
             return part
     
@@ -526,10 +528,10 @@ class PostgresDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE parts SET name = %s, supplier_id = %s, ordered_online = %s, status = %s,
+                UPDATE parts SET name = %s, supplier_id = %s, supplier_name = %s, ordered_online = %s, status = %s,
                                estimated_arrival = %s, cost = %s, notes = %s
                 WHERE id = %s
-            """, (part.name, part.supplier_id, part.ordered_online, part.status,
+            """, (part.name, part.supplier_id, part.supplier_name, part.ordered_online, part.status,
                   part.estimated_arrival, part.cost, part.notes, part_id))
             if cursor.rowcount > 0:
                 return part

@@ -229,6 +229,7 @@ class Part(BaseModel):
     repair_id: str
     name: str
     supplier_id: Optional[str] = None  # ID of AuthorizedPoint
+    supplier_name: Optional[str] = None  # Custom supplier name
     status: PartStatus
     ordered_online: bool = False
     estimated_arrival: Optional[datetime] = None
@@ -240,6 +241,7 @@ class PartCreate(BaseModel):
     repair_id: str
     name: str
     supplier_id: Optional[str] = None
+    supplier_name: Optional[str] = None
     ordered_online: bool = False
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
@@ -248,6 +250,7 @@ class PartCreate(BaseModel):
 class PartUpdate(BaseModel):
     name: Optional[str] = None
     supplier_id: Optional[str] = None
+    supplier_name: Optional[str] = None
     status: Optional[PartStatus] = None
     ordered_online: Optional[bool] = None
     estimated_arrival: Optional[datetime] = None

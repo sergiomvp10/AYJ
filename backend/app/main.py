@@ -770,8 +770,8 @@ async def list_parts_for_repair(repair_id: str, current_user: TokenData = Depend
     parts = db.get_parts_by_repair(repair_id)
     result = []
     for part in parts:
-        supplier_name = None
-        if part.supplier_id:
+        supplier_name = part.supplier_name
+        if not supplier_name and part.supplier_id:
             supplier = db.get_authorized_point(part.supplier_id)
             supplier_name = supplier.name if supplier else None
         
@@ -807,6 +807,7 @@ async def create_part(part_data: PartCreate, current_user: TokenData = Depends(r
         repair_id=part_data.repair_id,
         name=part_data.name,
         supplier_id=part_data.supplier_id,
+        supplier_name=part_data.supplier_name,
         status=PartStatus.PENDING,
         ordered_online=part_data.ordered_online,
         estimated_arrival=part_data.estimated_arrival,
@@ -817,8 +818,8 @@ async def create_part(part_data: PartCreate, current_user: TokenData = Depends(r
     
     db.create_part(part)
     
-    supplier_name = None
-    if part.supplier_id:
+    supplier_name = part.supplier_name
+    if not supplier_name and part.supplier_id:
         supplier = db.get_authorized_point(part.supplier_id)
         supplier_name = supplier.name if supplier else None
     
@@ -852,6 +853,7 @@ async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenDa
         repair_id=existing_part.repair_id,
         name=part_data.name if part_data.name is not None else existing_part.name,
         supplier_id=part_data.supplier_id if part_data.supplier_id is not None else existing_part.supplier_id,
+        supplier_name=part_data.supplier_name if part_data.supplier_name is not None else existing_part.supplier_name,
         status=part_data.status if part_data.status is not None else existing_part.status,
         ordered_online=part_data.ordered_online if part_data.ordered_online is not None else existing_part.ordered_online,
         estimated_arrival=part_data.estimated_arrival if part_data.estimated_arrival is not None else existing_part.estimated_arrival,
@@ -862,8 +864,8 @@ async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenDa
     
     db.update_part(part_id, updated_part)
     
-    supplier_name = None
-    if updated_part.supplier_id:
+    supplier_name = updated_part.supplier_name
+    if not supplier_name and updated_part.supplier_id:
         supplier = db.get_authorized_point(updated_part.supplier_id)
         supplier_name = supplier.name if supplier else None
     
