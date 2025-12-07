@@ -122,7 +122,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     mechanic_id: '',
     cost: '',
     amount_charged: '',
-    balance_pending: '',
     status: 'pending' as 'pending' | 'assigned' | 'in_progress' | 'waiting_parts' | 'completed' | 'cancelled' | 'paid' | 'balance_pending',
   });
 
@@ -495,7 +494,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         mechanic_id: '',
         cost: '',
         amount_charged: '',
-        balance_pending: '',
         status: 'pending',
       });
       loadData();
@@ -2596,17 +2594,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 step="0.01"
                 value={repairForm.amount_charged}
                 onChange={(e) => setRepairForm({ ...repairForm, amount_charged: e.target.value })}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="repair-balance-pending">{t('repairs:dialog.balance_pending_label')}</Label>
-              <Input
-                id="repair-balance-pending"
-                type="number"
-                step="0.01"
-                value={repairForm.balance_pending}
-                onChange={(e) => setRepairForm({ ...repairForm, balance_pending: e.target.value })}
                 placeholder="0.00"
               />
             </div>
