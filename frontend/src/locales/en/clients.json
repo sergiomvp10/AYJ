@@ -42,7 +42,7 @@
     "client_label": "Client",
     "date_label": "Date",
     "time_label": "Time",
-    "location_label": "Location",
+    "location_label": "Address",
     "location_placeholder": "Visit address",
     "description_label": "Problem Description",
     "description_placeholder": "Describe the vehicle problem...",

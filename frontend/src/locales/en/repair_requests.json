@@ -8,7 +8,7 @@
     "phone": "Phone",
     "vehicle": "Vehicle",
     "service_type": "Type",
-    "location": "Location",
+    "location": "Address",
     "date": "Requested Date",
     "emergency": "Emergency",
     "status": "Status",

@@ -42,7 +42,7 @@
     "client_label": "Cliente",
     "date_label": "Fecha",
     "time_label": "Hora",
-    "location_label": "Ubicación",
+    "location_label": "Domicilio",
     "location_placeholder": "Dirección de la visita",
     "description_label": "Descripción del Problema",
     "description_placeholder": "Describe el problema del vehículo...",
