@@ -9,7 +9,7 @@
       "emergency_type": "Emergency Type",
       "priority": "Priority",
       "status": "Status",
-      "location": "Location",
+      "location": "Address",
       "mechanic": "Mechanic",
       "created": "Created",
       "actions": "Actions"
@@ -28,7 +28,7 @@
     "description_label": "Description",
     "description_placeholder": "Describe the problem in detail...",
     "priority_label": "Priority",
-    "location_label": "Location",
+    "location_label": "Address",
     "location_placeholder": "Exact emergency address",
     "contact_phone_label": "Contact Phone",
     "contact_phone_placeholder": "+1234567890",

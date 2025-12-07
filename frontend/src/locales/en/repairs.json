@@ -42,7 +42,7 @@
     "service_type_label": "Service Type",
     "service_mobile": "Mobile Mechanic (goes to location)",
     "service_workshop": "Workshop",
-    "location_label": "Location",
+    "location_label": "Address",
     "location_placeholder": "Address where service will be performed",
     "date_label": "Scheduled Date (optional)",
     "time_label": "Scheduled Time (optional)",

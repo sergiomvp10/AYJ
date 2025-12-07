@@ -42,7 +42,7 @@
     "service_type_label": "Tipo de Servicio",
     "service_mobile": "Mecánico Móvil (va a domicilio)",
     "service_workshop": "Taller",
-    "location_label": "Ubicación",
+    "location_label": "Domicilio",
     "location_placeholder": "Dirección donde se realizará el servicio",
     "date_label": "Fecha Programada (opcional)",
     "time_label": "Hora Programada (opcional)",

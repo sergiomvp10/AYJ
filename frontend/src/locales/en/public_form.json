@@ -20,7 +20,7 @@
     "service_type_label": "Service Type",
     "service_mobile": "Mobile Mechanic (comes to you)",
     "service_workshop": "Workshop",
-    "location_label": "Location",
+    "location_label": "Address",
     "location_placeholder": "",
     "preferred_date_label": "Preferred Date (optional)",
     "preferred_time_label": "Preferred Time (optional)",
