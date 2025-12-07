@@ -186,6 +186,10 @@ class PostgresDatabase:
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_repair_requests_created_at ON repair_requests(created_at)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_repairs_share_token ON repairs(share_token)")
             
+            cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS share_token TEXT")
+            cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS amount_charged REAL")
+            cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS balance_pending REAL")
+            
             print("[DATABASE] PostgreSQL tables initialized successfully")
     
     def _initialize_admin(self):
@@ -672,3 +676,12 @@ class PostgresDatabase:
             if row:
                 return Repair(**row)
             return None
+    
+    def set_repair_share_token(self, repair_id: str, share_token: str) -> bool:
+        """Update only the share_token for a repair"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE repairs SET share_token = %s WHERE id = %s
+            """, (share_token, repair_id))
+            return cursor.rowcount > 0
