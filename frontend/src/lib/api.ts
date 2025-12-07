@@ -61,8 +61,11 @@ export interface Repair {
   scheduled_date?: string;
   completed_date?: string;
   cost?: number;
+  labor_cost?: number;
+  additional_services?: number;
   amount_charged?: number;
   balance_pending?: number;
+  share_token?: string;
   created_at: string;
 }
 
@@ -325,6 +328,8 @@ class ApiClient {
     scheduled_date?: string;
     completed_date?: string;
     cost?: number;
+    labor_cost?: number;
+    additional_services?: number;
     amount_charged?: number;
     balance_pending?: number;
   }) {

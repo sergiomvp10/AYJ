@@ -1,5 +1,10 @@
 {
+  "success": "Completed ✓",
+  "error": "Error",
   "success_title": "Completed ✓",
+  "invalid_cost_values": "Cost values cannot be negative",
+  "cost_breakdown_updated": "Cost breakdown updated successfully",
+  "update_failed": "Update failed",
   "client": {
     "create_success": "Client Added Successfully ✅",
     "create_error": "Error creating client",

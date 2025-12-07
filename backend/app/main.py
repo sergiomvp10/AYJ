@@ -487,6 +487,11 @@ async def list_repairs(current_user: TokenData = Depends(get_current_user)):
             scheduled_date=repair.scheduled_date,
             completed_date=repair.completed_date,
             cost=repair.cost,
+            labor_cost=repair.labor_cost,
+            additional_services=repair.additional_services,
+            amount_charged=repair.amount_charged,
+            balance_pending=repair.balance_pending,
+            share_token=repair.share_token,
             created_at=repair.created_at
         ))
     
@@ -529,6 +534,11 @@ async def get_repair(repair_id: str, current_user: TokenData = Depends(get_curre
         scheduled_date=repair.scheduled_date,
         completed_date=repair.completed_date,
         cost=repair.cost,
+        labor_cost=repair.labor_cost,
+        additional_services=repair.additional_services,
+        amount_charged=repair.amount_charged,
+        balance_pending=repair.balance_pending,
+        share_token=repair.share_token,
         created_at=repair.created_at
     )
 
@@ -592,7 +602,9 @@ async def update_repair(repair_id: str, repair_data: RepairUpdate, current_user:
         location=existing_repair.location,
         scheduled_date=repair_data.scheduled_date if repair_data.scheduled_date else existing_repair.scheduled_date,
         completed_date=repair_data.completed_date if repair_data.completed_date else existing_repair.completed_date,
-        cost=repair_data.cost if repair_data.cost else existing_repair.cost,
+        cost=repair_data.cost if repair_data.cost is not None else existing_repair.cost,
+        labor_cost=repair_data.labor_cost if repair_data.labor_cost is not None else existing_repair.labor_cost,
+        additional_services=repair_data.additional_services if repair_data.additional_services is not None else existing_repair.additional_services,
         amount_charged=existing_repair.amount_charged,
         balance_pending=existing_repair.balance_pending,
         share_token=existing_repair.share_token,
@@ -632,6 +644,8 @@ async def update_repair(repair_id: str, repair_data: RepairUpdate, current_user:
         scheduled_date=updated_repair.scheduled_date,
         completed_date=updated_repair.completed_date,
         cost=updated_repair.cost,
+        labor_cost=updated_repair.labor_cost,
+        additional_services=updated_repair.additional_services,
         amount_charged=updated_repair.amount_charged,
         balance_pending=updated_repair.balance_pending,
         share_token=updated_repair.share_token,
@@ -696,6 +710,8 @@ async def update_repair_status(repair_id: str, status: RepairStatus, current_use
         scheduled_date=updated_repair.scheduled_date,
         completed_date=updated_repair.completed_date,
         cost=updated_repair.cost,
+        labor_cost=updated_repair.labor_cost,
+        additional_services=updated_repair.additional_services,
         amount_charged=updated_repair.amount_charged,
         balance_pending=updated_repair.balance_pending,
         share_token=updated_repair.share_token,

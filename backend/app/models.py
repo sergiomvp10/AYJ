@@ -150,6 +150,8 @@ class Repair(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    additional_services: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
     share_token: Optional[str] = None
@@ -170,6 +172,8 @@ class RepairUpdate(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    additional_services: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
 
@@ -189,6 +193,8 @@ class RepairResponse(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    additional_services: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
     share_token: Optional[str] = None

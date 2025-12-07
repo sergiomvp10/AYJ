@@ -60,6 +60,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [costBreakdownDialog, setCostBreakdownDialog] = useState(false);
   const [selectedRepairForCost, setSelectedRepairForCost] = useState<Repair | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
+  const [editableLaborCost, setEditableLaborCost] = useState<string>('');
+  const [editableAdditionalServices, setEditableAdditionalServices] = useState<string>('');
   const [partForm, setPartForm] = useState({
     name: '',
     supplier_id: '',
@@ -1015,6 +1017,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const handleOpenCostBreakdown = async (repair: Repair) => {
     setSelectedRepairForCost(repair);
+    setEditableLaborCost((repair.labor_cost || 0).toString());
+    setEditableAdditionalServices((repair.additional_services || 0).toString());
     try {
       const partsData = await api.getPartsByRepair(repair.id);
       setParts(partsData);
@@ -1022,6 +1026,51 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
       console.error('Error fetching parts:', error);
     }
     setCostBreakdownDialog(true);
+  };
+
+  const handleSaveCostBreakdown = async () => {
+    if (!selectedRepairForCost) return;
+
+    const laborCost = parseFloat(editableLaborCost) || 0;
+    const additionalServices = parseFloat(editableAdditionalServices) || 0;
+
+    if (laborCost < 0 || additionalServices < 0) {
+      toast({
+        title: t('toasts:error'),
+        description: t('toasts:invalid_cost_values'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const partsCost = parts
+      .filter(p => p.repair_id === selectedRepairForCost.id)
+      .reduce((sum, part) => sum + (part.cost || 0), 0);
+
+    const totalCost = partsCost + laborCost + additionalServices;
+
+    try {
+      await api.updateRepair(selectedRepairForCost.id, {
+        labor_cost: laborCost,
+        additional_services: additionalServices,
+        cost: totalCost,
+      });
+
+      toast({
+        title: t('toasts:success'),
+        description: t('toasts:cost_breakdown_updated'),
+      });
+
+      await loadData();
+      setCostBreakdownDialog(false);
+    } catch (error) {
+      console.error('Error updating cost breakdown:', error);
+      toast({
+        title: t('toasts:error'),
+        description: t('toasts:update_failed'),
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -2985,20 +3034,40 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-gray-700">{t('repairs:cost_breakdown.labor_cost')}</span>
-                    <span className="font-semibold">
-                      ${((selectedRepairForCost.cost || 0) - parts
-                        .filter(p => p.repair_id === selectedRepairForCost.id)
-                        .reduce((sum, part) => sum + (part.cost || 0), 0)).toFixed(2)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editableLaborCost}
+                        onChange={(e) => setEditableLaborCost(e.target.value)}
+                        className="w-24 px-2 py-1 border rounded text-right font-semibold"
+                      />
+                    </div>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-gray-700">{t('repairs:cost_breakdown.additional_services')}</span>
-                    <span className="font-semibold">$0.00</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editableAdditionalServices}
+                        onChange={(e) => setEditableAdditionalServices(e.target.value)}
+                        className="w-24 px-2 py-1 border rounded text-right font-semibold"
+                      />
+                    </div>
                   </div>
                   <div className="flex justify-between items-center py-3 border-t-2 border-gray-400 mt-2">
                     <span className="text-lg font-bold">{t('repairs:cost_breakdown.total_cost')}</span>
                     <span className="text-lg font-bold text-blue-600">
-                      ${(selectedRepairForCost.cost || 0).toFixed(2)}
+                      ${(parts
+                        .filter(p => p.repair_id === selectedRepairForCost.id)
+                        .reduce((sum, part) => sum + (part.cost || 0), 0) + 
+                        (parseFloat(editableLaborCost) || 0) + 
+                        (parseFloat(editableAdditionalServices) || 0)).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -3024,8 +3093,11 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setCostBreakdownDialog(false)}>
-              {t('common:actions.close')}
+            <Button variant="outline" onClick={() => setCostBreakdownDialog(false)}>
+              {t('common:actions.cancel')}
+            </Button>
+            <Button onClick={handleSaveCostBreakdown}>
+              {t('common:actions.save')}
             </Button>
           </DialogFooter>
         </DialogContent>

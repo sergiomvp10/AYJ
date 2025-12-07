@@ -101,6 +101,8 @@ class PostgresDatabase:
                     scheduled_date TIMESTAMP,
                     completed_date TIMESTAMP,
                     cost REAL,
+                    labor_cost REAL,
+                    additional_services REAL,
                     amount_charged REAL,
                     balance_pending REAL,
                     share_token TEXT,
@@ -190,6 +192,8 @@ class PostgresDatabase:
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS share_token TEXT")
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS amount_charged REAL")
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS balance_pending REAL")
+            cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS labor_cost REAL")
+            cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS additional_services REAL")
             cursor.execute("ALTER TABLE parts ADD COLUMN IF NOT EXISTS supplier_name TEXT")
             
             print("[DATABASE] PostgreSQL tables initialized successfully")
@@ -393,12 +397,12 @@ class PostgresDatabase:
             cursor.execute("""
                 INSERT INTO repairs (id, client_id, mechanic_id, workshop_id, vehicle_info, issue_description, 
                                    status, service_type, location, scheduled_date, completed_date, cost, 
-                                   amount_charged, balance_pending, share_token, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                   labor_cost, additional_services, amount_charged, balance_pending, share_token, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (repair.id, repair.client_id, repair.mechanic_id, repair.workshop_id, repair.vehicle_info,
                   repair.issue_description, repair.status, repair.service_type, repair.location,
-                  repair.scheduled_date, repair.completed_date, repair.cost, repair.amount_charged,
-                  repair.balance_pending, repair.share_token, repair.created_at))
+                  repair.scheduled_date, repair.completed_date, repair.cost, repair.labor_cost,
+                  repair.additional_services, repair.amount_charged, repair.balance_pending, repair.share_token, repair.created_at))
             return repair
     
     def get_repair(self, repair_id: str) -> Optional[Repair]:
@@ -434,11 +438,12 @@ class PostgresDatabase:
             cursor.execute("""
                 UPDATE repairs SET mechanic_id = %s, workshop_id = %s, status = %s, 
                                  scheduled_date = %s, completed_date = %s, cost = %s,
+                                 labor_cost = %s, additional_services = %s,
                                  amount_charged = %s, balance_pending = %s, share_token = %s
                 WHERE id = %s
             """, (repair.mechanic_id, repair.workshop_id, repair.status, repair.scheduled_date,
-                  repair.completed_date, repair.cost, repair.amount_charged, repair.balance_pending,
-                  repair.share_token, repair_id))
+                  repair.completed_date, repair.cost, repair.labor_cost, repair.additional_services,
+                  repair.amount_charged, repair.balance_pending, repair.share_token, repair_id))
             if cursor.rowcount > 0:
                 return repair
             return None
