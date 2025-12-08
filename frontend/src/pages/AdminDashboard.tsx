@@ -2769,9 +2769,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('parts:dialog.title')}</DialogTitle>
-            <DialogDescription>
-              {selectedRepairForParts && `${t('parts:dialog.repair_label')}: ${selectedRepairForParts.client_name} - ${selectedRepairForParts.vehicle_info}`}
-            </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
             <div className="border rounded-lg p-4 bg-gray-50">
