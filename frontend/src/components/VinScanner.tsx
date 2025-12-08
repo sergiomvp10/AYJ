@@ -33,7 +33,76 @@ interface DiagnosticInfo {
   isPlaying: boolean;
 }
 
-const BUILD_TIMESTAMP = '2025-12-08T03:25:00Z';
+const BUILD_TIMESTAMP = '2025-12-08T03:35:00Z';
+
+const normalizeVinCharacters = (text: string): string => {
+  return text
+    .toUpperCase()
+    .replace(/O/g, '0')
+    .replace(/Q/g, '0')
+    .replace(/I/g, '1')
+    .replace(/[^A-HJ-NPR-Z0-9]/g, '');
+};
+
+const rotateCanvas = (canvas: HTMLCanvasElement, degrees: number): HTMLCanvasElement => {
+  const rotatedCanvas = document.createElement('canvas');
+  const ctx = rotatedCanvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  if (degrees === 90 || degrees === 270) {
+    rotatedCanvas.width = canvas.height;
+    rotatedCanvas.height = canvas.width;
+  } else {
+    rotatedCanvas.width = canvas.width;
+    rotatedCanvas.height = canvas.height;
+  }
+
+  ctx.translate(rotatedCanvas.width / 2, rotatedCanvas.height / 2);
+  ctx.rotate((degrees * Math.PI) / 180);
+  ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+
+  return rotatedCanvas;
+};
+
+const adjustBrightnessContrast = (
+  imageData: ImageData,
+  brightness: number,
+  contrast: number
+): ImageData => {
+  const data = imageData.data;
+  const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = factor * (data[i] - 128) + 128 + brightness;
+    data[i + 1] = factor * (data[i + 1] - 128) + 128 + brightness;
+    data[i + 2] = factor * (data[i + 2] - 128) + 128 + brightness;
+  }
+
+  return imageData;
+};
+
+const grayscale = (imageData: ImageData): ImageData => {
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    data[i] = avg;
+    data[i + 1] = avg;
+    data[i + 2] = avg;
+  }
+  return imageData;
+};
+
+const threshold = (imageData: ImageData, level: number): ImageData => {
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    const val = avg > level ? 255 : 0;
+    data[i] = val;
+    data[i + 1] = val;
+    data[i + 2] = val;
+  }
+  return imageData;
+};
 
 export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const { t } = useTranslation(['vin', 'toasts']);
@@ -394,59 +463,84 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
 
     context.drawImage(imageSource, 0, 0, canvas.width, canvas.height);
 
-    try {
-      const result = await Tesseract.recognize(
-        canvas,
-        'eng',
-        {
-          logger: () => {}
-        }
-      );
+    const vinPattern = /[A-HJ-NPR-Z0-9]{17}/;
+    const rotations = [0, 90, 270, 180];
+    const preprocessVariants = [
+      { name: 'raw', fn: null },
+      { name: 'grayscale+contrast', fn: (imgData: ImageData) => adjustBrightnessContrast(grayscale(imgData), 0, 30) },
+      { name: 'threshold150', fn: (imgData: ImageData) => threshold(grayscale(imgData), 150) },
+      { name: 'threshold180', fn: (imgData: ImageData) => threshold(grayscale(imgData), 180) },
+    ];
 
-      const text = result.data.text.toUpperCase();
-      
-      const vinPattern = /[A-HJ-NPR-Z0-9]{17}/g;
-      const matches = text.match(vinPattern);
+    let allDetectedText = '';
+    
+    for (const rotation of rotations) {
+      const rotatedCanvas = rotateCanvas(canvas, rotation);
+      const rotatedCtx = rotatedCanvas.getContext('2d');
+      if (!rotatedCtx) continue;
 
-      if (matches && matches.length > 0) {
-        const detectedVin = matches[0];
-        
+      for (const variant of preprocessVariants) {
         try {
-          const decoded = await api.decodeVin(detectedVin);
-          toast({
-            description: t('toasts:vin.scan_success'),
-          });
-          onDecoded(decoded);
-          stopCamera();
-        } catch (error: any) {
-          const errorMessage = error.message || '';
-          let toastMessage = t('toasts:vin.decode_error');
+          let processedCanvas = rotatedCanvas;
           
-          if (errorMessage.includes('Invalid VIN format')) {
-            toastMessage = t('toasts:vin.invalid_format');
-          } else if (errorMessage.includes('No data found') || errorMessage.includes('No vehicle data')) {
-            toastMessage = t('toasts:vin.no_data');
-          } else if (errorMessage.includes('unavailable')) {
-            toastMessage = t('toasts:vin.service_unavailable');
+          if (variant.fn) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = rotatedCanvas.width;
+            tempCanvas.height = rotatedCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            if (!tempCtx) continue;
+            
+            tempCtx.drawImage(rotatedCanvas, 0, 0);
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const processed = variant.fn(imageData);
+            tempCtx.putImageData(processed, 0, 0);
+            processedCanvas = tempCanvas;
           }
+
+          const result = await Tesseract.recognize(
+            processedCanvas,
+            'eng',
+            {
+              logger: () => {}
+            }
+          );
+
+          const rawText = result.data.text;
+          allDetectedText += `[${rotation}°/${variant.name}]: ${rawText}\n`;
           
-          toast({
-            description: toastMessage,
-            variant: 'destructive',
-          });
+          const normalized = normalizeVinCharacters(rawText);
+          const match = normalized.match(vinPattern);
+
+          if (match) {
+            const detectedVin = match[0];
+            console.log(`VIN found at ${rotation}°/${variant.name}: ${detectedVin}`);
+            
+            try {
+              const decoded = await api.decodeVin(detectedVin);
+              toast({
+                description: t('toasts:vin.scan_success'),
+              });
+              onDecoded(decoded);
+              stopCamera();
+              return;
+            } catch (error: any) {
+              console.log(`VIN ${detectedVin} failed to decode, continuing search...`);
+              continue;
+            }
+          }
+        } catch (error) {
+          console.error(`OCR failed for ${rotation}°/${variant.name}:`, error);
+          continue;
         }
-      } else {
-        toast({
-          description: t('toasts:vin.no_vin_detected'),
-          variant: 'destructive',
-        });
       }
-    } catch (error) {
-      toast({
-        description: t('toasts:vin.scan_error'),
-        variant: 'destructive',
-      });
     }
+
+    console.log('All OCR attempts:\n', allDetectedText);
+    
+    toast({
+      description: t('toasts:vin.no_vin_detected') + ' Intenta con mejor iluminación y enfoque.',
+      variant: 'destructive',
+    });
   };
 
   const captureAndProcess = async () => {
