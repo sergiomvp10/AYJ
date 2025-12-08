@@ -203,8 +203,8 @@ export function TrackRepair() {
               </div>
             )}
 
-            {/* Cost Information */}
-            {repair.cost && (
+            {/* Cost Information - Only show when status is completed */}
+            {repair.cost && repair.status === 'completed' && (
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">{t('track_repair:estimated_cost')}</h3>
                 <p className="text-2xl font-bold text-gray-900">${repair.cost.toFixed(2)}</p>
