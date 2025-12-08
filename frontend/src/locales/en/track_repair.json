@@ -21,5 +21,13 @@
   },
   "error": {
     "not_found": "Repair not found. Please check the link."
+  },
+  "payment": {
+    "button": "MAKE A PAYMENT",
+    "dialog_title": "Payment Information",
+    "instructions": "Send your payment via Zelle using the following information:",
+    "phone": "Phone",
+    "name": "Name",
+    "close": "Close"
   }
 }

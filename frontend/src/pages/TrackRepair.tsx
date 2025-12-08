@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { CheckCircle2, Circle, Clock, Package } from 'lucide-react';
 
 interface RepairTrackingData {
@@ -38,6 +40,7 @@ export function TrackRepair() {
   const [repair, setRepair] = useState<RepairTrackingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -239,9 +242,68 @@ export function TrackRepair() {
                 <p className="text-2xl font-bold text-gray-900">${repair.cost.toFixed(2)}</p>
               </div>
             )}
+
+            {/* Payment Button - Only show when status is completed */}
+            {repair.status === 'completed' && (
+              <div className="pt-4">
+                <Button
+                  onClick={() => setShowPaymentDialog(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 text-lg"
+                >
+                  {t('track_repair:payment.button')}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-center">
+              {t('track_repair:payment.dialog_title')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Zelle Logo */}
+            <div className="flex justify-center">
+              <img 
+                src="/zelle-logo.png" 
+                alt="Zelle" 
+                className="h-24 w-auto"
+              />
+            </div>
+
+            {/* Instructions */}
+            <p className="text-center text-gray-600">
+              {t('track_repair:payment.instructions')}
+            </p>
+
+            {/* Payment Information */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('track_repair:payment.phone')}</p>
+                <p className="text-lg font-semibold text-gray-900">4805192278</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">{t('track_repair:payment.name')}</p>
+                <p className="text-lg font-semibold text-gray-900">Juan Collazo</p>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <Button
+              onClick={() => setShowPaymentDialog(false)}
+              className="w-full"
+              variant="outline"
+            >
+              {t('track_repair:payment.close')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -21,5 +21,13 @@
   },
   "error": {
     "not_found": "Reparación no encontrada. Verifique el enlace."
+  },
+  "payment": {
+    "button": "HACER PAGO",
+    "dialog_title": "Información de Pago",
+    "instructions": "Envíe su pago a través de Zelle usando la siguiente información:",
+    "phone": "Teléfono",
+    "name": "Nombre",
+    "close": "Cerrar"
   }
 }
