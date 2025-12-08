@@ -3034,31 +3034,25 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-gray-700">{t('repairs:cost_breakdown.labor_cost')}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editableLaborCost}
-                        onChange={(e) => setEditableLaborCost(e.target.value)}
-                        className="w-24 px-2 py-1 border rounded text-right font-semibold"
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={editableLaborCost}
+                      onChange={(e) => setEditableLaborCost(e.target.value)}
+                      className="w-24 px-2 py-1 border rounded text-right font-semibold"
+                    />
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
                     <span className="text-gray-700">{t('repairs:cost_breakdown.additional_services')}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editableAdditionalServices}
-                        onChange={(e) => setEditableAdditionalServices(e.target.value)}
-                        className="w-24 px-2 py-1 border rounded text-right font-semibold"
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={editableAdditionalServices}
+                      onChange={(e) => setEditableAdditionalServices(e.target.value)}
+                      className="w-24 px-2 py-1 border rounded text-right font-semibold"
+                    />
                   </div>
                   <div className="flex justify-between items-center py-3 border-t-2 border-gray-400 mt-2">
                     <span className="text-lg font-bold">{t('repairs:cost_breakdown.total_cost')}</span>
