@@ -1017,8 +1017,8 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
 
   const handleOpenCostBreakdown = async (repair: Repair) => {
     setSelectedRepairForCost(repair);
-    setEditableLaborCost((repair.labor_cost || 0).toString());
-    setEditableAdditionalServices((repair.additional_services || 0).toString());
+    setEditableLaborCost(repair.labor_cost ? repair.labor_cost.toString() : '');
+    setEditableAdditionalServices(repair.additional_services ? repair.additional_services.toString() : '');
     try {
       const partsData = await api.getPartsByRepair(repair.id);
       setParts(partsData);
