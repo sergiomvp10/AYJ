@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api, VinDecoded } from '@/lib/api';
 import { Camera, X, Upload, SwitchCamera } from 'lucide-react';
 import Tesseract from 'tesseract.js';
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
 
 interface VinScannerProps {
   onDecoded: (decoded: VinDecoded) => void;
@@ -86,6 +87,16 @@ const threshold = (imageData: ImageData, level: number): ImageData => {
   return imageData;
 };
 
+const invert = (imageData: ImageData): ImageData => {
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = 255 - data[i];
+    data[i + 1] = 255 - data[i + 1];
+    data[i + 2] = 255 - data[i + 2];
+  }
+  return imageData;
+};
+
 export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const { t } = useTranslation(['vin', 'toasts']);
   const { toast } = useToast();
@@ -102,8 +113,10 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const workerRef = useRef<Tesseract.Worker | null>(null);
+  const barcodeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
   const lastDetectedVinRef = useRef<string>('');
   const scanningRef = useRef<boolean>(false);
+  const barcodeAttemptCountRef = useRef<number>(0);
 
   const enumerateCameras = useCallback(async () => {
     try {
@@ -239,6 +252,23 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     }
   }, []);
 
+  const initializeBarcodeReader = useCallback(() => {
+    if (barcodeReaderRef.current) return barcodeReaderRef.current;
+    
+    try {
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_39, BarcodeFormat.CODE_128]);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      
+      const reader = new BrowserMultiFormatReader(hints);
+      barcodeReaderRef.current = reader;
+      return reader;
+    } catch (error) {
+      console.error('Failed to initialize barcode reader:', error);
+      return null;
+    }
+  }, []);
+
   const stopCamera = useCallback(() => {
     const video = videoRef.current;
     if (video) {
@@ -261,11 +291,16 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       workerRef.current.terminate();
       workerRef.current = null;
     }
+    if (barcodeReaderRef.current) {
+      barcodeReaderRef.current.reset();
+      barcodeReaderRef.current = null;
+    }
     setShowCamera(false);
     setNeedsUserGesture(true);
     setIsScanning(false);
     scanningRef.current = false;
     lastDetectedVinRef.current = '';
+    barcodeAttemptCountRef.current = 0;
   }, [stream]);
 
   const scanFrameForVin = useCallback(async () => {
@@ -280,86 +315,130 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     setIsScanning(true);
     
     try {
-      const worker = await initializeWorker();
-      if (!worker) {
-        scanningRef.current = false;
-        setIsScanning(false);
-        return;
-      }
-      
-      const targetWidth = Math.min(video.videoWidth, 800);
-      const scale = targetWidth / video.videoWidth;
-      const targetHeight = video.videoHeight * scale;
-      
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        scanningRef.current = false;
-        setIsScanning(false);
-        return;
-      }
-      
-      ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
-      
       const vinPattern = /[A-HJ-NPR-Z0-9]{17}/;
-      const rotations = [0, 90];
       
-      for (const rotation of rotations) {
-        const rotatedCanvas = rotateCanvas(canvas, rotation);
-        const rotatedCtx = rotatedCanvas.getContext('2d');
-        if (!rotatedCtx) continue;
+      if (barcodeAttemptCountRef.current < 10) {
+        barcodeAttemptCountRef.current++;
         
-        const roiCanvas = document.createElement('canvas');
-        const roiCtx = roiCanvas.getContext('2d');
-        if (!roiCtx) continue;
-        
-        if (rotation === 0) {
-          const roiHeight = Math.floor(rotatedCanvas.height * 0.3);
-          const roiY = Math.floor((rotatedCanvas.height - roiHeight) / 2);
-          roiCanvas.width = rotatedCanvas.width;
-          roiCanvas.height = roiHeight;
-          roiCtx.drawImage(rotatedCanvas, 0, roiY, rotatedCanvas.width, roiHeight, 0, 0, rotatedCanvas.width, roiHeight);
-        } else {
-          const roiWidth = Math.floor(rotatedCanvas.width * 0.3);
-          const roiX = Math.floor((rotatedCanvas.width - roiWidth) / 2);
-          roiCanvas.width = roiWidth;
-          roiCanvas.height = rotatedCanvas.height;
-          roiCtx.drawImage(rotatedCanvas, roiX, 0, roiWidth, rotatedCanvas.height, 0, 0, roiWidth, rotatedCanvas.height);
+        try {
+          const reader = initializeBarcodeReader();
+          if (reader) {
+            const result = await reader.decodeFromVideoElement(video);
+            if (result) {
+              let barcodeText = result.getText().toUpperCase().trim();
+              barcodeText = barcodeText.replace(/^\*|\*$/g, '');
+              const normalized = normalizeVinCharacters(barcodeText);
+              const match = normalized.match(vinPattern);
+              
+              if (match) {
+                const detectedVin = match[0];
+                
+                if (detectedVin !== lastDetectedVinRef.current) {
+                  console.log(`VIN detected from barcode: ${detectedVin}`);
+                  lastDetectedVinRef.current = detectedVin;
+                  
+                  try {
+                    const decoded = await api.decodeVin(detectedVin);
+                    toast({
+                      description: t('toasts:vin.scan_success'),
+                    });
+                    onDecoded(decoded);
+                    stopCamera();
+                    scanningRef.current = false;
+                    setIsScanning(false);
+                    return;
+                  } catch (error: any) {
+                    console.log(`VIN ${detectedVin} from barcode failed to decode, continuing...`);
+                  }
+                }
+              }
+            }
+          }
+        } catch (error) {
+        }
+      }
+      
+      if (barcodeAttemptCountRef.current >= 10) {
+        const worker = await initializeWorker();
+        if (!worker) {
+          scanningRef.current = false;
+          setIsScanning(false);
+          return;
         }
         
-        const imageData = roiCtx.getImageData(0, 0, roiCanvas.width, roiCanvas.height);
-        const processed = threshold(grayscale(imageData), 150);
-        roiCtx.putImageData(processed, 0, 0);
+        const targetWidth = Math.min(video.videoWidth, 800);
+        const scale = targetWidth / video.videoWidth;
+        const targetHeight = video.videoHeight * scale;
         
-        const result = await worker.recognize(roiCanvas);
-        const rawText = result.data.text;
-        const normalized = normalizeVinCharacters(rawText);
-        const match = normalized.match(vinPattern);
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          scanningRef.current = false;
+          setIsScanning(false);
+          return;
+        }
         
-        if (match) {
-          const detectedVin = match[0];
+        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+        
+        const rotations = [0, 90, 270];
+        
+        for (const rotation of rotations) {
+          const rotatedCanvas = rotateCanvas(canvas, rotation);
+          const rotatedCtx = rotatedCanvas.getContext('2d');
+          if (!rotatedCtx) continue;
           
-          if (detectedVin === lastDetectedVinRef.current) {
-            continue;
+          const roiCanvas = document.createElement('canvas');
+          const roiCtx = roiCanvas.getContext('2d');
+          if (!roiCtx) continue;
+          
+          if (rotation === 0) {
+            const roiHeight = Math.floor(rotatedCanvas.height * 0.6);
+            const roiY = Math.floor((rotatedCanvas.height - roiHeight) / 2);
+            roiCanvas.width = rotatedCanvas.width;
+            roiCanvas.height = roiHeight;
+            roiCtx.drawImage(rotatedCanvas, 0, roiY, rotatedCanvas.width, roiHeight, 0, 0, rotatedCanvas.width, roiHeight);
+          } else {
+            const roiWidth = Math.floor(rotatedCanvas.width * 0.6);
+            const roiX = Math.floor((rotatedCanvas.width - roiWidth) / 2);
+            roiCanvas.width = roiWidth;
+            roiCanvas.height = rotatedCanvas.height;
+            roiCtx.drawImage(rotatedCanvas, roiX, 0, roiWidth, rotatedCanvas.height, 0, 0, roiWidth, rotatedCanvas.height);
           }
           
-          console.log(`VIN detected at ${rotation}°: ${detectedVin}`);
-          lastDetectedVinRef.current = detectedVin;
+          const imageData = roiCtx.getImageData(0, 0, roiCanvas.width, roiCanvas.height);
+          const processed = invert(threshold(grayscale(imageData), 150));
+          roiCtx.putImageData(processed, 0, 0);
           
-          try {
-            const decoded = await api.decodeVin(detectedVin);
-            toast({
-              description: t('toasts:vin.scan_success'),
-            });
-            onDecoded(decoded);
-            stopCamera();
-            scanningRef.current = false;
-            setIsScanning(false);
-            return;
-          } catch (error: any) {
-            console.log(`VIN ${detectedVin} failed to decode, continuing...`);
-            continue;
+          const result = await worker.recognize(roiCanvas);
+          const rawText = result.data.text;
+          const normalized = normalizeVinCharacters(rawText);
+          const match = normalized.match(vinPattern);
+          
+          if (match) {
+            const detectedVin = match[0];
+            
+            if (detectedVin === lastDetectedVinRef.current) {
+              continue;
+            }
+            
+            console.log(`VIN detected via OCR at ${rotation}°: ${detectedVin}`);
+            lastDetectedVinRef.current = detectedVin;
+            
+            try {
+              const decoded = await api.decodeVin(detectedVin);
+              toast({
+                description: t('toasts:vin.scan_success'),
+              });
+              onDecoded(decoded);
+              stopCamera();
+              scanningRef.current = false;
+              setIsScanning(false);
+              return;
+            } catch (error: any) {
+              console.log(`VIN ${detectedVin} failed to decode, continuing...`);
+              continue;
+            }
           }
         }
       }
@@ -369,7 +448,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     
     scanningRef.current = false;
     setIsScanning(false);
-  }, [initializeWorker, onDecoded, stopCamera, t, toast]);
+  }, [initializeWorker, initializeBarcodeReader, onDecoded, stopCamera, t, toast]);
 
   useEffect(() => {
     if (!showCamera || !stream) return;
