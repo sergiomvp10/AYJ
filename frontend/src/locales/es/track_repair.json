@@ -11,7 +11,8 @@
     "initiated": "Iniciado",
     "in_progress": "En Progreso",
     "waiting_parts": "Esperando Piezas",
-    "completed": "Completado"
+    "completed": "Completado",
+    "cancelled": "Cancelado"
   },
   "part_status": {
     "pending": "Pendiente",

@@ -64,6 +64,12 @@ export function TrackRepair() {
   };
 
   const getStatusSteps = () => {
+    if (repair?.status === 'cancelled') {
+      return [
+        { key: 'cancelled', label: t('track_repair:status.cancelled'), icon: Circle, isCancelled: true }
+      ];
+    }
+
     const steps = [
       { key: 'pending', label: t('track_repair:status.initiated'), icon: CheckCircle2 },
       { key: 'in_progress', label: t('track_repair:status.in_progress'), icon: Clock },
@@ -142,6 +148,7 @@ export function TrackRepair() {
                 {steps.map((step, index) => {
                   const isCompleted = isStepCompleted(step.key);
                   const isLast = index === steps.length - 1;
+                  const isCancelled = (step as any).isCancelled;
 
                   return (
                     <div key={step.key} className="relative pb-8">
@@ -149,7 +156,7 @@ export function TrackRepair() {
                       {!isLast && (
                         <div
                           className={`absolute left-0 top-6 w-0.5 h-full ${
-                            isCompleted ? 'bg-blue-600' : 'bg-gray-300'
+                            isCancelled ? 'bg-red-600' : isCompleted ? 'bg-blue-600' : 'bg-gray-300'
                           }`}
                           style={{ marginLeft: '11px' }}
                         />
@@ -159,10 +166,10 @@ export function TrackRepair() {
                       <div className="flex items-start">
                         <div
                           className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                            isCompleted ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
+                            isCancelled ? 'bg-red-600 text-white' : isCompleted ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
                           }`}
                         >
-                          {isCompleted ? (
+                          {isCompleted || isCancelled ? (
                             <CheckCircle2 className="w-4 h-4" />
                           ) : (
                             <Circle className="w-4 h-4" />
@@ -171,7 +178,7 @@ export function TrackRepair() {
                         <div className="ml-4 flex-1">
                           <p
                             className={`font-medium ${
-                              isCompleted ? 'text-blue-600' : 'text-gray-600'
+                              isCancelled ? 'text-red-600' : isCompleted ? 'text-blue-600' : 'text-gray-600'
                             }`}
                           >
                             {step.label}
