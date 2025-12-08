@@ -338,6 +338,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       
       if (barcodeAttemptCountRef.current < 10) {
         barcodeAttemptCountRef.current++;
+        console.log(`[VIN Scanner] Barcode attempt ${barcodeAttemptCountRef.current}/10`);
         
         try {
           const reader = initializeBarcodeReader();
@@ -346,12 +347,24 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
             
             for (const rotation of barcodeRotations) {
               try {
+                console.log(`[VIN Scanner] Trying barcode at ${rotation}°`);
                 const rotatedCanvas = rotateCanvas(canvas, rotation);
-                const binaryBitmap = reader.createBinaryBitmap(rotatedCanvas as any);
-                const result = reader.decodeBitmap(binaryBitmap);
+                
+                const img = new Image();
+                const dataUrl = rotatedCanvas.toDataURL('image/png');
+                
+                await new Promise<void>((resolve, reject) => {
+                  img.onload = () => resolve();
+                  img.onerror = () => reject(new Error('Image load failed'));
+                  img.src = dataUrl;
+                  setTimeout(() => reject(new Error('Image load timeout')), 1000);
+                });
+                
+                const result = await reader.decodeFromImageElement(img);
                 
                 if (result) {
                   let barcodeText = result.getText().toUpperCase().trim();
+                  console.log(`[VIN Scanner] Barcode detected: ${barcodeText}`);
                   barcodeText = barcodeText.replace(/^\*|\*$/g, '');
                   const normalized = normalizeVinCharacters(barcodeText);
                   const match = normalized.match(vinPattern);
@@ -360,7 +373,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
                     const detectedVin = match[0];
                     
                     if (detectedVin !== lastDetectedVinRef.current) {
-                      console.log(`VIN detected from barcode at ${rotation}°: ${detectedVin}`);
+                      console.log(`[VIN Scanner] Valid VIN from barcode: ${detectedVin}`);
                       lastDetectedVinRef.current = detectedVin;
                       
                       try {
@@ -374,20 +387,23 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
                         setIsScanning(false);
                         return;
                       } catch (error: any) {
-                        console.log(`VIN ${detectedVin} from barcode failed to decode, continuing...`);
+                        console.log(`[VIN Scanner] VIN ${detectedVin} decode failed:`, error);
                       }
                     }
                   }
                 }
-              } catch (error) {
+              } catch (error: any) {
+                console.log(`[VIN Scanner] Barcode not found at ${rotation}°:`, error.message || 'NotFound');
               }
             }
           }
-        } catch (error) {
+        } catch (error: any) {
+          console.log('[VIN Scanner] Barcode detection error:', error);
         }
       }
       
       if (barcodeAttemptCountRef.current >= 10) {
+        console.log('[VIN Scanner] Switching to OCR fallback');
         const worker = await initializeWorker();
         if (!worker) {
           scanningRef.current = false;
@@ -395,9 +411,15 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
           return;
         }
         
+        await worker.setParameters({
+          tessedit_char_whitelist: 'ABCDEFGHJKLMNPRSTUVWXYZ0123456789',
+          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+        });
+        
         const rotations = [0, 90, 270];
         
         for (const rotation of rotations) {
+          console.log(`[VIN Scanner] Trying OCR at ${rotation}°`);
           const rotatedCanvas = rotateCanvas(canvas, rotation);
           const rotatedCtx = rotatedCanvas.getContext('2d');
           if (!rotatedCtx) continue;
@@ -426,6 +448,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
           
           const result = await worker.recognize(roiCanvas);
           const rawText = result.data.text;
+          console.log(`[VIN Scanner] OCR raw text at ${rotation}°: "${rawText}"`);
           const normalized = normalizeVinCharacters(rawText);
           const match = normalized.match(vinPattern);
           
@@ -436,7 +459,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               continue;
             }
             
-            console.log(`VIN detected via OCR at ${rotation}°: ${detectedVin}`);
+            console.log(`[VIN Scanner] Valid VIN from OCR: ${detectedVin}`);
             lastDetectedVinRef.current = detectedVin;
             
             try {
@@ -450,7 +473,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               setIsScanning(false);
               return;
             } catch (error: any) {
-              console.log(`VIN ${detectedVin} failed to decode, continuing...`);
+              console.log(`[VIN Scanner] VIN ${detectedVin} decode failed:`, error);
               continue;
             }
           }
@@ -484,6 +507,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     };
     
     const handleLoadedMetadata = () => {
+      console.log(`[VIN Scanner] Video resolution: ${video.videoWidth}x${video.videoHeight}`);
       if (!needsUserGesture) {
         const playPromise = video.play();
         if (playPromise) {
