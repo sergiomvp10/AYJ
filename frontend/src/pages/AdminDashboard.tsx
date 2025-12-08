@@ -2120,18 +2120,23 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 placeholder={t('clients:dialog.address_placeholder')}
               />
             </div>
-            <div className="flex gap-2">
-              <VinDecoderInput
-                onDecoded={(decoded: VinDecoded) => {
-                  setClientForm({ ...clientForm, vehicle_info: decoded.summary });
-                }}
-                className="flex-1"
-              />
-              <VinScanner
-                onDecoded={(decoded: VinDecoded) => {
-                  setClientForm({ ...clientForm, vehicle_info: decoded.summary });
-                }}
-              />
+            <div className="grid gap-2">
+              <Label htmlFor="vin-input">{t('vin:input_label')}</Label>
+              <div className="flex items-center gap-2">
+                <VinDecoderInput
+                  onDecoded={(decoded: VinDecoded) => {
+                    setClientForm({ ...clientForm, vehicle_info: decoded.summary });
+                  }}
+                  className="flex-1"
+                  showLabel={false}
+                  showCounter={false}
+                />
+                <VinScanner
+                  onDecoded={(decoded: VinDecoded) => {
+                    setClientForm({ ...clientForm, vehicle_info: decoded.summary });
+                  }}
+                />
+              </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="client-vehicle">{t('clients:dialog.vehicle_label')}</Label>
