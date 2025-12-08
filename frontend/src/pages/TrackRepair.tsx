@@ -48,7 +48,7 @@ export function TrackRepair() {
       
       const intervalId = setInterval(() => {
         loadRepairData();
-      }, 10000);
+      }, 90000);
       
       return () => clearInterval(intervalId);
     }
