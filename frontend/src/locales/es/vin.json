@@ -5,6 +5,12 @@
   "decode_button": "Decodificar",
   "decoding": "Decodificando...",
   "clear_button": "Limpiar",
+  "scan_button": "Escanear VIN",
+  "scan_title": "Escanear VIN con Cámara",
+  "scan_instructions": "Coloca el VIN del vehículo frente a la cámara y presiona 'Capturar'",
+  "processing": "Procesando...",
+  "capture_button": "Capturar",
+  "cancel_button": "Cancelar",
   "fields": {
     "make": "Marca",
     "model": "Modelo",

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { api } from '@/lib/api';
+import { VinScanner } from '@/components/VinScanner';
+import { api, VinDecoded } from '@/lib/api';
 import { CheckCircle2 } from 'lucide-react';
 
 export default function PublicRepairRequestForm() {
@@ -71,6 +72,20 @@ export default function PublicRepairRequestForm() {
       setVinError(t('public_form:form.vin_error'));
     } finally {
       setIsDecodingVin(false);
+    }
+  };
+
+  const handleVinScanned = (decoded: VinDecoded) => {
+    setVin(decoded.vin);
+    
+    if (decoded.make && decoded.model_year) {
+      const parts = [decoded.make];
+      if (decoded.model) {
+        parts.push(decoded.model);
+      }
+      parts.push(decoded.model_year);
+      const vehicleInfo = parts.join(' ');
+      setFormData({ ...formData, vehicle_info: vehicleInfo });
     }
   };
 
@@ -273,6 +288,7 @@ export default function PublicRepairRequestForm() {
                   maxLength={17}
                   className="flex-1"
                 />
+                <VinScanner onDecoded={handleVinScanned} />
                 <Button
                   type="button"
                   onClick={handleDecodeVin}

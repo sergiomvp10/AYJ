@@ -16,6 +16,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { LogOut, Users, Wrench, Building2, ClipboardList, MapPin, Plus, Trash2, Calendar, Package, Zap, FileText, CheckCircle, XCircle, Share2, AlertCircle, Edit, ChevronsUpDown, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VinDecoderInput } from '@/components/VinDecoderInput';
+import { VinScanner } from '@/components/VinScanner';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { StatusEditor } from '@/components/StatusEditor';
 
@@ -2119,12 +2120,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                 placeholder={t('clients:dialog.address_placeholder')}
               />
             </div>
-            <VinDecoderInput
-              onDecoded={(decoded: VinDecoded) => {
-                setClientForm({ ...clientForm, vehicle_info: decoded.summary });
-              }}
-              className="grid gap-2"
-            />
+            <div className="grid gap-2">
+              <Label>{t('vin:input_label')}</Label>
+              <div className="flex gap-2">
+                <VinDecoderInput
+                  onDecoded={(decoded: VinDecoded) => {
+                    setClientForm({ ...clientForm, vehicle_info: decoded.summary });
+                  }}
+                  className="flex-1"
+                />
+                <VinScanner
+                  onDecoded={(decoded: VinDecoded) => {
+                    setClientForm({ ...clientForm, vehicle_info: decoded.summary });
+                  }}
+                />
+              </div>
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="client-vehicle">{t('clients:dialog.vehicle_label')}</Label>
               <Textarea

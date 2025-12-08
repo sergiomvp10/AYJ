@@ -5,6 +5,12 @@
   "decode_button": "Decode",
   "decoding": "Decoding...",
   "clear_button": "Clear",
+  "scan_button": "Scan VIN",
+  "scan_title": "Scan VIN with Camera",
+  "scan_instructions": "Place the vehicle VIN in front of the camera and press 'Capture'",
+  "processing": "Processing...",
+  "capture_button": "Capture",
+  "cancel_button": "Cancel",
   "fields": {
     "make": "Make",
     "model": "Model",

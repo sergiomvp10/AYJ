@@ -51,6 +51,10 @@
     "invalid_format": "Formato de VIN inválido. Debe tener 17 caracteres (sin I, O, o Q)",
     "no_data": "No se encontraron datos para este VIN",
     "service_unavailable": "Servicio de decodificación no disponible. Intenta más tarde",
-    "decode_error": "Error al decodificar VIN"
+    "decode_error": "Error al decodificar VIN",
+    "camera_error": "No se pudo acceder a la cámara. Verifica los permisos",
+    "scan_success": "VIN escaneado y decodificado con éxito ✅",
+    "scan_error": "Error al procesar la imagen. Intenta de nuevo",
+    "no_vin_detected": "No se detectó un VIN válido. Intenta de nuevo con mejor iluminación"
   }
 }
