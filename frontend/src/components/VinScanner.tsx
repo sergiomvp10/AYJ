@@ -23,9 +23,28 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
 
   const startCamera = useCallback(async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } }
-      });
+      let mediaStream: MediaStream | null = null;
+      
+      const constraints = [
+        { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+        { video: { facingMode: { ideal: 'environment' } } },
+        { video: { facingMode: 'user' } },
+        { video: true }
+      ];
+      
+      for (const constraint of constraints) {
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia(constraint);
+          if (mediaStream) break;
+        } catch (err) {
+          continue;
+        }
+      }
+      
+      if (!mediaStream) {
+        throw new Error('Could not access camera');
+      }
+      
       setStream(mediaStream);
       setShowCamera(true);
     } catch (error) {
@@ -50,17 +69,42 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
   }, [stream]);
 
   useEffect(() => {
-    if (!showCamera) return;
+    if (!showCamera || !stream) return;
+    
     const video = videoRef.current;
-    if (video && stream) {
-      video.srcObject = stream;
-      video.muted = true; // Required for autoplay on iOS/Safari
+    if (!video) return;
+    
+    video.srcObject = stream;
+    video.muted = true;
+    
+    const handleLoadedMetadata = () => {
       const playPromise = video.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(() => {
+      if (playPromise) {
+        playPromise.catch((err) => {
+          console.error('Video play failed:', err);
         });
       }
+    };
+    
+    const handleLoadedData = () => {
+      video.play().catch((err) => {
+        console.error('Video play on loadeddata failed:', err);
+      });
+    };
+    
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('loadeddata', handleLoadedData);
+    
+    const playPromise = video.play();
+    if (playPromise) {
+      playPromise.catch(() => {
+      });
     }
+    
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('loadeddata', handleLoadedData);
+    };
   }, [stream, showCamera]);
 
   const captureAndProcess = async () => {
@@ -161,8 +205,8 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
                 autoPlay
                 muted
                 playsInline
-                onLoadedMetadata={() => videoRef.current?.play()}
-                className="w-full aspect-video bg-black"
+                className="w-full min-h-[300px] bg-black"
+                style={{ objectFit: 'cover' }}
               />
               <canvas ref={canvasRef} className="hidden" />
             </div>
