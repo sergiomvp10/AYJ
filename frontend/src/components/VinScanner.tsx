@@ -18,13 +18,61 @@ interface CameraDevice {
   label: string;
 }
 
-const normalizeVinCharacters = (text: string): string => {
-  return text
-    .toUpperCase()
-    .replace(/O/g, '0')
-    .replace(/Q/g, '0')
-    .replace(/I/g, '1')
-    .replace(/[^A-HJ-NPR-Z0-9]/g, '');
+const computeVinCheckDigit = (vin: string): string => {
+  const transliteration: { [key: string]: number } = {
+    'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8,
+    'J': 1, 'K': 2, 'L': 3, 'M': 4, 'N': 5, 'P': 7, 'R': 9,
+    'S': 2, 'T': 3, 'U': 4, 'V': 5, 'W': 6, 'X': 7, 'Y': 8, 'Z': 9,
+    '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9
+  };
+  
+  const weights = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+  
+  let sum = 0;
+  for (let i = 0; i < 17; i++) {
+    const char = vin[i];
+    const value = transliteration[char] || 0;
+    sum += value * weights[i];
+  }
+  
+  const remainder = sum % 11;
+  return remainder === 10 ? 'X' : remainder.toString();
+};
+
+const isValidVin = (vin: string): boolean => {
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+    return false;
+  }
+  
+  if (!/^[A-HJ-NPR-Z]/.test(vin)) {
+    return false;
+  }
+  
+  const checkDigit = computeVinCheckDigit(vin);
+  return checkDigit === vin[8];
+};
+
+const extractBestVin = (text: string): string | null => {
+  const cleaned = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  
+  if (cleaned.length === 17 && isValidVin(cleaned)) {
+    console.log('[VIN Validator] Found valid 17-char VIN:', cleaned);
+    return cleaned;
+  }
+  
+  if (cleaned.length > 17) {
+    console.log(`[VIN Validator] Text has ${cleaned.length} chars, trying substrings...`);
+    for (let i = 0; i <= cleaned.length - 17; i++) {
+      const candidate = cleaned.slice(i, i + 17);
+      if (isValidVin(candidate)) {
+        console.log(`[VIN Validator] Found valid VIN at position ${i}:`, candidate);
+        return candidate;
+      }
+    }
+    console.log('[VIN Validator] No valid VIN found in substrings');
+  }
+  
+  return null;
 };
 
 const rotateCanvas = (canvas: HTMLCanvasElement, degrees: number): HTMLCanvasElement => {
@@ -319,8 +367,6 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     setIsScanning(true);
     
     try {
-      const vinPattern = /[A-HJ-NPR-Z0-9]{17}/;
-      
       const targetWidth = Math.min(video.videoWidth, 800);
       const scale = targetWidth / video.videoWidth;
       const targetHeight = video.videoHeight * scale;
@@ -364,31 +410,27 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
                 
                 if (result) {
                   let barcodeText = result.getText().toUpperCase().trim();
-                  console.log(`[VIN Scanner] Barcode detected: ${barcodeText}`);
+                  console.log(`[VIN Scanner] Barcode raw text: ${barcodeText}`);
                   barcodeText = barcodeText.replace(/^\*|\*$/g, '');
-                  const normalized = normalizeVinCharacters(barcodeText);
-                  const match = normalized.match(vinPattern);
                   
-                  if (match) {
-                    const detectedVin = match[0];
+                  const detectedVin = extractBestVin(barcodeText);
+                  
+                  if (detectedVin && detectedVin !== lastDetectedVinRef.current) {
+                    console.log(`[VIN Scanner] Valid VIN from barcode: ${detectedVin}`);
+                    lastDetectedVinRef.current = detectedVin;
                     
-                    if (detectedVin !== lastDetectedVinRef.current) {
-                      console.log(`[VIN Scanner] Valid VIN from barcode: ${detectedVin}`);
-                      lastDetectedVinRef.current = detectedVin;
-                      
-                      try {
-                        const decoded = await api.decodeVin(detectedVin);
-                        toast({
-                          description: t('toasts:vin.scan_success'),
-                        });
-                        onDecoded(decoded);
-                        stopCamera();
-                        scanningRef.current = false;
-                        setIsScanning(false);
-                        return;
-                      } catch (error: any) {
-                        console.log(`[VIN Scanner] VIN ${detectedVin} decode failed:`, error);
-                      }
+                    try {
+                      const decoded = await api.decodeVin(detectedVin);
+                      toast({
+                        description: t('toasts:vin.scan_success'),
+                      });
+                      onDecoded(decoded);
+                      stopCamera();
+                      scanningRef.current = false;
+                      setIsScanning(false);
+                      return;
+                    } catch (error: any) {
+                      console.log(`[VIN Scanner] VIN ${detectedVin} decode failed:`, error);
                     }
                   }
                 }
@@ -449,16 +491,10 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
           const result = await worker.recognize(roiCanvas);
           const rawText = result.data.text;
           console.log(`[VIN Scanner] OCR raw text at ${rotation}°: "${rawText}"`);
-          const normalized = normalizeVinCharacters(rawText);
-          const match = normalized.match(vinPattern);
           
-          if (match) {
-            const detectedVin = match[0];
-            
-            if (detectedVin === lastDetectedVinRef.current) {
-              continue;
-            }
-            
+          const detectedVin = extractBestVin(rawText);
+          
+          if (detectedVin && detectedVin !== lastDetectedVinRef.current) {
             console.log(`[VIN Scanner] Valid VIN from OCR: ${detectedVin}`);
             lastDetectedVinRef.current = detectedVin;
             
@@ -565,7 +601,6 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
 
     context.drawImage(imageSource, 0, 0, canvas.width, canvas.height);
 
-    const vinPattern = /[A-HJ-NPR-Z0-9]{17}/;
     const rotations = [0, 90, 270, 180];
     const preprocessVariants = [
       { name: 'raw', fn: null },
@@ -610,11 +645,9 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
           const rawText = result.data.text;
           allDetectedText += `[${rotation}°/${variant.name}]: ${rawText}\n`;
           
-          const normalized = normalizeVinCharacters(rawText);
-          const match = normalized.match(vinPattern);
+          const detectedVin = extractBestVin(rawText);
 
-          if (match) {
-            const detectedVin = match[0];
+          if (detectedVin) {
             console.log(`VIN found at ${rotation}°/${variant.name}: ${detectedVin}`);
             
             try {
