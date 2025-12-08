@@ -21,13 +21,19 @@ interface DiagnosticInfo {
   streamAcquired: boolean;
   trackState: string;
   trackLabel: string;
+  trackEnabled: boolean;
+  trackMuted: boolean;
+  trackSettingsWidth: number;
+  trackSettingsHeight: number;
   videoReady: number;
   videoWidth: number;
   videoHeight: number;
   receivingFrames: boolean;
+  canPlay: boolean;
+  isPlaying: boolean;
 }
 
-const BUILD_TIMESTAMP = '2025-12-08T03:16:00Z';
+const BUILD_TIMESTAMP = '2025-12-08T03:25:00Z';
 
 export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const { t } = useTranslation(['vin', 'toasts']);
@@ -37,18 +43,26 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
+  const [needsUserGesture, setNeedsUserGesture] = useState(true);
   const [diagnostics, setDiagnostics] = useState<DiagnosticInfo>({
     streamAcquired: false,
     trackState: 'none',
     trackLabel: 'none',
+    trackEnabled: false,
+    trackMuted: false,
+    trackSettingsWidth: 0,
+    trackSettingsHeight: 0,
     videoReady: 0,
     videoWidth: 0,
     videoHeight: 0,
     receivingFrames: false,
+    canPlay: false,
+    isPlaying: false,
   });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const enumerateCameras = useCallback(async () => {
     try {
@@ -134,6 +148,104 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     await startCamera(cameras[nextIndex].deviceId);
   }, [cameras, currentCameraIndex, startCamera]);
 
+  const handleUserGestureStart = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    setNeedsUserGesture(false);
+
+    video.setAttribute('muted', '');
+    video.muted = true;
+    video.setAttribute('playsinline', '');
+    video.playsInline = true;
+    
+    video.srcObject = stream;
+
+    try {
+      await video.play();
+      console.log('Video play succeeded after user gesture');
+      
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      
+      retryTimeoutRef.current = setTimeout(async () => {
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          console.log('Video still 0x0 after 2s, trying constraint relaxation');
+          const track = stream.getVideoTracks()[0];
+          try {
+            await track.applyConstraints({
+              width: { min: 320, ideal: 640 },
+              height: { min: 240, ideal: 480 }
+            });
+            console.log('Applied relaxed constraints');
+          } catch (err) {
+            console.error('Failed to apply constraints:', err);
+          }
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('Video play failed after user gesture:', err);
+    }
+  }, [stream]);
+
+  const retryCamera = useCallback(async () => {
+    if (!stream) return;
+    
+    const currentDeviceId = stream.getVideoTracks()[0]?.getSettings().deviceId;
+    
+    stream.getTracks().forEach(track => track.stop());
+    setStream(null);
+    
+    try {
+      const constraints = currentDeviceId
+        ? [
+            { video: { deviceId: { exact: currentDeviceId }, width: { ideal: 640 }, height: { ideal: 480 } } },
+            { video: { deviceId: { exact: currentDeviceId } } },
+            { video: true }
+          ]
+        : [
+            { video: { width: { ideal: 640 }, height: { ideal: 480 } } },
+            { video: true }
+          ];
+      
+      let newStream: MediaStream | null = null;
+      for (const constraint of constraints) {
+        try {
+          newStream = await navigator.mediaDevices.getUserMedia(constraint);
+          if (newStream) break;
+        } catch (err) {
+          console.error('Retry constraint failed:', constraint, err);
+          continue;
+        }
+      }
+      
+      if (newStream) {
+        setStream(newStream);
+        setNeedsUserGesture(true);
+        
+        const track = newStream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        setDiagnostics(prev => ({
+          ...prev,
+          streamAcquired: true,
+          trackState: track.readyState,
+          trackLabel: track.label,
+          trackEnabled: track.enabled,
+          trackMuted: track.muted,
+          trackSettingsWidth: settings.width || 0,
+          trackSettingsHeight: settings.height || 0,
+        }));
+      }
+    } catch (error) {
+      console.error('Retry camera failed:', error);
+      toast({
+        description: t('toasts:vin.camera_error'),
+        variant: 'destructive',
+      });
+    }
+  }, [stream, toast, t]);
+
   const stopCamera = useCallback(() => {
     const video = videoRef.current;
     if (video) {
@@ -144,15 +256,26 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
     setShowCamera(false);
+    setNeedsUserGesture(true);
     setDiagnostics({
       streamAcquired: false,
       trackState: 'none',
       trackLabel: 'none',
+      trackEnabled: false,
+      trackMuted: false,
+      trackSettingsWidth: 0,
+      trackSettingsHeight: 0,
       videoReady: 0,
       videoWidth: 0,
       videoHeight: 0,
       receivingFrames: false,
+      canPlay: false,
+      isPlaying: false,
     });
   }, [stream]);
 
@@ -162,15 +285,27 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     const video = videoRef.current;
     if (!video) return;
     
-    video.srcObject = stream;
-    video.muted = true;
+    if (!needsUserGesture) {
+      video.srcObject = stream;
+      video.muted = true;
+    }
+    
+    const handleCanPlay = () => {
+      setDiagnostics(prev => ({ ...prev, canPlay: true }));
+    };
+    
+    const handlePlaying = () => {
+      setDiagnostics(prev => ({ ...prev, isPlaying: true }));
+    };
     
     const handleLoadedMetadata = () => {
-      const playPromise = video.play();
-      if (playPromise) {
-        playPromise.catch((err) => {
-          console.error('Video play failed:', err);
-        });
+      if (!needsUserGesture) {
+        const playPromise = video.play();
+        if (playPromise) {
+          playPromise.catch((err) => {
+            console.error('Video play failed:', err);
+          });
+        }
       }
       
       setDiagnostics(prev => ({
@@ -183,9 +318,11 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     };
     
     const handleLoadedData = () => {
-      video.play().catch((err) => {
-        console.error('Video play on loadeddata failed:', err);
-      });
+      if (!needsUserGesture) {
+        video.play().catch((err) => {
+          console.error('Video play on loadeddata failed:', err);
+        });
+      }
       
       setDiagnostics(prev => ({
         ...prev,
@@ -196,24 +333,33 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       }));
     };
     
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('playing', handlePlaying);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('loadeddata', handleLoadedData);
     
-    setTimeout(() => {
-      const playPromise = video.play();
-      if (playPromise) {
-        playPromise.catch((err) => {
-          console.error('Video play (delayed) failed:', err);
-        });
-      }
-    }, 100);
+    if (!needsUserGesture) {
+      setTimeout(() => {
+        const playPromise = video.play();
+        if (playPromise) {
+          playPromise.catch((err) => {
+            console.error('Video play (delayed) failed:', err);
+          });
+        }
+      }, 100);
+    }
     
     const diagnosticInterval = setInterval(() => {
       if (video && stream) {
         const track = stream.getVideoTracks()[0];
+        const settings = track?.getSettings() || {};
         setDiagnostics(prev => ({
           ...prev,
           trackState: track?.readyState || 'none',
+          trackEnabled: track?.enabled || false,
+          trackMuted: track?.muted || false,
+          trackSettingsWidth: settings.width || 0,
+          trackSettingsHeight: settings.height || 0,
           videoReady: video.readyState,
           videoWidth: video.videoWidth,
           videoHeight: video.videoHeight,
@@ -223,11 +369,13 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     }, 1000);
     
     return () => {
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('playing', handlePlaying);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('loadeddata', handleLoadedData);
       clearInterval(diagnosticInterval);
     };
-  }, [stream, showCamera]);
+  }, [stream, showCamera, needsUserGesture]);
 
   const processImageForVin = async (imageSource: HTMLVideoElement | HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -359,7 +507,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
             <DialogTitle>{t('vin:scan_title')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="relative bg-black rounded-lg">
+            <div className="relative bg-black">
               <video
                 ref={videoRef}
                 autoPlay
@@ -370,7 +518,20 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               />
               <canvas ref={canvasRef} className="hidden" />
               
-              {cameras.length > 1 && (
+              {needsUserGesture && (
+                <div 
+                  className="absolute inset-0 bg-black/80 flex items-center justify-center cursor-pointer"
+                  onClick={handleUserGestureStart}
+                >
+                  <div className="text-center text-white p-6">
+                    <div className="text-6xl mb-4">▶️</div>
+                    <div className="text-xl font-semibold mb-2">Toca para iniciar video</div>
+                    <div className="text-sm text-gray-300">Se requiere interacción del usuario</div>
+                  </div>
+                </div>
+              )}
+              
+              {cameras.length > 1 && !needsUserGesture && (
                 <Button
                   onClick={switchCamera}
                   variant="secondary"
@@ -383,7 +544,7 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
                 </Button>
               )}
               
-              <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white text-xs p-2 rounded space-y-1">
+              <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white text-xs p-2 space-y-1">
                 <div className="flex items-center justify-between">
                   <span>Status:</span>
                   <span className={diagnostics.receivingFrames ? 'text-green-400' : 'text-red-400'}>
@@ -391,12 +552,23 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Resolution:</span>
+                  <span>Video:</span>
                   <span>{diagnostics.videoWidth}x{diagnostics.videoHeight}</span>
                 </div>
                 <div className="flex items-center justify-between">
+                  <span>Track:</span>
+                  <span>{diagnostics.trackSettingsWidth}x{diagnostics.trackSettingsHeight}</span>
+                </div>
+                <div className="flex items-center justify-between">
                   <span>Camera:</span>
-                  <span className="truncate max-w-[200px]">{diagnostics.trackLabel}</span>
+                  <span className="truncate max-w-[150px]">{diagnostics.trackLabel}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span>State: {diagnostics.trackState}</span>
+                  <span>En: {diagnostics.trackEnabled ? 'Y' : 'N'}</span>
+                  <span>Mu: {diagnostics.trackMuted ? 'Y' : 'N'}</span>
+                  <span>CP: {diagnostics.canPlay ? 'Y' : 'N'}</span>
+                  <span>PL: {diagnostics.isPlaying ? 'Y' : 'N'}</span>
                 </div>
               </div>
             </div>
@@ -432,6 +604,17 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               >
                 <Upload className="h-4 w-4" />
               </Button>
+              
+              {!diagnostics.receivingFrames && !needsUserGesture && (
+                <Button
+                  onClick={retryCamera}
+                  variant="outline"
+                  disabled={isProcessing}
+                  title="Retry Camera"
+                >
+                  <Loader2 className="h-4 w-4" />
+                </Button>
+              )}
               
               <Button
                 onClick={stopCamera}
