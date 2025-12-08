@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,12 +24,9 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const startCamera = useCallback(async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
+        video: { facingMode: { ideal: 'environment' } }
       });
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
       setShowCamera(true);
     } catch (error) {
       toast({
@@ -40,12 +37,31 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
   }, [toast, t]);
 
   const stopCamera = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
     setShowCamera(false);
   }, [stream]);
+
+  useEffect(() => {
+    if (!showCamera) return;
+    const video = videoRef.current;
+    if (video && stream) {
+      video.srcObject = stream;
+      video.muted = true; // Required for autoplay on iOS/Safari
+      const playPromise = video.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(() => {
+        });
+      }
+    }
+  }, [stream, showCamera]);
 
   const captureAndProcess = async () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -143,8 +159,10 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               <video
                 ref={videoRef}
                 autoPlay
+                muted
                 playsInline
-                className="w-full h-auto"
+                onLoadedMetadata={() => videoRef.current?.play()}
+                className="w-full aspect-video bg-black"
               />
               <canvas ref={canvasRef} className="hidden" />
             </div>
