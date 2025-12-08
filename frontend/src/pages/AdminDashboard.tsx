@@ -1149,15 +1149,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
-              <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.authorized_points')}</CardTitle>
-              <MapPin className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl md:text-3xl font-bold">{authorizedPoints.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 md:pb-3">
               <CardTitle className="text-xs md:text-base font-medium">{t('dashboard:stats.express_service')}</CardTitle>
               <Zap className="h-4 w-4 md:h-6 md:w-6 text-muted-foreground" />
             </CardHeader>
@@ -1183,7 +1174,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
             <TabsTrigger value="clients" className="flex-1 w-full justify-center text-lg font-medium px-0 min-w-0">{t('dashboard:tabs.clients')}</TabsTrigger>
             <TabsTrigger value="mechanics" className="flex-1 w-full justify-center text-lg font-medium px-0 min-w-0">{t('dashboard:tabs.mechanics')}</TabsTrigger>
             <TabsTrigger value="workshops" className="flex-1 w-full justify-center text-lg font-medium px-0 min-w-0">{t('dashboard:tabs.workshops')}</TabsTrigger>
-            <TabsTrigger value="points" className="flex-1 w-full justify-center text-lg font-medium px-0 min-w-0">{t('dashboard:tabs.authorized_points')}</TabsTrigger>
             <TabsTrigger value="express" className="flex-1 w-full justify-center text-lg font-medium px-0 min-w-0 relative">
               {t('dashboard:tabs.express_service')}
               {expressServices.filter(s => s.status !== 'completed' && s.status !== 'cancelled').length > 0 && (
