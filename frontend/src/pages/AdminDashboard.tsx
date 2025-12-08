@@ -3040,7 +3040,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                       min="0"
                       value={editableLaborCost}
                       onChange={(e) => setEditableLaborCost(e.target.value)}
-                      className="w-24 px-2 py-1 border rounded text-right font-semibold"
+                      className="w-24 px-2 py-1 border rounded text-right font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
                   <div className="flex justify-between items-center py-2 border-b">
@@ -3051,7 +3051,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                       min="0"
                       value={editableAdditionalServices}
                       onChange={(e) => setEditableAdditionalServices(e.target.value)}
-                      className="w-24 px-2 py-1 border rounded text-right font-semibold"
+                      className="w-24 px-2 py-1 border rounded text-right font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
                   <div className="flex justify-between items-center py-3 border-t-2 border-gray-400 mt-2">
