@@ -799,9 +799,9 @@ async def list_parts_for_repair(repair_id: str, current_user: TokenData = Depend
             supplier_name=supplier_name,
             status=part.status,
             ordered_online=part.ordered_online,
+            in_store=part.in_store,
             estimated_arrival=part.estimated_arrival,
             cost=part.cost,
-            notes=part.notes,
             created_at=part.created_at
         ))
     return result
@@ -826,9 +826,9 @@ async def create_part(part_data: PartCreate, current_user: TokenData = Depends(r
         supplier_name=part_data.supplier_name,
         status=PartStatus.PENDING,
         ordered_online=part_data.ordered_online,
+        in_store=part_data.in_store,
         estimated_arrival=part_data.estimated_arrival,
         cost=part_data.cost,
-        notes=part_data.notes,
         created_at=datetime.utcnow()
     )
     
@@ -847,9 +847,9 @@ async def create_part(part_data: PartCreate, current_user: TokenData = Depends(r
         supplier_name=supplier_name,
         status=part.status,
         ordered_online=part.ordered_online,
+        in_store=part.in_store,
         estimated_arrival=part.estimated_arrival,
         cost=part.cost,
-        notes=part.notes,
         created_at=part.created_at
     )
 
@@ -872,9 +872,9 @@ async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenDa
         supplier_name=part_data.supplier_name if part_data.supplier_name is not None else existing_part.supplier_name,
         status=part_data.status if part_data.status is not None else existing_part.status,
         ordered_online=part_data.ordered_online if part_data.ordered_online is not None else existing_part.ordered_online,
+        in_store=part_data.in_store if part_data.in_store is not None else existing_part.in_store,
         estimated_arrival=part_data.estimated_arrival if part_data.estimated_arrival is not None else existing_part.estimated_arrival,
         cost=part_data.cost if part_data.cost is not None else existing_part.cost,
-        notes=part_data.notes if part_data.notes is not None else existing_part.notes,
         created_at=existing_part.created_at
     )
     
@@ -893,9 +893,9 @@ async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenDa
         supplier_name=supplier_name,
         status=updated_part.status,
         ordered_online=updated_part.ordered_online,
+        in_store=updated_part.in_store,
         estimated_arrival=updated_part.estimated_arrival,
         cost=updated_part.cost,
-        notes=updated_part.notes,
         created_at=updated_part.created_at
     )
 
@@ -1455,6 +1455,7 @@ async def track_repair_by_token(share_token: str):
             "name": part.name,
             "status": part.status,
             "ordered_online": bool(part.ordered_online),
+            "in_store": bool(part.in_store),
             "supplier_name": supplier_name,
             "estimated_arrival": part.estimated_arrival,
             "cost": part.cost

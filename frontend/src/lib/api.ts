@@ -87,9 +87,9 @@ export interface Part {
   supplier_name?: string;
   status: 'pending' | 'ordered' | 'received';
   ordered_online: boolean;
+  in_store: boolean;
   estimated_arrival?: string;
   cost?: number;
-  notes?: string;
   created_at: string;
 }
 
@@ -391,9 +391,9 @@ class ApiClient {
     supplier_id?: string;
     supplier_name?: string;
     ordered_online: boolean;
+    in_store: boolean;
     estimated_arrival?: string;
     cost?: number;
-    notes?: string;
   }) {
     return this.request('/api/parts', {
       method: 'POST',
@@ -406,9 +406,9 @@ class ApiClient {
     supplier_id?: string;
     status?: string;
     ordered_online?: boolean;
+    in_store?: boolean;
     estimated_arrival?: string;
     cost?: number;
-    notes?: string;
   }) {
     return this.request(`/api/parts/${id}`, {
       method: 'PATCH',

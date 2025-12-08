@@ -67,9 +67,9 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     supplier_id: '',
     supplier_name: '',
     ordered_online: false,
+    in_store: false,
     estimated_arrival: '',
     cost: '',
-    notes: '',
   });
   const [supplierMode, setSupplierMode] = useState<'registered' | 'custom'>('registered');
   const [supplierComboboxOpen, setSupplierComboboxOpen] = useState(false);
@@ -561,9 +561,9 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         supplier_id: supplierMode === 'registered' && partForm.supplier_id ? partForm.supplier_id : undefined,
         supplier_name: supplierMode === 'custom' && partForm.supplier_name ? partForm.supplier_name : undefined,
         ordered_online: partForm.ordered_online,
+        in_store: partForm.in_store,
         estimated_arrival: partForm.estimated_arrival || undefined,
         cost: partForm.cost ? parseFloat(partForm.cost) : undefined,
-        notes: partForm.notes || undefined,
       });
 
       toast({
@@ -578,9 +578,9 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
         supplier_id: '',
         supplier_name: '',
         ordered_online: false,
+        in_store: false,
         estimated_arrival: '',
         cost: '',
-        notes: '',
       });
       setSupplierMode('registered');
     } catch (error) {
@@ -2887,15 +2887,27 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     />
                   )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="part-ordered-online"
-                    checked={partForm.ordered_online}
-                    onChange={(e) => setPartForm({ ...partForm, ordered_online: e.target.checked })}
-                    className="h-4 w-4"
-                  />
-                  <Label htmlFor="part-ordered-online">{t('parts:dialog.ordered_online')}</Label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="part-ordered-online"
+                      checked={partForm.ordered_online}
+                      onChange={(e) => setPartForm({ ...partForm, ordered_online: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="part-ordered-online">{t('parts:dialog.ordered_online')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="part-in-store"
+                      checked={partForm.in_store}
+                      onChange={(e) => setPartForm({ ...partForm, in_store: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="part-in-store">{t('parts:dialog.in_store')}</Label>
+                  </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="part-arrival">{t('parts:dialog.arrival_label')}</Label>
@@ -2915,15 +2927,6 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     value={partForm.cost}
                     onChange={(e) => setPartForm({ ...partForm, cost: e.target.value })}
                     placeholder="0.00"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="part-notes">{t('parts:dialog.notes_label')}</Label>
-                  <Textarea
-                    id="part-notes"
-                    value={partForm.notes}
-                    onChange={(e) => setPartForm({ ...partForm, notes: e.target.value })}
-                    placeholder={t('parts:dialog.notes_placeholder')}
                   />
                 </div>
                 <Button onClick={handleCreatePart}>

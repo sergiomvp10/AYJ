@@ -195,6 +195,7 @@ class PostgresDatabase:
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS labor_cost REAL")
             cursor.execute("ALTER TABLE repairs ADD COLUMN IF NOT EXISTS additional_services REAL")
             cursor.execute("ALTER TABLE parts ADD COLUMN IF NOT EXISTS supplier_name TEXT")
+            cursor.execute("ALTER TABLE parts ADD COLUMN IF NOT EXISTS in_store BOOLEAN DEFAULT FALSE")
             
             print("[DATABASE] PostgreSQL tables initialized successfully")
     
@@ -507,11 +508,11 @@ class PostgresDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO parts (id, repair_id, name, supplier_id, supplier_name, ordered_online, status, 
-                                 estimated_arrival, cost, notes, created_at)
+                INSERT INTO parts (id, repair_id, name, supplier_id, supplier_name, ordered_online, in_store, status, 
+                                 estimated_arrival, cost, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (part.id, part.repair_id, part.name, part.supplier_id, part.supplier_name, part.ordered_online,
-                  part.status, part.estimated_arrival, part.cost, part.notes, part.created_at))
+                  part.in_store, part.status, part.estimated_arrival, part.cost, part.created_at))
             return part
     
     def get_part(self, part_id: str) -> Optional[Part]:
@@ -533,11 +534,11 @@ class PostgresDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE parts SET name = %s, supplier_id = %s, supplier_name = %s, ordered_online = %s, status = %s,
-                               estimated_arrival = %s, cost = %s, notes = %s
+                UPDATE parts SET name = %s, supplier_id = %s, supplier_name = %s, ordered_online = %s, in_store = %s, status = %s,
+                               estimated_arrival = %s, cost = %s
                 WHERE id = %s
-            """, (part.name, part.supplier_id, part.supplier_name, part.ordered_online, part.status,
-                  part.estimated_arrival, part.cost, part.notes, part_id))
+            """, (part.name, part.supplier_id, part.supplier_name, part.ordered_online, part.in_store, part.status,
+                  part.estimated_arrival, part.cost, part_id))
             if cursor.rowcount > 0:
                 return part
             return None

@@ -17,6 +17,7 @@
     "no_supplier": "Sin proveedor",
     "supplier_none": "Sin proveedor",
     "ordered_online": "Ordenado en línea",
+    "in_store": "En tienda",
     "arrival_label": "Fecha Estimada de Llegada (opcional)",
     "cost_label": "Costo (opcional)",
     "notes_label": "Notas (opcional)",

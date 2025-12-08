@@ -131,11 +131,12 @@ class SQLiteDatabase:
                     repair_id TEXT NOT NULL,
                     name TEXT NOT NULL,
                     supplier_id TEXT,
+                    supplier_name TEXT,
                     ordered_online INTEGER NOT NULL,
+                    in_store INTEGER NOT NULL DEFAULT 0,
                     status TEXT NOT NULL,
                     estimated_arrival TEXT,
                     cost REAL,
-                    notes TEXT,
                     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                     FOREIGN KEY (repair_id) REFERENCES repairs(id),
                     FOREIGN KEY (supplier_id) REFERENCES authorized_points(id)
@@ -257,11 +258,12 @@ class SQLiteDatabase:
                     repair_id TEXT NOT NULL,
                     name TEXT NOT NULL,
                     supplier_id TEXT,
+                    supplier_name TEXT,
                     ordered_online INTEGER NOT NULL,
+                    in_store INTEGER NOT NULL DEFAULT 0,
                     status TEXT NOT NULL,
                     estimated_arrival TEXT,
                     cost REAL,
-                    notes TEXT,
                     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
                     FOREIGN KEY (repair_id) REFERENCES repairs(id),
                     FOREIGN KEY (supplier_id) REFERENCES authorized_points(id)
@@ -274,6 +276,12 @@ class SQLiteDatabase:
             print("[MIGRATION] Adding created_at to parts table")
             cursor.execute("ALTER TABLE parts ADD COLUMN created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)")
             cursor.execute("UPDATE parts SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR created_at = ''")
+        if 'supplier_name' not in parts_cols:
+            print("[MIGRATION] Adding supplier_name to parts table")
+            cursor.execute("ALTER TABLE parts ADD COLUMN supplier_name TEXT")
+        if 'in_store' not in parts_cols:
+            print("[MIGRATION] Adding in_store to parts table")
+            cursor.execute("ALTER TABLE parts ADD COLUMN in_store INTEGER NOT NULL DEFAULT 0")
         
         repairs_cols = get_columns('repairs')
         print(f"[MIGRATION] Repairs columns: {repairs_cols}")
@@ -615,13 +623,13 @@ class SQLiteDatabase:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO parts (id, repair_id, name, supplier_id, supplier_name, ordered_online, status,
-                                 estimated_arrival, cost, notes, created_at)
+                INSERT INTO parts (id, repair_id, name, supplier_id, supplier_name, ordered_online, in_store, status,
+                                 estimated_arrival, cost, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 part.id, part.repair_id, part.name, part.supplier_id, part.supplier_name, int(part.ordered_online),
-                part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
-                part.cost, part.notes, part.created_at.isoformat()
+                int(part.in_store), part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
+                part.cost, part.created_at.isoformat()
             ))
             return part
     
@@ -633,6 +641,7 @@ class SQLiteDatabase:
             if row:
                 data = dict(row)
                 data['ordered_online'] = bool(data['ordered_online'])
+                data['in_store'] = bool(data.get('in_store', 0))
                 return Part(**data)
             return None
     
@@ -644,6 +653,7 @@ class SQLiteDatabase:
             for row in cursor.fetchall():
                 data = dict(row)
                 data['ordered_online'] = bool(data['ordered_online'])
+                data['in_store'] = bool(data.get('in_store', 0))
                 result.append(Part(**data))
             return result
     
@@ -652,12 +662,12 @@ class SQLiteDatabase:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE parts SET repair_id = ?, name = ?, supplier_id = ?, supplier_name = ?, ordered_online = ?,
-                               status = ?, estimated_arrival = ?, cost = ?, notes = ?
+                               in_store = ?, status = ?, estimated_arrival = ?, cost = ?
                 WHERE id = ?
             """, (
                 part.repair_id, part.name, part.supplier_id, part.supplier_name, int(part.ordered_online),
-                part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
-                part.cost, part.notes, part_id
+                int(part.in_store), part.status, part.estimated_arrival.isoformat() if part.estimated_arrival else None,
+                part.cost, part_id
             ))
             if cursor.rowcount > 0:
                 return part

@@ -238,9 +238,9 @@ class Part(BaseModel):
     supplier_name: Optional[str] = None  # Custom supplier name
     status: PartStatus
     ordered_online: bool = False
+    in_store: bool = False
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
     created_at: datetime
 
 class PartCreate(BaseModel):
@@ -249,9 +249,9 @@ class PartCreate(BaseModel):
     supplier_id: Optional[str] = None
     supplier_name: Optional[str] = None
     ordered_online: bool = False
+    in_store: bool = False
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
 
 class PartUpdate(BaseModel):
     name: Optional[str] = None
@@ -259,9 +259,9 @@ class PartUpdate(BaseModel):
     supplier_name: Optional[str] = None
     status: Optional[PartStatus] = None
     ordered_online: Optional[bool] = None
+    in_store: Optional[bool] = None
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
 
 class PartResponse(BaseModel):
     id: str
@@ -271,9 +271,9 @@ class PartResponse(BaseModel):
     supplier_name: Optional[str] = None
     status: PartStatus
     ordered_online: bool
+    in_store: bool
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
     created_at: datetime
 
 class VinEngineInfo(BaseModel):
