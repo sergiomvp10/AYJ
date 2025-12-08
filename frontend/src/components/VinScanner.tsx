@@ -126,9 +126,9 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
         onClick={startCamera}
         variant="outline"
         className={className}
+        size="icon"
       >
-        <Camera className="mr-2 h-4 w-4" />
-        {t('vin:scan_button')}
+        <Camera className="h-4 w-4" />
       </Button>
 
       <Dialog open={showCamera} onOpenChange={(open) => !open && stopCamera()}>
