@@ -6,7 +6,7 @@
   "mechanic_assigned": "ASSIGNED SPECIALIST",
   "progress": "Repair Progress",
   "parts_needed": "Parts Needed",
-  "estimated_cost": "Estimated Cost",
+  "estimated_cost": "Total Cost",
   "status": {
     "initiated": "Initiated",
     "in_progress": "In Progress",

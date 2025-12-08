@@ -6,7 +6,7 @@
   "mechanic_assigned": "ESPECIALISTA ENCARGADO",
   "progress": "Progreso de la Reparación",
   "parts_needed": "Piezas Necesarias",
-  "estimated_cost": "Costo Estimado",
+  "estimated_cost": "Costo Total",
   "status": {
     "initiated": "Iniciado",
     "in_progress": "En Progreso",
