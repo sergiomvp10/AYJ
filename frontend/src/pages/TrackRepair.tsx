@@ -203,38 +203,6 @@ export function TrackRepair() {
               </div>
             )}
 
-            {/* Parts Information */}
-            {repair.parts.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-3">{t('track_repair:parts_needed')}</h3>
-                <div className="space-y-2">
-                  {repair.parts.map((part) => (
-                    <div key={part.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{part.name}</p>
-                        {part.supplier_name && (
-                          <p className="text-sm text-gray-600">{part.supplier_name}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <span
-                          className={`inline-block px-2 py-1 text-xs rounded-full ${
-                            part.status === 'received'
-                              ? 'bg-green-100 text-green-800'
-                              : part.status === 'ordered'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {t(`track_repair:part_status.${part.status}`)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Cost Information */}
             {repair.cost && (
               <div>
