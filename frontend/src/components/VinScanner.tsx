@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { api, VinDecoded } from '@/lib/api';
-import { Camera, Loader2, X, Upload, SwitchCamera } from 'lucide-react';
+import { Camera, X, Upload, SwitchCamera } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 
 interface VinScannerProps {
@@ -16,24 +16,6 @@ interface CameraDevice {
   deviceId: string;
   label: string;
 }
-
-interface DiagnosticInfo {
-  streamAcquired: boolean;
-  trackState: string;
-  trackLabel: string;
-  trackEnabled: boolean;
-  trackMuted: boolean;
-  trackSettingsWidth: number;
-  trackSettingsHeight: number;
-  videoReady: number;
-  videoWidth: number;
-  videoHeight: number;
-  receivingFrames: boolean;
-  canPlay: boolean;
-  isPlaying: boolean;
-}
-
-const BUILD_TIMESTAMP = '2025-12-08T03:35:00Z';
 
 const normalizeVinCharacters = (text: string): string => {
   return text
@@ -109,29 +91,19 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
   const { toast } = useToast();
   const [showCamera, setShowCamera] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
   const [needsUserGesture, setNeedsUserGesture] = useState(true);
-  const [diagnostics, setDiagnostics] = useState<DiagnosticInfo>({
-    streamAcquired: false,
-    trackState: 'none',
-    trackLabel: 'none',
-    trackEnabled: false,
-    trackMuted: false,
-    trackSettingsWidth: 0,
-    trackSettingsHeight: 0,
-    videoReady: 0,
-    videoWidth: 0,
-    videoHeight: 0,
-    receivingFrames: false,
-    canPlay: false,
-    isPlaying: false,
-  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const workerRef = useRef<Tesseract.Worker | null>(null);
+  const lastDetectedVinRef = useRef<string>('');
+  const scanningRef = useRef<boolean>(false);
 
   const enumerateCameras = useCallback(async () => {
     try {
@@ -193,13 +165,6 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       setStream(mediaStream);
       setShowCamera(true);
       
-      const track = mediaStream.getVideoTracks()[0];
-      setDiagnostics(prev => ({
-        ...prev,
-        streamAcquired: true,
-        trackState: track.readyState,
-        trackLabel: track.label,
-      }));
     } catch (error) {
       console.error('Camera start error:', error);
       toast({
@@ -258,62 +223,21 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     }
   }, [stream]);
 
-  const retryCamera = useCallback(async () => {
-    if (!stream) return;
-    
-    const currentDeviceId = stream.getVideoTracks()[0]?.getSettings().deviceId;
-    
-    stream.getTracks().forEach(track => track.stop());
-    setStream(null);
+  const initializeWorker = useCallback(async () => {
+    if (workerRef.current) return workerRef.current;
     
     try {
-      const constraints = currentDeviceId
-        ? [
-            { video: { deviceId: { exact: currentDeviceId }, width: { ideal: 640 }, height: { ideal: 480 } } },
-            { video: { deviceId: { exact: currentDeviceId } } },
-            { video: true }
-          ]
-        : [
-            { video: { width: { ideal: 640 }, height: { ideal: 480 } } },
-            { video: true }
-          ];
-      
-      let newStream: MediaStream | null = null;
-      for (const constraint of constraints) {
-        try {
-          newStream = await navigator.mediaDevices.getUserMedia(constraint);
-          if (newStream) break;
-        } catch (err) {
-          console.error('Retry constraint failed:', constraint, err);
-          continue;
-        }
-      }
-      
-      if (newStream) {
-        setStream(newStream);
-        setNeedsUserGesture(true);
-        
-        const track = newStream.getVideoTracks()[0];
-        const settings = track.getSettings();
-        setDiagnostics(prev => ({
-          ...prev,
-          streamAcquired: true,
-          trackState: track.readyState,
-          trackLabel: track.label,
-          trackEnabled: track.enabled,
-          trackMuted: track.muted,
-          trackSettingsWidth: settings.width || 0,
-          trackSettingsHeight: settings.height || 0,
-        }));
-      }
-    } catch (error) {
-      console.error('Retry camera failed:', error);
-      toast({
-        description: t('toasts:vin.camera_error'),
-        variant: 'destructive',
+      const worker = await Tesseract.createWorker('eng');
+      await worker.setParameters({
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
       });
+      workerRef.current = worker;
+      return worker;
+    } catch (error) {
+      console.error('Failed to initialize Tesseract worker:', error);
+      return null;
     }
-  }, [stream, toast, t]);
+  }, []);
 
   const stopCamera = useCallback(() => {
     const video = videoRef.current;
@@ -329,24 +253,123 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       clearTimeout(retryTimeoutRef.current);
       retryTimeoutRef.current = null;
     }
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
     setShowCamera(false);
     setNeedsUserGesture(true);
-    setDiagnostics({
-      streamAcquired: false,
-      trackState: 'none',
-      trackLabel: 'none',
-      trackEnabled: false,
-      trackMuted: false,
-      trackSettingsWidth: 0,
-      trackSettingsHeight: 0,
-      videoReady: 0,
-      videoWidth: 0,
-      videoHeight: 0,
-      receivingFrames: false,
-      canPlay: false,
-      isPlaying: false,
-    });
+    setIsScanning(false);
+    scanningRef.current = false;
+    lastDetectedVinRef.current = '';
   }, [stream]);
+
+  const scanFrameForVin = useCallback(async () => {
+    if (scanningRef.current || !videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    if (video.videoWidth === 0 || video.videoHeight === 0) return;
+    
+    scanningRef.current = true;
+    setIsScanning(true);
+    
+    try {
+      const worker = await initializeWorker();
+      if (!worker) {
+        scanningRef.current = false;
+        setIsScanning(false);
+        return;
+      }
+      
+      const targetWidth = Math.min(video.videoWidth, 800);
+      const scale = targetWidth / video.videoWidth;
+      const targetHeight = video.videoHeight * scale;
+      
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        scanningRef.current = false;
+        setIsScanning(false);
+        return;
+      }
+      
+      ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+      
+      const vinPattern = /[A-HJ-NPR-Z0-9]{17}/;
+      const rotations = [0, 90];
+      
+      for (const rotation of rotations) {
+        const rotatedCanvas = rotateCanvas(canvas, rotation);
+        const rotatedCtx = rotatedCanvas.getContext('2d');
+        if (!rotatedCtx) continue;
+        
+        const roiCanvas = document.createElement('canvas');
+        const roiCtx = roiCanvas.getContext('2d');
+        if (!roiCtx) continue;
+        
+        if (rotation === 0) {
+          const roiHeight = Math.floor(rotatedCanvas.height * 0.3);
+          const roiY = Math.floor((rotatedCanvas.height - roiHeight) / 2);
+          roiCanvas.width = rotatedCanvas.width;
+          roiCanvas.height = roiHeight;
+          roiCtx.drawImage(rotatedCanvas, 0, roiY, rotatedCanvas.width, roiHeight, 0, 0, rotatedCanvas.width, roiHeight);
+        } else {
+          const roiWidth = Math.floor(rotatedCanvas.width * 0.3);
+          const roiX = Math.floor((rotatedCanvas.width - roiWidth) / 2);
+          roiCanvas.width = roiWidth;
+          roiCanvas.height = rotatedCanvas.height;
+          roiCtx.drawImage(rotatedCanvas, roiX, 0, roiWidth, rotatedCanvas.height, 0, 0, roiWidth, rotatedCanvas.height);
+        }
+        
+        const imageData = roiCtx.getImageData(0, 0, roiCanvas.width, roiCanvas.height);
+        const processed = threshold(grayscale(imageData), 150);
+        roiCtx.putImageData(processed, 0, 0);
+        
+        const result = await worker.recognize(roiCanvas);
+        const rawText = result.data.text;
+        const normalized = normalizeVinCharacters(rawText);
+        const match = normalized.match(vinPattern);
+        
+        if (match) {
+          const detectedVin = match[0];
+          
+          if (detectedVin === lastDetectedVinRef.current) {
+            continue;
+          }
+          
+          console.log(`VIN detected at ${rotation}°: ${detectedVin}`);
+          lastDetectedVinRef.current = detectedVin;
+          
+          try {
+            const decoded = await api.decodeVin(detectedVin);
+            toast({
+              description: t('toasts:vin.scan_success'),
+            });
+            onDecoded(decoded);
+            stopCamera();
+            scanningRef.current = false;
+            setIsScanning(false);
+            return;
+          } catch (error: any) {
+            console.log(`VIN ${detectedVin} failed to decode, continuing...`);
+            continue;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Scan frame error:', error);
+    }
+    
+    scanningRef.current = false;
+    setIsScanning(false);
+  }, [initializeWorker, onDecoded, stopCamera, t, toast]);
 
   useEffect(() => {
     if (!showCamera || !stream) return;
@@ -359,12 +382,12 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       video.muted = true;
     }
     
-    const handleCanPlay = () => {
-      setDiagnostics(prev => ({ ...prev, canPlay: true }));
-    };
-    
     const handlePlaying = () => {
-      setDiagnostics(prev => ({ ...prev, isPlaying: true }));
+      if (!needsUserGesture && !scanIntervalRef.current) {
+        scanIntervalRef.current = setInterval(() => {
+          scanFrameForVin();
+        }, 600);
+      }
     };
     
     const handleLoadedMetadata = () => {
@@ -376,14 +399,6 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
           });
         }
       }
-      
-      setDiagnostics(prev => ({
-        ...prev,
-        videoReady: video.readyState,
-        videoWidth: video.videoWidth,
-        videoHeight: video.videoHeight,
-        receivingFrames: video.videoWidth > 0 && video.videoHeight > 0,
-      }));
     };
     
     const handleLoadedData = () => {
@@ -392,17 +407,8 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
           console.error('Video play on loadeddata failed:', err);
         });
       }
-      
-      setDiagnostics(prev => ({
-        ...prev,
-        videoReady: video.readyState,
-        videoWidth: video.videoWidth,
-        videoHeight: video.videoHeight,
-        receivingFrames: video.videoWidth > 0 && video.videoHeight > 0,
-      }));
     };
     
-    video.addEventListener('canplay', handleCanPlay);
     video.addEventListener('playing', handlePlaying);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('loadeddata', handleLoadedData);
@@ -418,33 +424,12 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
       }, 100);
     }
     
-    const diagnosticInterval = setInterval(() => {
-      if (video && stream) {
-        const track = stream.getVideoTracks()[0];
-        const settings = track?.getSettings() || {};
-        setDiagnostics(prev => ({
-          ...prev,
-          trackState: track?.readyState || 'none',
-          trackEnabled: track?.enabled || false,
-          trackMuted: track?.muted || false,
-          trackSettingsWidth: settings.width || 0,
-          trackSettingsHeight: settings.height || 0,
-          videoReady: video.readyState,
-          videoWidth: video.videoWidth,
-          videoHeight: video.videoHeight,
-          receivingFrames: video.videoWidth > 0 && video.videoHeight > 0,
-        }));
-      }
-    }, 1000);
-    
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('playing', handlePlaying);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('loadeddata', handleLoadedData);
-      clearInterval(diagnosticInterval);
     };
-  }, [stream, showCamera, needsUserGesture]);
+  }, [stream, showCamera, needsUserGesture, scanFrameForVin]);
 
   const processImageForVin = async (imageSource: HTMLVideoElement | HTMLImageElement) => {
     const canvas = canvasRef.current;
@@ -543,17 +528,6 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
     });
   };
 
-  const captureAndProcess = async () => {
-    if (!videoRef.current) return;
-
-    setIsProcessing(true);
-    try {
-      await processImageForVin(videoRef.current);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -628,87 +602,33 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               {cameras.length > 1 && !needsUserGesture && (
                 <Button
                   onClick={switchCamera}
-                  variant="secondary"
+                  variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute top-4 left-4 text-white hover:bg-white/20"
                   disabled={isProcessing}
-                  title="Switch Camera"
+                  title="Cambiar Cámara"
                 >
-                  <SwitchCamera className="h-4 w-4" />
+                  <SwitchCamera className="h-6 w-6" />
                 </Button>
               )}
               
-              <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white text-xs p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span>Status:</span>
-                  <span className={diagnostics.receivingFrames ? 'text-green-400' : 'text-red-400'}>
-                    {diagnostics.receivingFrames ? '● Receiving frames' : '● No frames'}
-                  </span>
+              {!needsUserGesture && isScanning && (
+                <div className="absolute bottom-4 right-4 text-white text-xs">
+                  Escaneando...
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Video:</span>
-                  <span>{diagnostics.videoWidth}x{diagnostics.videoHeight}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Track:</span>
-                  <span>{diagnostics.trackSettingsWidth}x{diagnostics.trackSettingsHeight}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Camera:</span>
-                  <span className="truncate max-w-[150px]">{diagnostics.trackLabel}</span>
-                </div>
-                <div className="flex items-center justify-between text-[10px]">
-                  <span>State: {diagnostics.trackState}</span>
-                  <span>En: {diagnostics.trackEnabled ? 'Y' : 'N'}</span>
-                  <span>Mu: {diagnostics.trackMuted ? 'Y' : 'N'}</span>
-                  <span>CP: {diagnostics.canPlay ? 'Y' : 'N'}</span>
-                  <span>PL: {diagnostics.isPlaying ? 'Y' : 'N'}</span>
-                </div>
-              </div>
+              )}
             </div>
             
-            <p className="text-sm text-gray-600 text-center">
-              {t('vin:scan_instructions')}
-            </p>
-            
             <div className="flex gap-2">
-              <Button
-                onClick={captureAndProcess}
-                disabled={isProcessing || !diagnostics.receivingFrames}
-                className="flex-1"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t('vin:processing')}
-                  </>
-                ) : (
-                  <>
-                    <Camera className="mr-2 h-4 w-4" />
-                    {t('vin:capture_button')}
-                  </>
-                )}
-              </Button>
-              
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 variant="outline"
                 disabled={isProcessing}
-                title="Upload VIN Photo"
+                className="flex-1"
               >
-                <Upload className="h-4 w-4" />
+                <Upload className="mr-2 h-4 w-4" />
+                Subir Foto
               </Button>
-              
-              {!diagnostics.receivingFrames && !needsUserGesture && (
-                <Button
-                  onClick={retryCamera}
-                  variant="outline"
-                  disabled={isProcessing}
-                  title="Retry Camera"
-                >
-                  <Loader2 className="h-4 w-4" />
-                </Button>
-              )}
               
               <Button
                 onClick={stopCamera}
@@ -726,10 +646,6 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
               onChange={handleFileUpload}
               className="hidden"
             />
-            
-            <div className="text-xs text-gray-400 text-center">
-              Build: {BUILD_TIMESTAMP}
-            </div>
           </div>
         </DialogContent>
       </Dialog>
