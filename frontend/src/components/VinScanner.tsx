@@ -127,6 +127,8 @@ export function VinScanner({ onDecoded, className }: VinScannerProps) {
         variant="outline"
         className={className}
         size="icon"
+        aria-label={t('vin:scan_button')}
+        title={t('vin:scan_button')}
       >
         <Camera className="h-4 w-4" />
       </Button>
