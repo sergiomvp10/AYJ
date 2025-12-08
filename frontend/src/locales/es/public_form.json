@@ -8,7 +8,7 @@
     "email_placeholder": "",
     "phone_label": "Teléfono",
     "phone_placeholder": "",
-    "vin_label": "VIN (Número de Identificación del Vehículo)",
+    "vin_label": "VIN NUMBER",
     "vin_placeholder": "",
     "vin_decode_button": "Decodificar",
     "vin_decoding": "Decodificando...",

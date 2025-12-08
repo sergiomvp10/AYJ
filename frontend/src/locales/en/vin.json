@@ -1,6 +1,6 @@
 {
   "title": "VIN Decoder",
-  "input_label": "VIN (Vehicle Identification Number)",
+  "input_label": "VIN NUMBER",
   "input_placeholder": "",
   "decode_button": "Decode",
   "decoding": "Decoding...",

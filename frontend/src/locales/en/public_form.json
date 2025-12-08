@@ -8,7 +8,7 @@
     "email_placeholder": "",
     "phone_label": "Phone",
     "phone_placeholder": "",
-    "vin_label": "VIN (Vehicle Identification Number)",
+    "vin_label": "VIN NUMBER",
     "vin_placeholder": "",
     "vin_decode_button": "Decode",
     "vin_decoding": "Decoding...",
