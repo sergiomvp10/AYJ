@@ -1427,7 +1427,7 @@ async def convert_repair_request(
         entity_id = repair_id
         entity_type = "repair"
     
-    db.update_repair_request_status(request_id, RepairRequestStatus.CONVERTED, client_id)
+    db.delete_repair_request(request_id)
     
     return {
         "message": f"Request converted to {entity_type} successfully",
