@@ -16,7 +16,7 @@ from app.models import (
     ClientCreate, ClientResponse, Client,
     MechanicCreate, MechanicResponse, Mechanic,
     WorkshopCreate, WorkshopResponse, Workshop,
-    RepairCreate, RepairUpdate, RepairResponse, Repair, RepairStatus,
+    RepairCreate, RepairUpdate, RepairResponse, Repair, RepairStatus, ServiceType,
     AuthorizedPointCreate, AuthorizedPointResponse, AuthorizedPoint,
     PartCreate, PartUpdate, PartResponse, Part, PartStatus,
     ExpressServiceCreate, ExpressServiceUpdate, ExpressServiceResponse, ExpressService,
