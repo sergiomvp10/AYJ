@@ -1328,9 +1328,17 @@ async def convert_repair_request(
     mode: str = "repair",
     current_user: TokenData = Depends(require_admin)
 ):
-    req = db.get_repair_request(request_id)
-    if not req:
+    raw = db.get_repair_request(request_id)
+    if not raw:
         raise HTTPException(status_code=404, detail="Repair request not found")
+    
+    try:
+        if isinstance(raw, dict):
+            req = RepairRequest(**raw)
+        else:
+            req = RepairRequest(**dict(raw))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Invalid repair request data: {str(e)}")
     
     if req.status != RepairRequestStatus.NEW:
         raise HTTPException(status_code=409, detail="Request already processed")
