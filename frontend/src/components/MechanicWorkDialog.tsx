@@ -33,9 +33,16 @@ export function MechanicWorkDialog({ mechanic, open, onClose }: MechanicWorkDial
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
+      const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
       const data = await api.getMechanicWork(mechanic.id, {
-        from_date: thirtyDaysAgo.toISOString(),
-        to_date: new Date().toISOString(),
+        from_date: formatDate(thirtyDaysAgo),
+        to_date: formatDate(new Date()),
         status: 'all',
         type: 'all',
         limit: 50,

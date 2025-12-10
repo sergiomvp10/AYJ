@@ -1462,6 +1462,12 @@ async def delete_repair_request(request_id: str, current_user: TokenData = Depen
         raise HTTPException(status_code=404, detail="Repair request not found")
     return {"message": "Repair request deleted successfully"}
 
+@app.post("/api/repair-requests/cleanup-converted")
+async def cleanup_converted_requests(current_user: TokenData = Depends(require_admin)):
+    """Delete all repair requests with status 'converted'"""
+    deleted_count = db.delete_converted_repair_requests()
+    return {"message": f"Deleted {deleted_count} converted repair requests", "count": deleted_count}
+
 @app.get("/api/vin/decode/{vin}", response_model=VinDecoded)
 async def decode_vin(vin: str):
     vin = vin.upper().strip()

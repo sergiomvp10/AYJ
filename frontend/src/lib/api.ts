@@ -233,6 +233,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
+      credentials: 'include',
       body: formData,
     });
 
@@ -512,6 +513,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(data),
     });
 
@@ -550,6 +552,12 @@ class ApiClient {
     });
   }
 
+  async cleanupConvertedRequests() {
+    return this.request('/api/repair-requests/cleanup-converted', {
+      method: 'POST',
+    });
+  }
+
   async generateShareToken(repairId: string): Promise<{ share_token: string; share_url: string }> {
     return this.request(`/api/repairs/${repairId}/generate-share-token`, {
       method: 'POST',
@@ -562,6 +570,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
     });
 
     if (!response.ok) {

@@ -812,6 +812,27 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     }
   };
 
+  const handleCleanupConvertedRequests = async () => {
+    if (!confirm('¿Estás seguro de eliminar todas las solicitudes convertidas? Esta acción no se puede deshacer.')) {
+      return;
+    }
+    try {
+      const result: any = await api.cleanupConvertedRequests();
+      toast({
+        title: t('toasts:success_title'),
+        description: `${result.count} solicitudes convertidas eliminadas`,
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error cleaning up converted requests:', error);
+      toast({
+        title: t('toasts:error_title'),
+        description: 'Error al limpiar solicitudes convertidas',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getRequestStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
       new: 'default',
@@ -2033,6 +2054,12 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     <Share2 className="w-4 h-4 mr-2" />
                     {t('common:buttons.share_form')}
                   </Button>
+                  {repairRequests.filter(r => r.status === 'converted').length > 0 && (
+                    <Button onClick={handleCleanupConvertedRequests} className="w-full" size="sm" variant="destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Limpiar Solicitudes Convertidas ({repairRequests.filter(r => r.status === 'converted').length})
+                    </Button>
+                  )}
                   {repairRequests.length === 0 ? (
                     <p className="text-center py-8 text-gray-500 text-sm">No hay solicitudes</p>
                   ) : (

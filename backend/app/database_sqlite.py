@@ -808,6 +808,13 @@ class SQLiteDatabase:
             cursor.execute("DELETE FROM repair_requests WHERE id = ?", (request_id,))
             return cursor.rowcount > 0
     
+    def delete_converted_repair_requests(self) -> int:
+        """Delete all repair requests with status 'converted' and return count"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM repair_requests WHERE status = 'converted'")
+            return cursor.rowcount
+    
     def get_client_by_email(self, email: str) -> Optional[Client]:
         """Helper method to find a client by email through the users table"""
         with self.get_connection() as conn:
