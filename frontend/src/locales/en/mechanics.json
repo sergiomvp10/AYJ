@@ -2,6 +2,7 @@
   "title": "Mechanics",
   "description": "List of all registered mechanics",
   "add_button": "Add Mechanic",
+  "view_work": "View Work",
   "table": {
     "headers": {
       "name": "Name",
@@ -33,5 +34,18 @@
     "mobile_label": "Mobile mechanic (goes to customer location)",
     "speaks_english_label": "Does speak English?",
     "create_button": "Create Mechanic"
-  }
+  },
+  "work_history_title": "Work History for {{name}}",
+  "work_load_error": "Error loading mechanic work history",
+  "completed_jobs": "Completed Jobs",
+  "total_labor": "Total Labor",
+  "total_charged": "Total Charged",
+  "showing_last_days": "Showing last {{days}} days",
+  "vehicle": "Vehicle",
+  "client": "Client",
+  "labor_cost": "Labor Cost",
+  "repair": "Repair",
+  "express": "Express",
+  "no_work_found": "No work found",
+  "showing_items": "Showing {{shown}} of {{total}} jobs"
 }

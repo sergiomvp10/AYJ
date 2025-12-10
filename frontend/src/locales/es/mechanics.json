@@ -2,6 +2,7 @@
   "title": "Mecánicos",
   "description": "Lista de todos los mecánicos registrados",
   "add_button": "Agregar Mecánico",
+  "view_work": "Ver Trabajos",
   "table": {
     "headers": {
       "name": "Nombre",
@@ -33,5 +34,18 @@
     "mobile_label": "Mecánico móvil (va a domicilio)",
     "speaks_english_label": "Habla Ingles?",
     "create_button": "Crear Mecánico"
-  }
+  },
+  "work_history_title": "Trabajos de {{name}}",
+  "work_load_error": "Error al cargar trabajos del mecánico",
+  "completed_jobs": "Trabajos Completados",
+  "total_labor": "Total Mano de Obra",
+  "total_charged": "Total Cobrado",
+  "showing_last_days": "Mostrando últimos {{days}} días",
+  "vehicle": "Vehículo",
+  "client": "Cliente",
+  "labor_cost": "Mano de Obra",
+  "repair": "Reparación",
+  "express": "Express",
+  "no_work_found": "No se encontraron trabajos",
+  "showing_items": "Mostrando {{shown}} de {{total}} trabajos"
 }

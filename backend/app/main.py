@@ -303,6 +303,147 @@ async def get_mechanic(mechanic_id: str, current_user: TokenData = Depends(requi
         created_at=mechanic.created_at
     )
 
+@app.get("/api/mechanics/{mechanic_id}/work")
+async def get_mechanic_work(
+    mechanic_id: str,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    status: Optional[str] = None,
+    type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    current_user: TokenData = Depends(require_admin)
+):
+    """Get unified work history for a mechanic (repairs + express services)"""
+    mechanic = db.get_mechanic(mechanic_id)
+    if not mechanic:
+        raise HTTPException(status_code=404, detail="Mechanic not found")
+    
+    from_dt = None
+    to_dt = None
+    if from_date:
+        try:
+            from_dt = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+        except:
+            pass
+    if to_date:
+        try:
+            to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+        except:
+            pass
+    
+    if not from_dt:
+        from_dt = datetime.now() - timedelta(days=30)
+    if not to_dt:
+        to_dt = datetime.now()
+    
+    all_repairs = db.get_repairs_by_mechanic(mechanic_id)
+    
+    all_express = [s for s in db.get_all_express_services() if s.mechanic_id == mechanic_id]
+    
+    items = []
+    
+    for repair in all_repairs:
+        event_date = repair.completed_date if repair.completed_date else repair.created_at
+        
+        if event_date < from_dt or event_date > to_dt:
+            continue
+        
+        if status and status != 'all':
+            if status == 'assigned' and repair.status != RepairStatus.ASSIGNED:
+                continue
+            elif status == 'in_progress' and repair.status not in [RepairStatus.IN_PROGRESS, RepairStatus.WAITING_PARTS]:
+                continue
+            elif status == 'completed' and repair.status != RepairStatus.COMPLETED:
+                continue
+        
+        if type and type != 'all' and type != 'repair':
+            continue
+        
+        client = db.get_client(repair.client_id)
+        client_name = None
+        if client:
+            client_user = db.get_user_by_id(client.user_id)
+            client_name = client_user.name if client_user else None
+        
+        items.append({
+            'id': repair.id,
+            'type': 'repair',
+            'status': repair.status.value,
+            'event_date': event_date.isoformat(),
+            'created_at': repair.created_at.isoformat(),
+            'completed_at': repair.completed_date.isoformat() if repair.completed_date else None,
+            'vehicle_info': repair.vehicle_info,
+            'client_name': client_name,
+            'labor_cost': repair.labor_cost,
+            'total_charged': repair.amount_charged,
+        })
+    
+    for service in all_express:
+        event_date = service.completed_at if service.completed_at else service.created_at
+        
+        if event_date < from_dt or event_date > to_dt:
+            continue
+        
+        if status and status != 'all':
+            if status == 'assigned' and service.status != ExpressServiceStatus.ASSIGNED:
+                continue
+            elif status == 'in_progress' and service.status not in [ExpressServiceStatus.IN_PROGRESS, ExpressServiceStatus.EN_ROUTE]:
+                continue
+            elif status == 'completed' and service.status != ExpressServiceStatus.COMPLETED:
+                continue
+        
+        if type and type != 'all' and type != 'express':
+            continue
+        
+        client = db.get_client(service.client_id)
+        client_name = None
+        if client:
+            client_user = db.get_user_by_id(client.user_id)
+            client_name = client_user.name if client_user else None
+        
+        items.append({
+            'id': service.id,
+            'type': 'express',
+            'status': service.status.value,
+            'event_date': event_date.isoformat(),
+            'created_at': service.created_at.isoformat(),
+            'completed_at': service.completed_at.isoformat() if service.completed_at else None,
+            'vehicle_info': service.vehicle_info,
+            'client_name': client_name,
+            'labor_cost': service.cost,  # For express, cost is treated as labor
+            'total_charged': service.cost,
+        })
+    
+    items.sort(key=lambda x: x['event_date'], reverse=True)
+    
+    assigned_count = sum(1 for item in items if item['status'] in ['assigned'])
+    in_progress_count = sum(1 for item in items if item['status'] in ['in_progress', 'waiting_parts', 'en_route'])
+    completed_count = sum(1 for item in items if item['status'] == 'completed')
+    
+    completed_items = [item for item in items if item['status'] == 'completed']
+    total_labor = sum(item['labor_cost'] or 0 for item in completed_items)
+    total_charged = sum(item['total_charged'] or 0 for item in completed_items)
+    
+    total_items = len(items)
+    paginated_items = items[offset:offset + limit]
+    
+    return {
+        'items': paginated_items,
+        'summary': {
+            'assigned_count': assigned_count,
+            'in_progress_count': in_progress_count,
+            'completed_count': completed_count,
+            'total_labor': total_labor,
+            'total_charged': total_charged,
+        },
+        'page': {
+            'limit': limit,
+            'offset': offset,
+            'total_estimate': total_items,
+        }
+    }
+
 @app.post("/api/mechanics", response_model=MechanicResponse)
 async def create_mechanic(mechanic_data: MechanicCreate, current_user: TokenData = Depends(require_admin)):
     user = db.get_user_by_id(mechanic_data.user_id)

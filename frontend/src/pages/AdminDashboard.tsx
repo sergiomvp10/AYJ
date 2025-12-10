@@ -19,6 +19,7 @@ import { VinDecoderInput } from '@/components/VinDecoderInput';
 import { VinScanner } from '@/components/VinScanner';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { StatusEditor } from '@/components/StatusEditor';
+import { MechanicWorkDialog } from '@/components/MechanicWorkDialog';
 
 interface AdminDashboardProps {
   user: User;
@@ -46,7 +47,9 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [partsDialog, setPartsDialog] = useState(false);
   const [expressServiceDialog, setExpressServiceDialog] = useState(false);
   const [repairRequestDialog, setRepairRequestDialog] = useState(false);
+  const [mechanicWorkDialog, setMechanicWorkDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
   const [selectedRepairForParts, setSelectedRepairForParts] = useState<Repair | null>(null);
   const [selectedRepairRequest, setSelectedRepairRequest] = useState<RepairRequest | null>(null);
   
@@ -1398,13 +1401,25 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                           <TableCell className="text-base px-6 py-4">{mechanic.is_mobile ? 'Móvil' : 'Taller'}</TableCell>
                           <TableCell className="text-base px-6 py-4">{mechanic.rating.toFixed(1)} ⭐</TableCell>
                           <TableCell className="px-6 py-4">
-                            <Button
-                              variant="ghost"
-                              size="default"
-                              onClick={() => handleDeleteMechanic(mechanic.id)}
-                            >
-                              <Trash2 className="w-5 h-5 text-red-500" />
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="default"
+                                onClick={() => {
+                                  setSelectedMechanic(mechanic);
+                                  setMechanicWorkDialog(true);
+                                }}
+                              >
+                                {t('mechanics:view_work')}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="default"
+                                onClick={() => handleDeleteMechanic(mechanic.id)}
+                              >
+                                <Trash2 className="w-5 h-5 text-red-500" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -3471,6 +3486,15 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MechanicWorkDialog
+        mechanic={selectedMechanic}
+        open={mechanicWorkDialog}
+        onClose={() => {
+          setMechanicWorkDialog(false);
+          setSelectedMechanic(null);
+        }}
+      />
     </div>
   );
 }

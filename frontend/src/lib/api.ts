@@ -151,6 +151,37 @@ export interface RepairRequest {
   created_at: string;
 }
 
+export interface MechanicWorkItem {
+  id: string;
+  type: 'repair' | 'express';
+  status: string;
+  event_date: string;
+  created_at: string;
+  completed_at?: string;
+  vehicle_info: string;
+  client_name?: string;
+  labor_cost?: number;
+  total_charged?: number;
+}
+
+export interface MechanicWorkSummary {
+  assigned_count: number;
+  in_progress_count: number;
+  completed_count: number;
+  total_labor: number;
+  total_charged: number;
+}
+
+export interface MechanicWorkResponse {
+  items: MechanicWorkItem[];
+  summary: MechanicWorkSummary;
+  page: {
+    limit: number;
+    offset: number;
+    total_estimate: number;
+  };
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -538,6 +569,32 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  async getMechanicWork(
+    mechanicId: string,
+    params?: {
+      from_date?: string;
+      to_date?: string;
+      status?: string;
+      type?: string;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<MechanicWorkResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.from_date) queryParams.append('from_date', params.from_date);
+    if (params?.to_date) queryParams.append('to_date', params.to_date);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    
+    const query = queryParams.toString();
+    return this.request(
+      `/api/mechanics/${mechanicId}/work${query ? `?${query}` : ''}`,
+      { method: 'GET' }
+    );
   }
 }
 
