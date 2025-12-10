@@ -11,8 +11,12 @@ import clientsES from './locales/es/clients.json';
 import mechanicsES from './locales/es/mechanics.json';
 import workshopsES from './locales/es/workshops.json';
 import authorizedPointsES from './locales/es/authorized_points.json';
+import expressServiceES from './locales/es/express_service.json';
+import publicFormES from './locales/es/public_form.json';
+import repairRequestsES from './locales/es/repair_requests.json';
 import toastsES from './locales/es/toasts.json';
 import vinES from './locales/es/vin.json';
+import trackRepairES from './locales/es/track_repair.json';
 
 import commonEN from './locales/en/common.json';
 import authEN from './locales/en/auth.json';
@@ -23,8 +27,12 @@ import clientsEN from './locales/en/clients.json';
 import mechanicsEN from './locales/en/mechanics.json';
 import workshopsEN from './locales/en/workshops.json';
 import authorizedPointsEN from './locales/en/authorized_points.json';
+import expressServiceEN from './locales/en/express_service.json';
+import publicFormEN from './locales/en/public_form.json';
+import repairRequestsEN from './locales/en/repair_requests.json';
 import toastsEN from './locales/en/toasts.json';
 import vinEN from './locales/en/vin.json';
+import trackRepairEN from './locales/en/track_repair.json';
 
 const resources = {
   es: {
@@ -37,8 +45,12 @@ const resources = {
     mechanics: mechanicsES,
     workshops: workshopsES,
     authorized_points: authorizedPointsES,
+    express_service: expressServiceES,
+    public_form: publicFormES,
+    repair_requests: repairRequestsES,
     toasts: toastsES,
     vin: vinES,
+    track_repair: trackRepairES,
   },
   en: {
     common: commonEN,
@@ -50,8 +62,12 @@ const resources = {
     mechanics: mechanicsEN,
     workshops: workshopsEN,
     authorized_points: authorizedPointsEN,
+    express_service: expressServiceEN,
+    public_form: publicFormEN,
+    repair_requests: repairRequestsEN,
     toasts: toastsEN,
     vin: vinEN,
+    track_repair: trackRepairEN,
   },
 };
 
@@ -62,7 +78,7 @@ i18n
     resources,
     supportedLngs: ['en', 'es'],
     fallbackLng: 'es',
-    ns: ['common', 'auth', 'dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'toasts', 'vin'],
+    ns: ['common', 'auth', 'dashboard', 'repairs', 'parts', 'clients', 'mechanics', 'workshops', 'authorized_points', 'express_service', 'public_form', 'repair_requests', 'toasts', 'vin', 'track_repair'],
     defaultNS: 'common',
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],

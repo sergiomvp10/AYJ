@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import List, Dict, Optional
+from collections import deque, defaultdict
 import uuid
 import urllib.request
 import json
 import re
 import time
+import threading
 
 from app.models import (
     UserCreate, UserLogin, UserResponse, Token, TokenData,
@@ -17,6 +19,9 @@ from app.models import (
     RepairCreate, RepairUpdate, RepairResponse, Repair, RepairStatus,
     AuthorizedPointCreate, AuthorizedPointResponse, AuthorizedPoint,
     PartCreate, PartUpdate, PartResponse, Part, PartStatus,
+    ExpressServiceCreate, ExpressServiceUpdate, ExpressServiceResponse, ExpressService,
+    ExpressServicePriority, ExpressServiceStatus,
+    RepairRequestCreate, RepairRequestResponse, RepairRequest, RepairRequestStatus,
     User, UserRole, VinDecoded, VinEngineInfo
 )
 from app.auth import (
@@ -28,13 +33,37 @@ from app.database import db
 
 app = FastAPI(title="AYJ Auto Repair Platform")
 
+ALLOWED_ORIGINS = [
+    "https://repo-access-app-inch4qir.devinapps.com",
+    "http://localhost:5173",
+    "http://localhost:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["POST", "GET", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+RATE_LIMIT = 3  # requests
+WINDOW_SEC = 3600  # per hour
+_ip_buckets = defaultdict(deque)
+_rl_lock = threading.Lock()
+
+def rate_limit_public(request: Request):
+    """Rate limit dependency for public endpoints"""
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or request.client.host
+    now = time.time()
+    with _rl_lock:
+        dq = _ip_buckets[ip]
+        while dq and now - dq[0] > WINDOW_SEC:
+            dq.popleft()
+        if len(dq) >= RATE_LIMIT:
+            raise HTTPException(status_code=429, detail="Too many requests, try later.")
+        dq.append(now)
+    return None
 
 vin_cache: Dict[str, dict] = {}
 VIN_CACHE_TTL = 7 * 24 * 60 * 60  # 7 days in seconds
@@ -42,6 +71,17 @@ VIN_CACHE_TTL = 7 * 24 * 60 * 60  # 7 days in seconds
 @app.get("/healthz")
 async def healthz():
     return {"status": "ok"}
+
+@app.get("/api/db_info")
+async def db_info():
+    """Diagnostic endpoint to check which database engine is being used"""
+    import os
+    from app.database import db_engine
+    return {
+        "engine": db_engine,
+        "database_url_present": bool(os.getenv("DATABASE_URL")),
+        "production_mode": bool(os.getenv("FLY_APP_NAME"))
+    }
 
 @app.post("/api/auth/register", response_model=UserResponse)
 async def register(user_data: UserCreate):
@@ -263,6 +303,147 @@ async def get_mechanic(mechanic_id: str, current_user: TokenData = Depends(requi
         created_at=mechanic.created_at
     )
 
+@app.get("/api/mechanics/{mechanic_id}/work")
+async def get_mechanic_work(
+    mechanic_id: str,
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None,
+    status: Optional[str] = None,
+    type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    current_user: TokenData = Depends(require_admin)
+):
+    """Get unified work history for a mechanic (repairs + express services)"""
+    mechanic = db.get_mechanic(mechanic_id)
+    if not mechanic:
+        raise HTTPException(status_code=404, detail="Mechanic not found")
+    
+    from_dt = None
+    to_dt = None
+    if from_date:
+        try:
+            from_dt = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+        except:
+            pass
+    if to_date:
+        try:
+            to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+        except:
+            pass
+    
+    if not from_dt:
+        from_dt = datetime.now() - timedelta(days=30)
+    if not to_dt:
+        to_dt = datetime.now()
+    
+    all_repairs = db.get_repairs_by_mechanic(mechanic_id)
+    
+    all_express = [s for s in db.get_all_express_services() if s.mechanic_id == mechanic_id]
+    
+    items = []
+    
+    for repair in all_repairs:
+        event_date = repair.completed_date if repair.completed_date else repair.created_at
+        
+        if event_date < from_dt or event_date > to_dt:
+            continue
+        
+        if status and status != 'all':
+            if status == 'assigned' and repair.status != RepairStatus.ASSIGNED:
+                continue
+            elif status == 'in_progress' and repair.status not in [RepairStatus.IN_PROGRESS, RepairStatus.WAITING_PARTS]:
+                continue
+            elif status == 'completed' and repair.status != RepairStatus.COMPLETED:
+                continue
+        
+        if type and type != 'all' and type != 'repair':
+            continue
+        
+        client = db.get_client(repair.client_id)
+        client_name = None
+        if client:
+            client_user = db.get_user_by_id(client.user_id)
+            client_name = client_user.name if client_user else None
+        
+        items.append({
+            'id': repair.id,
+            'type': 'repair',
+            'status': repair.status.value,
+            'event_date': event_date.isoformat(),
+            'created_at': repair.created_at.isoformat(),
+            'completed_at': repair.completed_date.isoformat() if repair.completed_date else None,
+            'vehicle_info': repair.vehicle_info,
+            'client_name': client_name,
+            'labor_cost': repair.labor_cost,
+            'total_charged': repair.amount_charged,
+        })
+    
+    for service in all_express:
+        event_date = service.completed_at if service.completed_at else service.created_at
+        
+        if event_date < from_dt or event_date > to_dt:
+            continue
+        
+        if status and status != 'all':
+            if status == 'assigned' and service.status != ExpressServiceStatus.ASSIGNED:
+                continue
+            elif status == 'in_progress' and service.status not in [ExpressServiceStatus.IN_PROGRESS, ExpressServiceStatus.EN_ROUTE]:
+                continue
+            elif status == 'completed' and service.status != ExpressServiceStatus.COMPLETED:
+                continue
+        
+        if type and type != 'all' and type != 'express':
+            continue
+        
+        client = db.get_client(service.client_id)
+        client_name = None
+        if client:
+            client_user = db.get_user_by_id(client.user_id)
+            client_name = client_user.name if client_user else None
+        
+        items.append({
+            'id': service.id,
+            'type': 'express',
+            'status': service.status.value,
+            'event_date': event_date.isoformat(),
+            'created_at': service.created_at.isoformat(),
+            'completed_at': service.completed_at.isoformat() if service.completed_at else None,
+            'vehicle_info': service.vehicle_info,
+            'client_name': client_name,
+            'labor_cost': service.cost,  # For express, cost is treated as labor
+            'total_charged': service.cost,
+        })
+    
+    items.sort(key=lambda x: x['event_date'], reverse=True)
+    
+    assigned_count = sum(1 for item in items if item['status'] in ['assigned'])
+    in_progress_count = sum(1 for item in items if item['status'] in ['in_progress', 'waiting_parts', 'en_route'])
+    completed_count = sum(1 for item in items if item['status'] == 'completed')
+    
+    completed_items = [item for item in items if item['status'] == 'completed']
+    total_labor = sum(item['labor_cost'] or 0 for item in completed_items)
+    total_charged = sum(item['total_charged'] or 0 for item in completed_items)
+    
+    total_items = len(items)
+    paginated_items = items[offset:offset + limit]
+    
+    return {
+        'items': paginated_items,
+        'summary': {
+            'assigned_count': assigned_count,
+            'in_progress_count': in_progress_count,
+            'completed_count': completed_count,
+            'total_labor': total_labor,
+            'total_charged': total_charged,
+        },
+        'page': {
+            'limit': limit,
+            'offset': offset,
+            'total_estimate': total_items,
+        }
+    }
+
 @app.post("/api/mechanics", response_model=MechanicResponse)
 async def create_mechanic(mechanic_data: MechanicCreate, current_user: TokenData = Depends(require_admin)):
     user = db.get_user_by_id(mechanic_data.user_id)
@@ -447,6 +628,11 @@ async def list_repairs(current_user: TokenData = Depends(get_current_user)):
             scheduled_date=repair.scheduled_date,
             completed_date=repair.completed_date,
             cost=repair.cost,
+            labor_cost=repair.labor_cost,
+            additional_services=repair.additional_services,
+            amount_charged=repair.amount_charged,
+            balance_pending=repair.balance_pending,
+            share_token=repair.share_token,
             created_at=repair.created_at
         ))
     
@@ -489,6 +675,11 @@ async def get_repair(repair_id: str, current_user: TokenData = Depends(get_curre
         scheduled_date=repair.scheduled_date,
         completed_date=repair.completed_date,
         cost=repair.cost,
+        labor_cost=repair.labor_cost,
+        additional_services=repair.additional_services,
+        amount_charged=repair.amount_charged,
+        balance_pending=repair.balance_pending,
+        share_token=repair.share_token,
         created_at=repair.created_at
     )
 
@@ -552,7 +743,12 @@ async def update_repair(repair_id: str, repair_data: RepairUpdate, current_user:
         location=existing_repair.location,
         scheduled_date=repair_data.scheduled_date if repair_data.scheduled_date else existing_repair.scheduled_date,
         completed_date=repair_data.completed_date if repair_data.completed_date else existing_repair.completed_date,
-        cost=repair_data.cost if repair_data.cost else existing_repair.cost,
+        cost=repair_data.cost if repair_data.cost is not None else existing_repair.cost,
+        labor_cost=repair_data.labor_cost if repair_data.labor_cost is not None else existing_repair.labor_cost,
+        additional_services=repair_data.additional_services if repair_data.additional_services is not None else existing_repair.additional_services,
+        amount_charged=existing_repair.amount_charged,
+        balance_pending=existing_repair.balance_pending,
+        share_token=existing_repair.share_token,
         created_at=existing_repair.created_at
     )
     
@@ -589,6 +785,11 @@ async def update_repair(repair_id: str, repair_data: RepairUpdate, current_user:
         scheduled_date=updated_repair.scheduled_date,
         completed_date=updated_repair.completed_date,
         cost=updated_repair.cost,
+        labor_cost=updated_repair.labor_cost,
+        additional_services=updated_repair.additional_services,
+        amount_charged=updated_repair.amount_charged,
+        balance_pending=updated_repair.balance_pending,
+        share_token=updated_repair.share_token,
         created_at=updated_repair.created_at
     )
 
@@ -611,6 +812,9 @@ async def update_repair_status(repair_id: str, status: RepairStatus, current_use
         scheduled_date=existing_repair.scheduled_date,
         completed_date=datetime.utcnow() if status == RepairStatus.COMPLETED else existing_repair.completed_date,
         cost=existing_repair.cost,
+        amount_charged=existing_repair.amount_charged,
+        balance_pending=existing_repair.balance_pending,
+        share_token=existing_repair.share_token,
         created_at=existing_repair.created_at
     )
     
@@ -647,6 +851,11 @@ async def update_repair_status(repair_id: str, status: RepairStatus, current_use
         scheduled_date=updated_repair.scheduled_date,
         completed_date=updated_repair.completed_date,
         cost=updated_repair.cost,
+        labor_cost=updated_repair.labor_cost,
+        additional_services=updated_repair.additional_services,
+        amount_charged=updated_repair.amount_charged,
+        balance_pending=updated_repair.balance_pending,
+        share_token=updated_repair.share_token,
         created_at=updated_repair.created_at
     )
 
@@ -718,8 +927,8 @@ async def list_parts_for_repair(repair_id: str, current_user: TokenData = Depend
     parts = db.get_parts_by_repair(repair_id)
     result = []
     for part in parts:
-        supplier_name = None
-        if part.supplier_id:
+        supplier_name = part.supplier_name
+        if not supplier_name and part.supplier_id:
             supplier = db.get_authorized_point(part.supplier_id)
             supplier_name = supplier.name if supplier else None
         
@@ -731,9 +940,9 @@ async def list_parts_for_repair(repair_id: str, current_user: TokenData = Depend
             supplier_name=supplier_name,
             status=part.status,
             ordered_online=part.ordered_online,
+            in_store=part.in_store,
             estimated_arrival=part.estimated_arrival,
             cost=part.cost,
-            notes=part.notes,
             created_at=part.created_at
         ))
     return result
@@ -755,18 +964,19 @@ async def create_part(part_data: PartCreate, current_user: TokenData = Depends(r
         repair_id=part_data.repair_id,
         name=part_data.name,
         supplier_id=part_data.supplier_id,
+        supplier_name=part_data.supplier_name,
         status=PartStatus.PENDING,
         ordered_online=part_data.ordered_online,
+        in_store=part_data.in_store,
         estimated_arrival=part_data.estimated_arrival,
         cost=part_data.cost,
-        notes=part_data.notes,
         created_at=datetime.utcnow()
     )
     
     db.create_part(part)
     
-    supplier_name = None
-    if part.supplier_id:
+    supplier_name = part.supplier_name
+    if not supplier_name and part.supplier_id:
         supplier = db.get_authorized_point(part.supplier_id)
         supplier_name = supplier.name if supplier else None
     
@@ -778,9 +988,9 @@ async def create_part(part_data: PartCreate, current_user: TokenData = Depends(r
         supplier_name=supplier_name,
         status=part.status,
         ordered_online=part.ordered_online,
+        in_store=part.in_store,
         estimated_arrival=part.estimated_arrival,
         cost=part.cost,
-        notes=part.notes,
         created_at=part.created_at
     )
 
@@ -800,18 +1010,19 @@ async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenDa
         repair_id=existing_part.repair_id,
         name=part_data.name if part_data.name is not None else existing_part.name,
         supplier_id=part_data.supplier_id if part_data.supplier_id is not None else existing_part.supplier_id,
+        supplier_name=part_data.supplier_name if part_data.supplier_name is not None else existing_part.supplier_name,
         status=part_data.status if part_data.status is not None else existing_part.status,
         ordered_online=part_data.ordered_online if part_data.ordered_online is not None else existing_part.ordered_online,
+        in_store=part_data.in_store if part_data.in_store is not None else existing_part.in_store,
         estimated_arrival=part_data.estimated_arrival if part_data.estimated_arrival is not None else existing_part.estimated_arrival,
         cost=part_data.cost if part_data.cost is not None else existing_part.cost,
-        notes=part_data.notes if part_data.notes is not None else existing_part.notes,
         created_at=existing_part.created_at
     )
     
     db.update_part(part_id, updated_part)
     
-    supplier_name = None
-    if updated_part.supplier_id:
+    supplier_name = updated_part.supplier_name
+    if not supplier_name and updated_part.supplier_id:
         supplier = db.get_authorized_point(updated_part.supplier_id)
         supplier_name = supplier.name if supplier else None
     
@@ -823,9 +1034,9 @@ async def update_part(part_id: str, part_data: PartUpdate, current_user: TokenDa
         supplier_name=supplier_name,
         status=updated_part.status,
         ordered_online=updated_part.ordered_online,
+        in_store=updated_part.in_store,
         estimated_arrival=updated_part.estimated_arrival,
         cost=updated_part.cost,
-        notes=updated_part.notes,
         created_at=updated_part.created_at
     )
 
@@ -834,6 +1045,398 @@ async def delete_part(part_id: str, current_user: TokenData = Depends(require_ad
     if not db.delete_part(part_id):
         raise HTTPException(status_code=404, detail="Part not found")
     return {"message": "Part deleted successfully"}
+
+@app.get("/api/express-services", response_model=List[ExpressServiceResponse])
+async def list_express_services(current_user: TokenData = Depends(get_current_user)):
+    services = db.get_all_express_services()
+    result = []
+    for service in services:
+        client = db.get_client(service.client_id)
+        if not client:
+            continue
+        user = db.get_user_by_id(client.user_id)
+        if not user:
+            continue
+        
+        mechanic_name = None
+        if service.mechanic_id:
+            mechanic = db.get_mechanic(service.mechanic_id)
+            if mechanic:
+                mechanic_user = db.get_user_by_id(mechanic.user_id)
+                if mechanic_user:
+                    mechanic_name = mechanic_user.name
+        
+        result.append(ExpressServiceResponse(
+            id=service.id,
+            client_id=service.client_id,
+            client_name=user.name,
+            mechanic_id=service.mechanic_id,
+            mechanic_name=mechanic_name,
+            vehicle_info=service.vehicle_info,
+            emergency_type=service.emergency_type,
+            description=service.description,
+            priority=service.priority,
+            status=service.status,
+            location=service.location,
+            contact_phone=service.contact_phone,
+            estimated_arrival=service.estimated_arrival,
+            started_at=service.started_at,
+            completed_at=service.completed_at,
+            cost=service.cost,
+            created_at=service.created_at
+        ))
+    return result
+
+@app.get("/api/express-services/{service_id}", response_model=ExpressServiceResponse)
+async def get_express_service(service_id: str, current_user: TokenData = Depends(get_current_user)):
+    service = db.get_express_service(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Express service not found")
+    
+    client = db.get_client(service.client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    user = db.get_user_by_id(client.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    mechanic_name = None
+    if service.mechanic_id:
+        mechanic = db.get_mechanic(service.mechanic_id)
+        if mechanic:
+            mechanic_user = db.get_user_by_id(mechanic.user_id)
+            if mechanic_user:
+                mechanic_name = mechanic_user.name
+    
+    return ExpressServiceResponse(
+        id=service.id,
+        client_id=service.client_id,
+        client_name=user.name,
+        mechanic_id=service.mechanic_id,
+        mechanic_name=mechanic_name,
+        vehicle_info=service.vehicle_info,
+        emergency_type=service.emergency_type,
+        description=service.description,
+        priority=service.priority,
+        status=service.status,
+        location=service.location,
+        contact_phone=service.contact_phone,
+        estimated_arrival=service.estimated_arrival,
+        started_at=service.started_at,
+        completed_at=service.completed_at,
+        cost=service.cost,
+        created_at=service.created_at
+    )
+
+@app.post("/api/express-services", response_model=ExpressServiceResponse)
+async def create_express_service(service_data: ExpressServiceCreate, current_user: TokenData = Depends(require_admin)):
+    client = db.get_client(service_data.client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    service = ExpressService(
+        id=str(uuid.uuid4()),
+        client_id=service_data.client_id,
+        mechanic_id=None,
+        vehicle_info=service_data.vehicle_info,
+        emergency_type=service_data.emergency_type,
+        description=service_data.description,
+        priority=service_data.priority,
+        status=ExpressServiceStatus.PENDING,
+        location=service_data.location,
+        contact_phone=service_data.contact_phone,
+        estimated_arrival=None,
+        started_at=None,
+        completed_at=None,
+        cost=None,
+        created_at=datetime.utcnow()
+    )
+    
+    created_service = db.create_express_service(service)
+    user = db.get_user_by_id(client.user_id)
+    
+    return ExpressServiceResponse(
+        id=created_service.id,
+        client_id=created_service.client_id,
+        client_name=user.name if user else "Unknown",
+        mechanic_id=created_service.mechanic_id,
+        mechanic_name=None,
+        vehicle_info=created_service.vehicle_info,
+        emergency_type=created_service.emergency_type,
+        description=created_service.description,
+        priority=created_service.priority,
+        status=created_service.status,
+        location=created_service.location,
+        contact_phone=created_service.contact_phone,
+        estimated_arrival=created_service.estimated_arrival,
+        started_at=created_service.started_at,
+        completed_at=created_service.completed_at,
+        cost=created_service.cost,
+        created_at=created_service.created_at
+    )
+
+@app.patch("/api/express-services/{service_id}", response_model=ExpressServiceResponse)
+async def update_express_service(service_id: str, service_update: ExpressServiceUpdate, current_user: TokenData = Depends(require_admin)):
+    service = db.get_express_service(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Express service not found")
+    
+    if service_update.mechanic_id is not None:
+        service.mechanic_id = service_update.mechanic_id
+    if service_update.status is not None:
+        service.status = service_update.status
+    if service_update.estimated_arrival is not None:
+        service.estimated_arrival = service_update.estimated_arrival
+    if service_update.started_at is not None:
+        service.started_at = service_update.started_at
+    if service_update.completed_at is not None:
+        service.completed_at = service_update.completed_at
+    if service_update.cost is not None:
+        service.cost = service_update.cost
+    
+    updated_service = db.update_express_service(service_id, service)
+    if not updated_service:
+        raise HTTPException(status_code=404, detail="Express service not found")
+    
+    client = db.get_client(updated_service.client_id)
+    user = db.get_user_by_id(client.user_id) if client else None
+    
+    mechanic_name = None
+    if updated_service.mechanic_id:
+        mechanic = db.get_mechanic(updated_service.mechanic_id)
+        if mechanic:
+            mechanic_user = db.get_user_by_id(mechanic.user_id)
+            if mechanic_user:
+                mechanic_name = mechanic_user.name
+    
+    return ExpressServiceResponse(
+        id=updated_service.id,
+        client_id=updated_service.client_id,
+        client_name=user.name if user else "Unknown",
+        mechanic_id=updated_service.mechanic_id,
+        mechanic_name=mechanic_name,
+        vehicle_info=updated_service.vehicle_info,
+        emergency_type=updated_service.emergency_type,
+        description=updated_service.description,
+        priority=updated_service.priority,
+        status=updated_service.status,
+        location=updated_service.location,
+        contact_phone=updated_service.contact_phone,
+        estimated_arrival=updated_service.estimated_arrival,
+        started_at=updated_service.started_at,
+        completed_at=updated_service.completed_at,
+        cost=updated_service.cost,
+        created_at=updated_service.created_at
+    )
+
+@app.delete("/api/express-services/{service_id}")
+async def delete_express_service(service_id: str, current_user: TokenData = Depends(require_admin)):
+    if not db.delete_express_service(service_id):
+        raise HTTPException(status_code=404, detail="Express service not found")
+    return {"message": "Express service deleted successfully"}
+
+@app.post("/api/public/repair-requests", response_model=RepairRequestResponse)
+async def create_public_repair_request(
+    payload: RepairRequestCreate,
+    request: Request,
+    _: None = Depends(rate_limit_public)
+):
+    rid = str(uuid.uuid4())
+    rr = RepairRequest(
+        id=rid,
+        name=payload.name.strip(),
+        email=payload.email,
+        phone=payload.phone.strip(),
+        vehicle_info=payload.vehicle_info.strip(),
+        description=payload.description.strip(),
+        service_type=payload.service_type,
+        location=payload.location.strip(),
+        preferred_datetime=payload.preferred_datetime,
+        is_emergency=payload.is_emergency,
+        status=RepairRequestStatus.NEW,
+        client_id=None,
+        ip=request.headers.get("x-forwarded-for", "").split(",")[0].strip() or request.client.host,
+        user_agent=request.headers.get("user-agent"),
+        created_at=datetime.utcnow(),
+    )
+    db.create_repair_request(rr.model_dump())
+    return RepairRequestResponse(
+        id=rr.id,
+        name=rr.name,
+        email=rr.email,
+        phone=rr.phone,
+        vehicle_info=rr.vehicle_info,
+        description=rr.description,
+        service_type=rr.service_type,
+        location=rr.location,
+        preferred_datetime=rr.preferred_datetime,
+        is_emergency=rr.is_emergency,
+        status=rr.status,
+        client_id=rr.client_id,
+        created_at=rr.created_at
+    )
+
+@app.get("/api/repair-requests", response_model=List[RepairRequestResponse])
+async def list_repair_requests(
+    status: Optional[str] = None,
+    current_user: TokenData = Depends(require_admin)
+):
+    requests = db.get_repair_requests(status)
+    return [
+        RepairRequestResponse(
+            id=req['id'],
+            name=req['name'],
+            email=req['email'],
+            phone=req['phone'],
+            vehicle_info=req['vehicle_info'],
+            description=req['description'],
+            service_type=req['service_type'],
+            location=req['location'],
+            preferred_datetime=req['preferred_datetime'],
+            is_emergency=req['is_emergency'],
+            status=req['status'],
+            client_id=req['client_id'],
+            created_at=req['created_at']
+        )
+        for req in requests
+    ]
+
+@app.get("/api/repair-requests/{request_id}", response_model=RepairRequestResponse)
+async def get_repair_request(request_id: str, current_user: TokenData = Depends(require_admin)):
+    req = db.get_repair_request(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    return RepairRequestResponse(
+        id=req.id,
+        name=req.name,
+        email=req.email,
+        phone=req.phone,
+        vehicle_info=req.vehicle_info,
+        description=req.description,
+        service_type=req.service_type,
+        location=req.location,
+        preferred_datetime=req.preferred_datetime,
+        is_emergency=req.is_emergency,
+        status=req.status,
+        client_id=req.client_id,
+        created_at=req.created_at
+    )
+
+@app.post("/api/repair-requests/{request_id}/convert")
+async def convert_repair_request(
+    request_id: str,
+    mode: str = "repair",
+    current_user: TokenData = Depends(require_admin)
+):
+    req = db.get_repair_request(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    
+    if req.status != RepairRequestStatus.NEW:
+        raise HTTPException(status_code=409, detail="Request already processed")
+    
+    existing_client = db.get_client_by_email(req.email)
+    
+    if existing_client:
+        client_id = existing_client.id
+    else:
+        user_id = str(uuid.uuid4())
+        random_password = str(uuid.uuid4())
+        user = User(
+            id=user_id,
+            email=req.email,
+            password_hash=get_password_hash(random_password),
+            name=req.name,
+            role=UserRole.CLIENTE,
+            phone=req.phone,
+            created_at=datetime.utcnow()
+        )
+        db.create_user(user)
+        
+        client_id = str(uuid.uuid4())
+        client = Client(
+            id=client_id,
+            user_id=user_id,
+            city="",
+            address=req.location,
+            vehicle_info=req.vehicle_info,
+            created_at=datetime.utcnow()
+        )
+        db.create_client(client)
+    
+    if mode == "express":
+        service_id = str(uuid.uuid4())
+        priority = ExpressServicePriority.URGENT if req.is_emergency else ExpressServicePriority.HIGH
+        express_service = ExpressService(
+            id=service_id,
+            client_id=client_id,
+            mechanic_id=None,
+            vehicle_info=req.vehicle_info,
+            emergency_type="Emergency Repair",
+            description=req.description,
+            priority=priority,
+            status=ExpressServiceStatus.PENDING,
+            location=req.location,
+            contact_phone=req.phone,
+            estimated_arrival=None,
+            started_at=None,
+            completed_at=None,
+            cost=None,
+            created_at=datetime.utcnow()
+        )
+        db.create_express_service(express_service)
+        entity_id = service_id
+        entity_type = "express_service"
+    else:
+        repair_id = str(uuid.uuid4())
+        repair = Repair(
+            id=repair_id,
+            client_id=client_id,
+            mechanic_id=None,
+            workshop_id=None,
+            vehicle_info=req.vehicle_info,
+            issue_description=req.description,
+            status=RepairStatus.PENDING,
+            service_type=req.service_type,
+            location=req.location,
+            scheduled_date=req.preferred_datetime,
+            completed_date=None,
+            cost=None,
+            amount_charged=None,
+            balance_pending=None,
+            created_at=datetime.utcnow()
+        )
+        db.create_repair(repair)
+        entity_id = repair_id
+        entity_type = "repair"
+    
+    db.update_repair_request_status(request_id, RepairRequestStatus.CONVERTED, client_id)
+    
+    return {
+        "message": f"Request converted to {entity_type} successfully",
+        "entity_id": entity_id,
+        "entity_type": entity_type,
+        "client_id": client_id,
+        "client_existed": existing_client is not None
+    }
+
+@app.post("/api/repair-requests/{request_id}/reject")
+async def reject_repair_request(request_id: str, current_user: TokenData = Depends(require_admin)):
+    req = db.get_repair_request(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    
+    if req.status != RepairRequestStatus.NEW:
+        raise HTTPException(status_code=409, detail="Request already processed")
+    
+    db.update_repair_request_status(request_id, RepairRequestStatus.REJECTED)
+    return {"message": "Request rejected successfully"}
+
+@app.delete("/api/repair-requests/{request_id}")
+async def delete_repair_request(request_id: str, current_user: TokenData = Depends(require_admin)):
+    if not db.delete_repair_request(request_id):
+        raise HTTPException(status_code=404, detail="Repair request not found")
+    return {"message": "Repair request deleted successfully"}
 
 @app.get("/api/vin/decode/{vin}", response_model=VinDecoded)
 async def decode_vin(vin: str):
@@ -942,3 +1545,78 @@ async def decode_vin(vin: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error decoding VIN: {str(e)}"
         )
+
+@app.post("/api/repairs/{repair_id}/generate-share-token")
+async def generate_share_token(repair_id: str, current_user: TokenData = Depends(require_admin)):
+    repair = db.get_repair(repair_id)
+    if not repair:
+        raise HTTPException(status_code=404, detail="Repair not found")
+    
+    # Generate a unique share token if it doesn't exist
+    if not repair.share_token:
+        share_token = str(uuid.uuid4())
+        db.set_repair_share_token(repair_id, share_token)
+    else:
+        share_token = repair.share_token
+    
+    return {"share_token": share_token, "share_url": f"/track/{share_token}"}
+
+@app.get("/api/public/track/{share_token}")
+async def track_repair_by_token(share_token: str):
+    """Public endpoint to view repair status by share token (no authentication required)"""
+    repair = db.get_repair_by_share_token(share_token)
+    if not repair:
+        raise HTTPException(status_code=404, detail="Repair not found")
+    
+    client = db.get_client(repair.client_id)
+    client_user = db.get_user_by_id(client.user_id) if client else None
+    
+    mechanic_name = None
+    mechanic_phone = None
+    if repair.mechanic_id:
+        mechanic = db.get_mechanic(repair.mechanic_id)
+        if mechanic:
+            mechanic_user = db.get_user_by_id(mechanic.user_id)
+            if mechanic_user:
+                mechanic_name = mechanic_user.name
+                mechanic_phone = mechanic_user.phone
+    
+    # Get parts for this repair
+    parts_list = db.get_parts_by_repair(repair.id)
+    parts = []
+    for part in parts_list:
+        supplier_name = None
+        if part.supplier_id:
+            supplier = db.get_authorized_point(part.supplier_id)
+            if supplier:
+                supplier_name = supplier.name
+        
+        parts.append({
+            "id": part.id,
+            "name": part.name,
+            "status": part.status,
+            "ordered_online": bool(part.ordered_online),
+            "in_store": bool(part.in_store),
+            "supplier_name": supplier_name,
+            "estimated_arrival": part.estimated_arrival,
+            "cost": part.cost
+        })
+    
+    return {
+        "id": repair.id,
+        "client_name": client_user.name if client_user else "Unknown",
+        "client_email": client_user.email if client_user else None,
+        "client_phone": client_user.phone if client_user else None,
+        "vehicle_info": repair.vehicle_info,
+        "issue_description": repair.issue_description,
+        "status": repair.status,
+        "service_type": repair.service_type,
+        "location": repair.location,
+        "mechanic_name": mechanic_name,
+        "mechanic_phone": mechanic_phone,
+        "scheduled_date": repair.scheduled_date,
+        "completed_date": repair.completed_date,
+        "cost": repair.cost,
+        "created_at": repair.created_at,
+        "parts": parts
+    }

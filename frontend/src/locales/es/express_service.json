@@ -1,0 +1,50 @@
+{
+  "title": "Servicio Express",
+  "description": "Servicios de emergencia que requieren atención inmediata",
+  "add_button": "Crear Servicio",
+  "table": {
+    "headers": {
+      "client": "Cliente",
+      "vehicle": "Vehículo",
+      "emergency_type": "Tipo de Emergencia",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "location": "Domicilio",
+      "mechanic": "Mecánico",
+      "created": "Creado",
+      "actions": "Acciones"
+    }
+  },
+  "dialog": {
+    "title": "Crear Servicio Express",
+    "description": "Registra un servicio de emergencia que requiere atención inmediata",
+    "search_client": "Buscar Cliente",
+    "search_placeholder": "Buscar por nombre o email...",
+    "no_results": "No se encontraron clientes",
+    "vehicle_label": "Información del Vehículo",
+    "vehicle_placeholder": "2020 Toyota Camry",
+    "emergency_type_label": "Tipo de Emergencia",
+    "emergency_type_placeholder": "Batería descargada, Llanta ponchada, etc.",
+    "description_label": "Descripción",
+    "description_placeholder": "Describe el problema en detalle...",
+    "priority_label": "Prioridad",
+    "location_label": "Domicilio",
+    "location_placeholder": "Dirección exacta de la emergencia",
+    "contact_phone_label": "Teléfono de Contacto",
+    "contact_phone_placeholder": "+1234567890",
+    "create_button": "Crear Servicio Express"
+  },
+  "priority": {
+    "urgent": "Urgente",
+    "high": "Alta",
+    "critical": "Crítica"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "assigned": "Asignado",
+    "en_route": "En Ruta",
+    "in_progress": "En Progreso",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  }
+}

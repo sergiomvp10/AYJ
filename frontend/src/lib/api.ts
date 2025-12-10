@@ -61,8 +61,11 @@ export interface Repair {
   scheduled_date?: string;
   completed_date?: string;
   cost?: number;
+  labor_cost?: number;
+  additional_services?: number;
   amount_charged?: number;
   balance_pending?: number;
+  share_token?: string;
   created_at: string;
 }
 
@@ -84,9 +87,9 @@ export interface Part {
   supplier_name?: string;
   status: 'pending' | 'ordered' | 'received';
   ordered_online: boolean;
+  in_store: boolean;
   estimated_arrival?: string;
   cost?: number;
-  notes?: string;
   created_at: string;
 }
 
@@ -110,6 +113,73 @@ export interface VinDecoded {
   engine: VinEngineInfo;
   plant_country?: string;
   summary: string;
+}
+
+export interface ExpressService {
+  id: string;
+  client_id: string;
+  client_name: string;
+  mechanic_id?: string;
+  mechanic_name?: string;
+  vehicle_info: string;
+  emergency_type: string;
+  description: string;
+  priority: 'urgent' | 'high' | 'critical';
+  status: 'pending' | 'assigned' | 'en_route' | 'in_progress' | 'completed' | 'cancelled';
+  location: string;
+  contact_phone: string;
+  estimated_arrival?: string;
+  started_at?: string;
+  completed_at?: string;
+  cost?: number;
+  created_at: string;
+}
+
+export interface RepairRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  vehicle_info: string;
+  description: string;
+  service_type: string;
+  location: string;
+  preferred_datetime?: string;
+  is_emergency: boolean;
+  status: 'new' | 'converted' | 'rejected';
+  client_id?: string;
+  created_at: string;
+}
+
+export interface MechanicWorkItem {
+  id: string;
+  type: 'repair' | 'express';
+  status: string;
+  event_date: string;
+  created_at: string;
+  completed_at?: string;
+  vehicle_info: string;
+  client_name?: string;
+  labor_cost?: number;
+  total_charged?: number;
+}
+
+export interface MechanicWorkSummary {
+  assigned_count: number;
+  in_progress_count: number;
+  completed_count: number;
+  total_labor: number;
+  total_charged: number;
+}
+
+export interface MechanicWorkResponse {
+  items: MechanicWorkItem[];
+  summary: MechanicWorkSummary;
+  page: {
+    limit: number;
+    offset: number;
+    total_estimate: number;
+  };
 }
 
 class ApiClient {
@@ -142,6 +212,7 @@ class ApiClient {
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -288,6 +359,8 @@ class ApiClient {
     scheduled_date?: string;
     completed_date?: string;
     cost?: number;
+    labor_cost?: number;
+    additional_services?: number;
     amount_charged?: number;
     balance_pending?: number;
   }) {
@@ -347,10 +420,11 @@ class ApiClient {
     repair_id: string;
     name: string;
     supplier_id?: string;
+    supplier_name?: string;
     ordered_online: boolean;
+    in_store: boolean;
     estimated_arrival?: string;
     cost?: number;
-    notes?: string;
   }) {
     return this.request('/api/parts', {
       method: 'POST',
@@ -363,9 +437,9 @@ class ApiClient {
     supplier_id?: string;
     status?: string;
     ordered_online?: boolean;
+    in_store?: boolean;
     estimated_arrival?: string;
     cost?: number;
-    notes?: string;
   }) {
     return this.request(`/api/parts/${id}`, {
       method: 'PATCH',
@@ -381,6 +455,146 @@ class ApiClient {
 
   async decodeVin(vin: string): Promise<VinDecoded> {
     return this.request(`/api/vin/decode/${encodeURIComponent(vin.toUpperCase().trim())}`);
+  }
+
+  async getExpressServices(): Promise<ExpressService[]> {
+    return this.request('/api/express-services');
+  }
+
+  async createExpressService(data: {
+    client_id: string;
+    vehicle_info: string;
+    emergency_type: string;
+    description: string;
+    priority: string;
+    location: string;
+    contact_phone: string;
+  }) {
+    return this.request('/api/express-services', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateExpressService(id: string, data: {
+    mechanic_id?: string;
+    status?: string;
+    estimated_arrival?: string;
+    started_at?: string;
+    completed_at?: string;
+    cost?: number;
+  }) {
+    return this.request(`/api/express-services/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteExpressService(id: string) {
+    return this.request(`/api/express-services/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createPublicRepairRequest(data: {
+    name: string;
+    email: string;
+    phone: string;
+    vehicle_info: string;
+    description: string;
+    service_type: string;
+    location: string;
+    preferred_datetime?: string;
+    is_emergency: boolean;
+  }): Promise<RepairRequest> {
+    const response = await fetch(`${API_URL}/api/public/repair-requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'An error occurred' }));
+      throw new Error(error.detail || 'An error occurred');
+    }
+
+    return response.json();
+  }
+
+  async getRepairRequests(status?: string): Promise<RepairRequest[]> {
+    const url = status ? `/api/repair-requests?status=${status}` : '/api/repair-requests';
+    return this.request(url);
+  }
+
+  async getRepairRequest(id: string): Promise<RepairRequest> {
+    return this.request(`/api/repair-requests/${id}`);
+  }
+
+  async convertRepairRequest(id: string, mode: 'repair' | 'express' = 'repair') {
+    return this.request(`/api/repair-requests/${id}/convert?mode=${mode}`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectRepairRequest(id: string) {
+    return this.request(`/api/repair-requests/${id}/reject`, {
+      method: 'POST',
+    });
+  }
+
+  async deleteRepairRequest(id: string) {
+    return this.request(`/api/repair-requests/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async generateShareToken(repairId: string): Promise<{ share_token: string; share_url: string }> {
+    return this.request(`/api/repairs/${repairId}/generate-share-token`, {
+      method: 'POST',
+    });
+  }
+
+  async trackRepairByToken(token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/public/track/${token}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Repair not found');
+    }
+
+    return response.json();
+  }
+
+  async getMechanicWork(
+    mechanicId: string,
+    params?: {
+      from_date?: string;
+      to_date?: string;
+      status?: string;
+      type?: string;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<MechanicWorkResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.from_date) queryParams.append('from_date', params.from_date);
+    if (params?.to_date) queryParams.append('to_date', params.to_date);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    
+    const query = queryParams.toString();
+    return this.request(
+      `/api/mechanics/${mechanicId}/work${query ? `?${query}` : ''}`,
+      { method: 'GET' }
+    );
   }
 }
 

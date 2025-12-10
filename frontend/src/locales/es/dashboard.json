@@ -7,13 +7,33 @@
     "clients": "Clientes",
     "mechanics": "Mecánicos",
     "workshops": "Talleres",
-    "authorized_points": "Puntos Autorizados"
+    "authorized_points": "Tienda Autopartes",
+    "express_service": "Servicio Express"
   },
   "stats": {
     "clients": "Clientes",
     "mechanics": "Mecánicos",
     "workshops": "Talleres",
     "repairs": "Reparaciones",
-    "authorized_points": "Puntos Autorizados"
+    "authorized_points": "Tienda Autopartes",
+    "express_service": "Servicio Express"
+  },
+  "sections": {
+    "repairs": {
+      "title": "Reparaciones",
+      "description": "Lista de todas las reparaciones en el sistema"
+    },
+    "clients": {
+      "title": "Clientes",
+      "description": "Lista de todos los clientes registrados"
+    },
+    "mechanics": {
+      "title": "Mecánicos",
+      "description": "Lista de todos los mecánicos registrados"
+    },
+    "workshops": {
+      "title": "Talleres",
+      "description": "Lista de todos los talleres registrados"
+    }
   }
 }

@@ -1,10 +1,16 @@
 {
   "title": "VIN Decoder",
-  "input_label": "VIN (Vehicle Identification Number)",
-  "input_placeholder": "Enter 17 characters",
+  "input_label": "VIN NUMBER",
+  "input_placeholder": "",
   "decode_button": "Decode",
   "decoding": "Decoding...",
   "clear_button": "Clear",
+  "scan_button": "Scan VIN",
+  "scan_title": "Scan VIN with Camera",
+  "scan_instructions": "Place the vehicle VIN in front of the camera and press 'Capture'",
+  "processing": "Processing...",
+  "capture_button": "Capture",
+  "cancel_button": "Cancel",
   "fields": {
     "make": "Make",
     "model": "Model",

@@ -10,9 +10,11 @@ import { Loader2, X } from 'lucide-react';
 interface VinDecoderInputProps {
   onDecoded: (decoded: VinDecoded) => void;
   className?: string;
+  showLabel?: boolean;
+  showCounter?: boolean;
 }
 
-export function VinDecoderInput({ onDecoded, className }: VinDecoderInputProps) {
+export function VinDecoderInput({ onDecoded, className, showLabel = true, showCounter = true }: VinDecoderInputProps) {
   const { t } = useTranslation(['vin', 'toasts']);
   const { toast } = useToast();
   const [vin, setVin] = useState('');
@@ -67,8 +69,8 @@ export function VinDecoderInput({ onDecoded, className }: VinDecoderInputProps) 
 
   return (
     <div className={className}>
-      <Label htmlFor="vin-input">{t('vin:input_label')}</Label>
-      <div className="flex gap-2 mt-1">
+      {showLabel && <Label htmlFor="vin-input">{t('vin:input_label')}</Label>}
+      <div className={`flex gap-2 ${showLabel ? 'mt-1' : ''}`}>
         <div className="relative flex-1">
           <Input
             id="vin-input"
@@ -104,9 +106,11 @@ export function VinDecoderInput({ onDecoded, className }: VinDecoderInputProps) 
           )}
         </Button>
       </div>
-      <p className="text-sm text-gray-500 mt-1">
-        {vin.length}/17
-      </p>
+      {showCounter && (
+        <p className="text-sm text-gray-500 mt-1">
+          {vin.length}/17
+        </p>
+      )}
     </div>
   );
 }

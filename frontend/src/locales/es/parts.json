@@ -4,17 +4,28 @@
     "title": "Gestionar Piezas",
     "description": "Reparación: {{client}} - {{vehicle}}",
     "add_new": "Agregar Nueva Pieza",
+    "add_new_part": "Agregar Nueva Pieza",
     "name_label": "Nombre de la Pieza *",
     "name_placeholder": "Ej: Filtro de aceite, Pastillas de freno",
     "supplier_label": "Proveedor (opcional)",
+    "supplier_placeholder": "Selecciona un proveedor...",
+    "supplier_search": "Buscar proveedor...",
+    "supplier_no_results": "No se encontraron proveedores",
+    "supplier_use_custom": "Usar \"{{query}}\" como proveedor",
+    "supplier_custom": "Otro (escribir manualmente)",
+    "supplier_custom_placeholder": "Escribe el nombre del proveedor",
+    "no_supplier": "Sin proveedor",
     "supplier_none": "Sin proveedor",
     "ordered_online": "Ordenado en línea",
+    "in_store": "En tienda",
     "arrival_label": "Fecha Estimada de Llegada (opcional)",
     "cost_label": "Costo (opcional)",
     "notes_label": "Notas (opcional)",
     "notes_placeholder": "Notas adicionales sobre la pieza",
     "add_piece": "Agregar Pieza",
+    "add_button": "Agregar Pieza",
     "registered": "Piezas Registradas",
+    "registered_parts": "Piezas Registradas",
     "no_parts": "No hay piezas registradas para esta reparación",
     "table": {
       "headers": {
@@ -27,6 +38,15 @@
         "actions": "Acciones"
       }
     }
+  },
+  "table": {
+    "part": "Pieza",
+    "supplier": "Proveedor",
+    "status": "Estado",
+    "type": "Tipo",
+    "arrival": "Llegada Est.",
+    "cost": "Costo",
+    "actions": "Acciones"
   },
   "status": {
     "pending": "Pendiente",

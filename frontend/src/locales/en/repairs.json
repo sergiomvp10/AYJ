@@ -11,6 +11,7 @@
       "status": "Status",
       "mechanic": "Mechanic",
       "parts": "Parts",
+      "cost": "Cost",
       "actions": "Actions"
     }
   },
@@ -41,7 +42,7 @@
     "service_type_label": "Service Type",
     "service_mobile": "Mobile Mechanic (goes to location)",
     "service_workshop": "Workshop",
-    "location_label": "Location",
+    "location_label": "Address",
     "location_placeholder": "Address where service will be performed",
     "date_label": "Scheduled Date (optional)",
     "time_label": "Scheduled Time (optional)",
@@ -51,5 +52,24 @@
     "amount_charged_label": "Amount Charged (optional)",
     "balance_pending_label": "Balance Pending (optional)",
     "create_button": "Create Repair"
+  },
+  "share_title": "Repair Tracking",
+  "share_text": "Track your repair progress",
+  "share_success": "Tracking link copied to clipboard",
+  "share_manual": "Tracking link generated. Copy the link manually.",
+  "share_copied": "Link copied to clipboard",
+  "share_error": "Error generating tracking link",
+  "share_dialog_title": "Share Tracking Link",
+  "share_dialog_description": "Copy this link to share with the client",
+  "cost_breakdown": {
+    "title": "Cost Breakdown",
+    "details": "Cost Details",
+    "parts_cost": "Parts Cost",
+    "labor_cost": "Labor Cost",
+    "additional_services": "Additional Services",
+    "total_cost": "Total Cost",
+    "payment_status": "Payment Status",
+    "amount_charged": "Amount Charged",
+    "balance_pending": "Balance Pending"
   }
 }

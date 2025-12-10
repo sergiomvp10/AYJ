@@ -1,0 +1,52 @@
+{
+  "title": "Requests",
+  "subtitle": "Customer repair requests",
+  "empty": "No pending requests",
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "vehicle": "Vehicle",
+    "service_type": "Type",
+    "location": "Address",
+    "date": "Requested Date",
+    "emergency": "Emergency",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "new": "New",
+    "converted": "Converted",
+    "rejected": "Rejected"
+  },
+  "service_types": {
+    "mobile": "Mobile",
+    "workshop": "Workshop"
+  },
+  "actions": {
+    "view": "View",
+    "convert": "Convert to Repair",
+    "convert_express": "Convert to Express Service",
+    "reject": "Reject",
+    "delete": "Delete"
+  },
+  "dialog": {
+    "title": "Request Details",
+    "convert_title": "Convert Request",
+    "convert_message": "Do you want to convert this request into a repair or express service?",
+    "convert_repair": "Normal Repair",
+    "convert_express": "Express Service",
+    "reject_title": "Reject Request",
+    "reject_message": "Are you sure you want to reject this request?",
+    "delete_title": "Delete Request",
+    "delete_message": "Are you sure you want to delete this request?"
+  },
+  "toasts": {
+    "convert_success": "Request converted successfully",
+    "convert_error": "Error converting request",
+    "reject_success": "Request rejected",
+    "reject_error": "Error rejecting request",
+    "delete_success": "Request deleted",
+    "delete_error": "Error deleting request"
+  }
+}

@@ -1,4 +1,10 @@
 {
+  "success": "Completed ✓",
+  "error": "Error",
+  "success_title": "Completed ✓",
+  "invalid_cost_values": "Cost values cannot be negative",
+  "cost_breakdown_updated": "Cost breakdown updated successfully",
+  "update_failed": "Update failed",
   "client": {
     "create_success": "Client Added Successfully ✅",
     "create_error": "Error creating client",
@@ -26,6 +32,7 @@
   "repair": {
     "create_success": "Repair created successfully",
     "create_error": "Error creating repair",
+    "status_updated": "Status updated successfully",
     "status_update_success": "Status updated successfully",
     "status_update_error": "Error updating status",
     "delete_success": "Repair deleted successfully",
@@ -44,6 +51,10 @@
     "invalid_format": "Invalid VIN format. Must be 17 characters (no I, O, or Q)",
     "no_data": "No data found for this VIN",
     "service_unavailable": "Decoding service unavailable. Try again later",
-    "decode_error": "Error decoding VIN"
+    "decode_error": "Error decoding VIN",
+    "camera_error": "Could not access camera. Check permissions",
+    "scan_success": "VIN scanned and decoded successfully ✅",
+    "scan_error": "Error processing image. Try again",
+    "no_vin_detected": "No valid VIN detected. Try again with better lighting"
   }
 }

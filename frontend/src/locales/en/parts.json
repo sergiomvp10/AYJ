@@ -4,17 +4,28 @@
     "title": "Manage Parts",
     "description": "Repair: {{client}} - {{vehicle}}",
     "add_new": "Add New Part",
+    "add_new_part": "Add New Part",
     "name_label": "Part Name *",
     "name_placeholder": "Ex: Oil filter, Brake pads",
     "supplier_label": "Supplier (optional)",
+    "supplier_placeholder": "Select a supplier...",
+    "supplier_search": "Search supplier...",
+    "supplier_no_results": "No suppliers found",
+    "supplier_use_custom": "Use \"{{query}}\" as supplier",
+    "supplier_custom": "Other (type manually)",
+    "supplier_custom_placeholder": "Type supplier name",
+    "no_supplier": "No supplier",
     "supplier_none": "No supplier",
     "ordered_online": "Ordered online",
+    "in_store": "In store",
     "arrival_label": "Estimated Arrival Date (optional)",
     "cost_label": "Cost (optional)",
     "notes_label": "Notes (optional)",
     "notes_placeholder": "Additional notes about the part",
     "add_piece": "Add Part",
+    "add_button": "Add Part",
     "registered": "Registered Parts",
+    "registered_parts": "Registered Parts",
     "no_parts": "No parts registered for this repair",
     "table": {
       "headers": {
@@ -27,6 +38,15 @@
         "actions": "Actions"
       }
     }
+  },
+  "table": {
+    "part": "Part",
+    "supplier": "Supplier",
+    "status": "Status",
+    "type": "Type",
+    "arrival": "Est. Arrival",
+    "cost": "Cost",
+    "actions": "Actions"
   },
   "status": {
     "pending": "Pending",

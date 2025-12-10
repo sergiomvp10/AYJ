@@ -1,10 +1,16 @@
 {
   "title": "Decodificador de VIN",
-  "input_label": "VIN (Número de Identificación del Vehículo)",
-  "input_placeholder": "Ingresa 17 caracteres",
+  "input_label": "VIN NUMBER",
+  "input_placeholder": "",
   "decode_button": "Decodificar",
   "decoding": "Decodificando...",
   "clear_button": "Limpiar",
+  "scan_button": "Escanear VIN",
+  "scan_title": "Escanear VIN con Cámara",
+  "scan_instructions": "Coloca el VIN del vehículo frente a la cámara y presiona 'Capturar'",
+  "processing": "Procesando...",
+  "capture_button": "Capturar",
+  "cancel_button": "Cancelar",
   "fields": {
     "make": "Marca",
     "model": "Modelo",

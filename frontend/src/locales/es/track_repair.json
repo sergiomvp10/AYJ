@@ -1,0 +1,33 @@
+{
+  "title": "Seguimiento de Reparación",
+  "vehicle_info": "Información del Vehículo",
+  "client_info": "Información del Cliente",
+  "issue_description": "Descripción del Problema",
+  "mechanic_assigned": "ESPECIALISTA ENCARGADO",
+  "progress": "Progreso de la Reparación",
+  "parts_needed": "Piezas Necesarias",
+  "estimated_cost": "Costo Total",
+  "status": {
+    "initiated": "Iniciado",
+    "in_progress": "En Progreso",
+    "waiting_parts": "Esperando Piezas",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  },
+  "part_status": {
+    "pending": "Pendiente",
+    "ordered": "Ordenado",
+    "received": "Recibido"
+  },
+  "error": {
+    "not_found": "Reparación no encontrada. Verifique el enlace."
+  },
+  "payment": {
+    "button": "HACER PAGO",
+    "dialog_title": "Información de Pago",
+    "instructions": "Envíe su pago a través de Zelle usando la siguiente información:",
+    "phone": "Teléfono",
+    "name": "Nombre",
+    "close": "Cerrar"
+  }
+}

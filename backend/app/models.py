@@ -150,8 +150,11 @@ class Repair(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    additional_services: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
+    share_token: Optional[str] = None
     created_at: datetime
 
 class RepairCreate(BaseModel):
@@ -169,6 +172,8 @@ class RepairUpdate(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    additional_services: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
 
@@ -188,8 +193,11 @@ class RepairResponse(BaseModel):
     scheduled_date: Optional[datetime] = None
     completed_date: Optional[datetime] = None
     cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    additional_services: Optional[float] = None
     amount_charged: Optional[float] = None
     balance_pending: Optional[float] = None
+    share_token: Optional[str] = None
     created_at: datetime
 
 class AuthorizedPoint(BaseModel):
@@ -227,30 +235,33 @@ class Part(BaseModel):
     repair_id: str
     name: str
     supplier_id: Optional[str] = None  # ID of AuthorizedPoint
+    supplier_name: Optional[str] = None  # Custom supplier name
     status: PartStatus
     ordered_online: bool = False
+    in_store: bool = False
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
     created_at: datetime
 
 class PartCreate(BaseModel):
     repair_id: str
     name: str
     supplier_id: Optional[str] = None
+    supplier_name: Optional[str] = None
     ordered_online: bool = False
+    in_store: bool = False
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
 
 class PartUpdate(BaseModel):
     name: Optional[str] = None
     supplier_id: Optional[str] = None
+    supplier_name: Optional[str] = None
     status: Optional[PartStatus] = None
     ordered_online: Optional[bool] = None
+    in_store: Optional[bool] = None
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
 
 class PartResponse(BaseModel):
     id: str
@@ -260,9 +271,9 @@ class PartResponse(BaseModel):
     supplier_name: Optional[str] = None
     status: PartStatus
     ordered_online: bool
+    in_store: bool
     estimated_arrival: Optional[datetime] = None
     cost: Optional[float] = None
-    notes: Optional[str] = None
     created_at: datetime
 
 class VinEngineInfo(BaseModel):
@@ -284,3 +295,118 @@ class VinDecoded(BaseModel):
     engine: VinEngineInfo
     plant_country: Optional[str] = None
     summary: str
+
+class ExpressServicePriority(str, Enum):
+    URGENT = "urgent"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+class ExpressServiceStatus(str, Enum):
+    PENDING = "pending"
+    ASSIGNED = "assigned"
+    EN_ROUTE = "en_route"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class ExpressService(BaseModel):
+    id: str
+    client_id: str
+    mechanic_id: Optional[str] = None
+    vehicle_info: str
+    emergency_type: str
+    description: str
+    priority: ExpressServicePriority
+    status: ExpressServiceStatus
+    location: str
+    contact_phone: str
+    estimated_arrival: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    cost: Optional[float] = None
+    created_at: datetime
+
+class ExpressServiceCreate(BaseModel):
+    client_id: str
+    vehicle_info: str
+    emergency_type: str
+    description: str
+    priority: ExpressServicePriority
+    location: str
+    contact_phone: str
+
+class ExpressServiceUpdate(BaseModel):
+    mechanic_id: Optional[str] = None
+    status: Optional[ExpressServiceStatus] = None
+    estimated_arrival: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    cost: Optional[float] = None
+
+class ExpressServiceResponse(BaseModel):
+    id: str
+    client_id: str
+    client_name: str
+    mechanic_id: Optional[str] = None
+    mechanic_name: Optional[str] = None
+    vehicle_info: str
+    emergency_type: str
+    description: str
+    priority: ExpressServicePriority
+    status: ExpressServiceStatus
+    location: str
+    contact_phone: str
+    estimated_arrival: Optional[datetime] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    cost: Optional[float] = None
+    created_at: datetime
+
+class RepairRequestStatus(str, Enum):
+    NEW = "new"
+    CONVERTED = "converted"
+    REJECTED = "rejected"
+
+class RepairRequest(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    phone: str
+    vehicle_info: str
+    description: str
+    service_type: str  # 'mobile' | 'workshop'
+    location: str
+    preferred_datetime: Optional[datetime] = None
+    is_emergency: bool = False
+    status: RepairRequestStatus
+    client_id: Optional[str] = None
+    ip: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime
+
+class RepairRequestCreate(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
+    vehicle_info: str
+    description: str
+    service_type: str
+    location: str
+    preferred_datetime: Optional[datetime] = None
+    is_emergency: bool = False
+    captcha_token: Optional[str] = None  # reserved for future
+
+class RepairRequestResponse(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    phone: str
+    vehicle_info: str
+    description: str
+    service_type: str
+    location: str
+    preferred_datetime: Optional[datetime] = None
+    is_emergency: bool
+    status: RepairRequestStatus
+    client_id: Optional[str] = None
+    created_at: datetime

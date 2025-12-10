@@ -1,5 +1,5 @@
 {
-  "title": "Puntos Autorizados",
+  "title": "Tienda Autopartes",
   "description": "Lugares de confianza para comprar repuestos y materiales",
   "add_button": "Registrar",
   "table": {
@@ -13,7 +13,7 @@
     }
   },
   "dialog": {
-    "title": "Registrar Punto Autorizado",
+    "title": "Registrar Tienda Autopartes",
     "description": "Registra un lugar de confianza para comprar repuestos",
     "name_label": "Nombre",
     "name_placeholder": "Auto Repuestos Central",
@@ -25,6 +25,6 @@
     "services_placeholder": "Repuestos originales, Accesorios, Herramientas",
     "contact_label": "Persona de Contacto",
     "contact_placeholder": "Nombre del contacto",
-    "register_button": "Registrar Punto"
+    "register_button": "Registrar Tienda"
   }
 }
