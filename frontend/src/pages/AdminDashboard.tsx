@@ -1238,75 +1238,79 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.client')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.vehicle')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.description')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.type')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.status')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.mechanic')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.parts')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4">{t('repairs:table.headers.cost')}</TableHead>
-                        <TableHead className="text-base font-semibold px-6 py-4 text-transparent">{t('repairs:table.headers.actions')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.client')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.vehicle')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.description')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.type')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.status')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.mechanic')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.parts')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2">{t('repairs:table.headers.cost')}</TableHead>
+                        <TableHead className="text-sm font-semibold px-3 py-2 text-transparent">{t('repairs:table.headers.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {repairs.map((repair) => (
                         <TableRow key={repair.id}>
-                          <TableCell className="font-medium text-base px-6 py-4">{repair.client_name}</TableCell>
-                          <TableCell className="text-base px-6 py-4">{repair.vehicle_info}</TableCell>
-                          <TableCell className="max-w-xs truncate text-base px-6 py-4">{repair.issue_description}</TableCell>
-                          <TableCell className="text-base px-6 py-4">{t(`repairs:service_type.${repair.service_type}`)}</TableCell>
-                          <TableCell className="px-6 py-4">
+                          <TableCell className="font-medium text-sm px-3 py-2">{repair.client_name}</TableCell>
+                          <TableCell className="text-sm px-3 py-2">{repair.vehicle_info}</TableCell>
+                          <TableCell className="max-w-xs truncate text-sm px-3 py-2">{repair.issue_description}</TableCell>
+                          <TableCell className="text-sm px-3 py-2">{t(`repairs:service_type.${repair.service_type}`)}</TableCell>
+                          <TableCell className="px-3 py-2">
                             <StatusEditor
                               status={repair.status}
                               repairId={repair.id}
                               onStatusUpdate={handleUpdateRepairStatus}
                             />
                           </TableCell>
-                          <TableCell className="text-base px-6 py-4">{repair.mechanic_name || t('common:unassigned')}</TableCell>
-                          <TableCell className="px-6 py-4">
+                          <TableCell className="text-sm px-3 py-2">{repair.mechanic_name || t('common:unassigned')}</TableCell>
+                          <TableCell className="px-3 py-2">
                             <Button
                               onClick={() => handleOpenPartsDialog(repair)}
                               variant="outline"
                               size="sm"
+                              className="h-7 px-2 text-xs"
                             >
-                              <Package className="w-4 h-4 mr-2" />
+                              <Package className="w-3 h-3 mr-1" />
                               {t('common:actions.manage')}
                             </Button>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
+                          <TableCell className="px-3 py-2">
                             <Button
                               onClick={() => handleOpenCostBreakdown(repair)}
                               variant="outline"
                               size="sm"
-                              className="font-semibold"
+                              className="h-7 px-2 text-xs font-semibold"
                             >
                               {repair.cost ? `$${repair.cost.toFixed(2)}` : 'N/A'}
                             </Button>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <div className="flex gap-2">
+                          <TableCell className="px-3 py-2">
+                            <div className="flex gap-1">
                               <Button
                                 onClick={() => handleShareRepair(repair.id)}
                                 variant="ghost"
                                 size="icon"
+                                className="h-7 w-7"
                                 title="Compartir"
                               >
-                                <Share2 className="w-5 h-5 text-gray-600" />
+                                <Share2 className="w-4 h-4 text-gray-600" />
                               </Button>
                               <Button
                                 onClick={() => handleOpenEditRepair(repair)}
                                 variant="ghost"
                                 size="icon"
+                                className="h-7 w-7"
                               >
-                                <Edit className="w-5 h-5 text-blue-500" />
+                                <Edit className="w-4 h-4 text-blue-500" />
                               </Button>
                               <Button
                                 onClick={() => setConfirmDelete({ type: 'repair', id: repair.id })}
                                 variant="ghost"
                                 size="icon"
+                                className="h-7 w-7"
                               >
-                                <Trash2 className="w-5 h-5 text-red-500" />
+                                <Trash2 className="w-4 h-4 text-red-500" />
                               </Button>
                             </div>
                           </TableCell>
