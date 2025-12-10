@@ -1394,6 +1394,7 @@ async def convert_repair_request(
         entity_type = "express_service"
     else:
         repair_id = str(uuid.uuid4())
+        service_type_value = ServiceType.MOBILE if req.service_type.lower() == "mobile" else ServiceType.WORKSHOP
         repair = Repair(
             id=repair_id,
             client_id=client_id,
@@ -1402,7 +1403,7 @@ async def convert_repair_request(
             vehicle_info=req.vehicle_info,
             issue_description=req.description,
             status=RepairStatus.PENDING,
-            service_type=req.service_type,
+            service_type=service_type_value,
             location=req.location,
             scheduled_date=req.preferred_datetime,
             completed_date=None,
