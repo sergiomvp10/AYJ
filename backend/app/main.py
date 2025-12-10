@@ -1346,12 +1346,12 @@ async def convert_repair_request(
     existing_client = db.get_client_by_email(req.email)
     
     if existing_client:
-        client_id = existing_client.id
+        client_id = existing_client["id"] if isinstance(existing_client, dict) else existing_client.id
     else:
         existing_user = db.get_user_by_email(req.email)
         
         if existing_user:
-            user_id = existing_user.id
+            user_id = existing_user["id"] if isinstance(existing_user, dict) else existing_user.id
         else:
             user_id = str(uuid.uuid4())
             random_password = str(uuid.uuid4())
@@ -1402,7 +1402,10 @@ async def convert_repair_request(
         entity_type = "express_service"
     else:
         repair_id = str(uuid.uuid4())
-        service_type_value = ServiceType.MOBILE if req.service_type.lower() == "mobile" else ServiceType.WORKSHOP
+        stype = (req.service_type or "").lower()
+        if stype not in ["mobile", "workshop"]:
+            raise HTTPException(status_code=422, detail=f"Invalid service_type: {req.service_type}. Must be 'mobile' or 'workshop'")
+        service_type_value = ServiceType.MOBILE if stype == "mobile" else ServiceType.WORKSHOP
         repair = Repair(
             id=repair_id,
             client_id=client_id,
