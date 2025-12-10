@@ -452,6 +452,7 @@ class PostgresDatabase:
     def delete_repair(self, repair_id: str) -> bool:
         with self.get_connection() as conn:
             cursor = conn.cursor()
+            cursor.execute("DELETE FROM parts WHERE repair_id = %s", (repair_id,))
             cursor.execute("DELETE FROM repairs WHERE id = %s", (repair_id,))
             return cursor.rowcount > 0
     
