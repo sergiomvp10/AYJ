@@ -1343,12 +1343,19 @@ async def convert_repair_request(
     if req.status != RepairRequestStatus.NEW:
         raise HTTPException(status_code=409, detail="Request already processed")
     
-    existing_client = db.get_client_by_email(req.email)
+    # Generate placeholder email if not provided
+    email_to_use = req.email if req.email else f"no-email+{uuid.uuid4().hex}@ayj.invalid"
+    
+    existing_client = None
+    if req.email:
+        existing_client = db.get_client_by_email(req.email)
     
     if existing_client:
         client_id = existing_client["id"] if isinstance(existing_client, dict) else existing_client.id
     else:
-        existing_user = db.get_user_by_email(req.email)
+        existing_user = None
+        if req.email:
+            existing_user = db.get_user_by_email(req.email)
         
         if existing_user:
             user_id = existing_user["id"] if isinstance(existing_user, dict) else existing_user.id
@@ -1357,7 +1364,7 @@ async def convert_repair_request(
             random_password = str(uuid.uuid4())
             user = User(
                 id=user_id,
-                email=req.email,
+                email=email_to_use,
                 password_hash=get_password_hash(random_password),
                 name=req.name,
                 role=UserRole.CLIENTE,

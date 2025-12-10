@@ -370,7 +370,7 @@ class RepairRequestStatus(str, Enum):
 class RepairRequest(BaseModel):
     id: str
     name: str
-    email: EmailStr
+    email: Optional[str] = None
     phone: str
     vehicle_info: str
     description: str
@@ -386,7 +386,7 @@ class RepairRequest(BaseModel):
 
 class RepairRequestCreate(BaseModel):
     name: str
-    email: EmailStr
+    email: Optional[str] = None
     phone: str
     vehicle_info: str
     description: str
@@ -399,7 +399,7 @@ class RepairRequestCreate(BaseModel):
 class RepairRequestResponse(BaseModel):
     id: str
     name: str
-    email: EmailStr
+    email: Optional[str] = None
     phone: str
     vehicle_info: str
     description: str
