@@ -1340,18 +1340,23 @@ async def convert_repair_request(
     if existing_client:
         client_id = existing_client.id
     else:
-        user_id = str(uuid.uuid4())
-        random_password = str(uuid.uuid4())
-        user = User(
-            id=user_id,
-            email=req.email,
-            password_hash=get_password_hash(random_password),
-            name=req.name,
-            role=UserRole.CLIENTE,
-            phone=req.phone,
-            created_at=datetime.utcnow()
-        )
-        db.create_user(user)
+        existing_user = db.get_user_by_email(req.email)
+        
+        if existing_user:
+            user_id = existing_user.id
+        else:
+            user_id = str(uuid.uuid4())
+            random_password = str(uuid.uuid4())
+            user = User(
+                id=user_id,
+                email=req.email,
+                password_hash=get_password_hash(random_password),
+                name=req.name,
+                role=UserRole.CLIENTE,
+                phone=req.phone,
+                created_at=datetime.utcnow()
+            )
+            db.create_user(user)
         
         client_id = str(uuid.uuid4())
         client = Client(
