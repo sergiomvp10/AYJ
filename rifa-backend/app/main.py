@@ -35,9 +35,16 @@ def init_db():
             number INTEGER PRIMARY KEY,
             buyer_name TEXT NOT NULL,
             buyer_phone TEXT NOT NULL,
+            buyer_city TEXT NOT NULL DEFAULT '',
+            payment_method TEXT NOT NULL DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    for col, col_type in [("buyer_city", "TEXT NOT NULL DEFAULT ''"), ("payment_method", "TEXT NOT NULL DEFAULT ''")]:
+        try:
+            conn.execute(f"ALTER TABLE spots ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass
     conn.commit()
     conn.close()
 
@@ -47,10 +54,14 @@ class SpotReservation(BaseModel):
     number: int
     buyer_name: str
     buyer_phone: str
+    buyer_city: str = ''
+    payment_method: str = ''
 
 class SpotUpdate(BaseModel):
     buyer_name: str
     buyer_phone: str
+    buyer_city: str = ''
+    payment_method: str = ''
 
 class AdminLogin(BaseModel):
     password: str
@@ -62,15 +73,15 @@ async def healthz():
 @app.get("/api/spots")
 async def get_spots():
     conn = get_db()
-    rows = conn.execute("SELECT number, buyer_name, buyer_phone FROM spots ORDER BY number").fetchall()
+    rows = conn.execute("SELECT number, buyer_name, buyer_phone, buyer_city, payment_method FROM spots ORDER BY number").fetchall()
     conn.close()
-    taken = {row["number"]: {"buyer_name": row["buyer_name"], "buyer_phone": row["buyer_phone"]} for row in rows}
+    taken = {row["number"]: {"buyer_name": row["buyer_name"], "buyer_phone": row["buyer_phone"], "buyer_city": row["buyer_city"] if "buyer_city" in row.keys() else "", "payment_method": row["payment_method"] if "payment_method" in row.keys() else ""} for row in rows}
     spots = []
     for i in range(1, 101):
         if i in taken:
-            spots.append({"number": i, "buyer_name": taken[i]["buyer_name"], "buyer_phone": taken[i]["buyer_phone"], "taken": True})
+            spots.append({"number": i, "buyer_name": taken[i]["buyer_name"], "buyer_phone": taken[i]["buyer_phone"], "buyer_city": taken[i]["buyer_city"], "payment_method": taken[i]["payment_method"], "taken": True})
         else:
-            spots.append({"number": i, "buyer_name": "", "buyer_phone": "", "taken": False})
+            spots.append({"number": i, "buyer_name": "", "buyer_phone": "", "buyer_city": "", "payment_method": "", "taken": False})
     return {"spots": spots}
 
 @app.post("/api/spots")
@@ -81,14 +92,18 @@ async def reserve_spot(reservation: SpotReservation):
         raise HTTPException(status_code=400, detail="El nombre es obligatorio")
     if not reservation.buyer_phone.strip():
         raise HTTPException(status_code=400, detail="El teléfono es obligatorio")
+    if not reservation.buyer_city.strip():
+        raise HTTPException(status_code=400, detail="La ciudad es obligatoria")
+    if not reservation.payment_method.strip():
+        raise HTTPException(status_code=400, detail="El método de pago es obligatorio")
     conn = get_db()
     existing = conn.execute("SELECT number FROM spots WHERE number = ?", (reservation.number,)).fetchone()
     if existing:
         conn.close()
         raise HTTPException(status_code=409, detail=f"El puesto #{reservation.number} ya está tomado")
     conn.execute(
-        "INSERT INTO spots (number, buyer_name, buyer_phone) VALUES (?, ?, ?)",
-        (reservation.number, reservation.buyer_name.strip(), reservation.buyer_phone.strip())
+        "INSERT INTO spots (number, buyer_name, buyer_phone, buyer_city, payment_method) VALUES (?, ?, ?, ?, ?)",
+        (reservation.number, reservation.buyer_name.strip(), reservation.buyer_phone.strip(), reservation.buyer_city.strip(), reservation.payment_method.strip())
     )
     conn.commit()
     conn.close()
@@ -128,13 +143,13 @@ async def update_spot(number: int, update: SpotUpdate, x_admin_password: str = H
     existing = conn.execute("SELECT number FROM spots WHERE number = ?", (number,)).fetchone()
     if existing:
         conn.execute(
-            "UPDATE spots SET buyer_name = ?, buyer_phone = ? WHERE number = ?",
-            (update.buyer_name.strip(), update.buyer_phone.strip(), number)
+            "UPDATE spots SET buyer_name = ?, buyer_phone = ?, buyer_city = ?, payment_method = ? WHERE number = ?",
+            (update.buyer_name.strip(), update.buyer_phone.strip(), update.buyer_city.strip(), update.payment_method.strip(), number)
         )
     else:
         conn.execute(
-            "INSERT INTO spots (number, buyer_name, buyer_phone) VALUES (?, ?, ?)",
-            (number, update.buyer_name.strip(), update.buyer_phone.strip())
+            "INSERT INTO spots (number, buyer_name, buyer_phone, buyer_city, payment_method) VALUES (?, ?, ?, ?, ?)",
+            (number, update.buyer_name.strip(), update.buyer_phone.strip(), update.buyer_city.strip(), update.payment_method.strip())
         )
     conn.commit()
     conn.close()
