@@ -388,21 +388,21 @@ function App() {
                   <p className="text-gray-400 mb-4 text-lg">Chip M4 &middot; 16GB RAM &middot; Última generación</p>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-amber-400 text-2xl">&#128176;</span>
+                      <span className="text-amber-400 text-xl font-bold">$</span>
                       <div>
                         <p className="text-sm text-gray-500">Costo por puesto</p>
                         <p className="text-2xl font-bold text-amber-400">$80.000 COP</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-amber-400 text-2xl">&#127919;</span>
+                      <span className="text-amber-400 text-xl font-bold">#</span>
                       <div>
                         <p className="text-sm text-gray-500">Total de puestos</p>
                         <p className="text-lg font-semibold">100 puestos</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-amber-400 text-2xl">&#128197;</span>
+                      <span className="text-amber-400 text-xl font-bold">~</span>
                       <div>
                         <p className="text-sm text-gray-500">Día de la rifa</p>
                         <p className="text-lg font-semibold">Cuando se vendan todos los puestos</p>
